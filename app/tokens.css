@@ -1,0 +1,15 @@
+/* The only place that defines the look (spec §8.1).
+   Neutral placeholders until the design session (stage 6) replaces them. */
+@theme {
+  --color-bg: #ffffff;
+  --color-fg: #1f2328;
+  --color-fg-muted: #59636e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0d1117;
+    --color-fg: #e6edf3;
+    --color-fg-muted: #9198a1;
+  }
+}
