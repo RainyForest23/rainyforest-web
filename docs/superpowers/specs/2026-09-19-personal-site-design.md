@@ -260,14 +260,14 @@ IP 원문은 저장하지 않는다. 일별 솔트로 해시한 값만 쓴다. �
 | 리소스 | 설정 |
 |---|---|
 | S3 | 퍼블릭 액세스 전면 차단, CloudFront OAC로만 읽기 |
-| CloudFront | ACM 인증서(us-east-1), 기본 동작 → S3, `/api/*` → Lambda Function URL(OAC) |
-| CloudFront Function (viewer-request) | `/blog/foo` → `/blog/foo/index.html` 보정, KVS 리다이렉트 맵 조회 후 301 |
+| CloudFront | ACM 인증서(us-east-1, apex + `www` SAN), 기본 동작 → S3, `/api/*` → Lambda Function URL(OAC) |
+| CloudFront Function (viewer-request) | `www` → apex 301, KVS 리다이렉트 맵 조회 후 301, `/blog/foo` → `/blog/foo/index.html` 보정 |
 | CloudFront KeyValueStore | 리다이렉트 맵. 콘텐츠 배포가 갱신하므로 인프라 재배포 불필요 |
 | 캐시 | 해시 붙은 에셋 1년 immutable, HTML은 배포 시 `/*` 무효화 |
 | Lambda | Node 22, **VPC 밖**, 예약 동시성 5, Function URL + OAC (POST 본문 없음 → 본문 해시 헤더는 상수) |
 | DynamoDB | 온디맨드, TTL 속성 `ttl` |
 | CloudWatch Logs | 보존 14일 |
-| AWS Budgets | $5 초과 알림 |
+| AWS Budgets | 월 $5 초과(실제·예측) 이메일 알림. 계정 전체 비용 기준. 알림 주소는 배포 시 환경변수로 주입(레포에 커밋하지 않음) |
 
 ### 7.2 배포 파이프라인
 
@@ -290,7 +290,7 @@ GitHub에는 장기 액세스 키를 두지 않는다. 비밀값은 두 개뿐�
 | 레코드 | 값 |
 |---|---|
 | apex | CNAME → CloudFront 도메인 (DNS only, CNAME flattening) |
-| `www` | apex로 301 (Redirect Rule) |
+| `www` | CNAME → CloudFront 도메인 (DNS only). apex로의 301은 CloudFront Function이 처리한다. Cloudflare Redirect Rule은 프록시가 켜진 레코드에만 동작하므로 쓰지 않는다 |
 | `_<token>.<apex>` | ACM 검증 CNAME. **지우면 인증서 자동 갱신이 실패한다** |
 
 ### 7.4 예상 비용
@@ -343,7 +343,7 @@ GitHub에는 장기 액세스 키를 두지 않는다. 비밀값은 두 개뿐�
 
 | 단계 | 내용 | 완료 기준 |
 |---|---|---|
-| 0 | 볼트 private GitHub remote 생성·push, 도메인 구매, AWS Budgets 알림 | 사전 준비 완료 |
+| 0 | 볼트 private GitHub remote 생성·push, 도메인 구매 | 사전 준비 완료 |
 | 1 | Walking skeleton: 빈 Next 앱 + CDK 스택 + 콘텐츠 배포 워크플로 + Cloudflare DNS | 실제 도메인에서 HTTPS로 페이지 응답, 배포 후 스모크 통과 |
 | 2 | CV: `resume.json` 통합, 프로젝트 10개 변환, `/` `/cv` `/projects` | 지원서에 링크할 수 있는 최소 사이트 |
 | 3 | 레거시 24개 변환, `/blog`, 태그, RSS | 기존 블로그 대체 가능 |
@@ -360,5 +360,4 @@ GitHub에는 장기 액세스 키를 두지 않는다. 비밀값은 두 개뿐�
 
 1. 볼트에 private GitHub remote를 만들고 push한다. iCloud 안의 `.git`은 동기화 충돌 위험이 있으므로 GitHub를 정본으로 둔다.
 2. 도메인 이름을 정해 Cloudflare Registrar에서 구매한다.
-3. AWS 계정에 Budgets 알림을 설정한다.
-4. 볼트 Templater에 발행 전환 템플릿(`publish`, `slug`, `summary_en` 채우기)을 추가한다. 이행 4단계(§10)에서 템플릿 초안을 제공한다.
+3. 볼트 Templater에 발행 전환 템플릿(`publish`, `slug`, `summary_en` 채우기)을 추가한다. 이행 4단계(§10)에서 템플릿 초안을 제공한다.
