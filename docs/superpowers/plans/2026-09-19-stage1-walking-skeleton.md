@@ -1175,6 +1175,8 @@ git commit -m "ci: verify on PRs, deploy to S3/CloudFront on main with post-depl
 
 ### Task 6: 첫 배포와 운영 런북 (사용자 수행)
 
+> **2026-09-20 보류.** 사용자가 도메인 구매를 최후순위로 미뤘다. Step 1(README)은 완료했고, Step 2부터는 도메인을 구매한 뒤에 실행한다. 그때까지 2단계 이후 작업을 로컬에서 진행한다.
+
 AWS SSO, 도메인, Cloudflare 계정이 필요하므로 사용자가 직접 수행한다. README 작성(Step 1)만 Claude가 도울 수 있다.
 
 **Files:**
