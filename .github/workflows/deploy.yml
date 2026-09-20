@@ -1,0 +1,49 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [vault-updated]
+  workflow_dispatch:
+
+# Never run two deploys at once; queue instead of cancelling a half-finished upload.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          BUILD_SHA: ${{ github.sha }}
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+      - run: ./scripts/deploy.sh
+        env:
+          SITE_BUCKET: ${{ vars.SITE_BUCKET }}
+          DISTRIBUTION_ID: ${{ vars.DISTRIBUTION_ID }}
+      - run: ./scripts/smoke.sh
+        env:
+          SITE_DOMAIN: ${{ vars.SITE_DOMAIN }}
+          EXPECTED_SHA: ${{ github.sha }}
