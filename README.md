@@ -35,6 +35,15 @@ through them; without them the site stops serving HTTPS when the certificate exp
 Keep the proxy (orange cloud) off: Cloudflare Redirect Rules and caching are not used,
 and a second CDN layer would need its own cache purge on every deploy.
 
+### Turn deploys back on
+
+The `deploy` workflow is disabled until the domain exists, so pushes to `main`
+only run `ci`. After the first `cdk deploy` and the GitHub variables are set:
+
+```bash
+gh workflow enable deploy.yml
+```
+
 ### Deploy infrastructure
 
 ```bash
