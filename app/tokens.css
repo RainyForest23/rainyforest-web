@@ -4,6 +4,7 @@
   --color-bg: #ffffff;
   --color-fg: #1f2328;
   --color-fg-muted: #59636e;
+  --color-line: #d8dee4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -11,5 +12,65 @@
     --color-bg: #0d1117;
     --color-fg: #e6edf3;
     --color-fg-muted: #9198a1;
+    --color-line: #2a3038;
   }
+}
+
+/* Body copy for MDX content. Tailwind Typography is not used: it ships its own
+   colour and spacing values, which would compete with these tokens. */
+.prose-body {
+  line-height: 1.7;
+}
+.prose-body h2 {
+  margin-top: 2.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.prose-body h3 {
+  margin-top: 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.prose-body p,
+.prose-body ul,
+.prose-body ol,
+.prose-body table,
+.prose-body pre,
+.prose-body blockquote {
+  margin-top: 1rem;
+}
+.prose-body ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.prose-body ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+.prose-body a {
+  text-decoration: underline;
+}
+.prose-body blockquote {
+  border-left: 2px solid var(--color-line);
+  padding-left: 1rem;
+  color: var(--color-fg-muted);
+}
+.prose-body code {
+  font-size: 0.9em;
+}
+.prose-body pre {
+  overflow-x: auto;
+  padding: 1rem;
+  background: color-mix(in oklab, var(--color-fg) 6%, transparent);
+}
+.prose-body table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.prose-body th,
+.prose-body td {
+  border: 1px solid var(--color-line);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
 }
