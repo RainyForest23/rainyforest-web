@@ -1,0 +1,42 @@
+---
+title: "Energy Cost Model for AI Workloads in Shared Resource Environments"
+summary: "A resource-aware model that attributes real energy use to individual workloads on shared hardware, instead of billing by allocation."
+outcome: "Showed AI workloads draw 4.7-11x the energy of traditional ones under identical allocations; paper submitted to Mathematics (MDPI, SCIE) as co-first author."
+period: 
+  start: "2026-02"
+role: "Co-first Author"
+teamSize: 3
+stack: ["Python", "Intel RAPL", "nvidia-smi", "Linux"]
+category: "research"
+featured: true
+series: "energy-attribution"
+---
+
+### Overview
+
+Formulated a resource-aware energy decomposition and attribution model for shared computing environments, directly addressing the limitations of traditional allocation-based cloud billing (e.g., AWS EC2). The model quantifies how much energy each workload actually consumes in multi-tenant settings — a problem that is systematically underrepresented in existing cloud cost models.
+
+### Key Findings
+
+- **AI workloads consume 4.7–11× more energy** than traditional workloads (Node.js) despite running under identical resource allocations
+- Demonstrated empirically using real AI models: YOLO, ResNet, GPT-2
+- Achieved **\<5% error** in multi-tenant energy approximations using hardware-level measurement
+
+### What I Built
+
+- **Hardware Measurement Stack**: Utilized hardware CT sensors (wall power), Intel RAPL, and nvidia-smi to separate baseline and component-specific energy consumption
+- **Attribution Model**: Designed energy decomposition algorithm to assign per-workload energy costs in shared environments
+- **Billing Discrepancy Analysis**: Quantified the gap between allocation-based billing and actual energy usage across workload types
+
+### Publication
+
+> **Woorim Shin**†, Jiyun Kim, Siyeon Kang, Kyungwoon Cho†, Hyokyung Bahn.
+> "An Energy Cost Model for AI Workloads under Shared Resource Environments."
+> _Mathematics_, MDPI (SCIE) — Submitted, Feb. 2026.
+> †Equal contribution, co-first author.
+
+### Technologies
+
+**Measurement**: Intel RAPL, nvidia-smi, hardware CT sensors (wall power)
+**Implementation**: Python, Linux system utilities
+**Analysis**: Statistical modeling, energy attribution algorithms

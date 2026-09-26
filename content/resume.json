@@ -1,0 +1,180 @@
+{
+  "basics": {
+    "name": "Woorim Shin",
+    "label": "Computer Science undergraduate — AI systems and Korean language technology",
+    "email": "wrim0923@gmail.com",
+    "summary": "Computer science undergraduate working on AI systems: Korean speech recognition in production, parameter-efficient fine-tuning, and energy attribution for AI workloads on shared hardware. I like problems where a model meets the machine it runs on.",
+    "location": {
+      "city": "Seoul",
+      "region": "South Korea",
+      "countryCode": "KR"
+    },
+    "profiles": [
+      {
+        "network": "GitHub",
+        "username": "RainyForest23",
+        "url": "https://github.com/RainyForest23"
+      },
+      {
+        "network": "LinkedIn",
+        "username": "woorimshin",
+        "url": "https://linkedin.com/in/woorimshin"
+      }
+    ]
+  },
+  "education": [
+    {
+      "institution": "Ewha Womans University",
+      "area": "Computer Science and Engineering",
+      "studyType": "B.S.",
+      "startDate": "2023",
+      "endDate": "2027",
+      "score": "GPA 3.36/4.5",
+      "summary": "Seoul, Korea. Expected graduation February 2027.",
+      "courses": [
+        "Operating Systems",
+        "Computer Architecture",
+        "Data Structures",
+        "Algorithms",
+        "Computer Networks",
+        "Database",
+        "Machine Learning",
+        "Software Engineering"
+      ]
+    }
+  ],
+  "work": [
+    {
+      "name": "Hiconsy",
+      "position": "AI R&D Intern",
+      "location": "Seoul, Korea",
+      "startDate": "2025",
+      "endDate": "2026",
+      "highlights": [
+        "Led the AI/ML R&D function at a Korean CSAT education technology subsidiary, directing research strategy and coordinating a cross-functional team.",
+        "Architected and deployed a production Korean lecture ASR system end to end.",
+        "Established QA workflows by building custom annotation tools for non-technical QC staff."
+      ]
+    },
+    {
+      "name": "SDIJ Forest Team",
+      "position": "Project Leader",
+      "location": "Seoul, Korea",
+      "startDate": "2023",
+      "endDate": "2025",
+      "highlights": [
+        "Initiated Korean CSAT education planning projects and expanded into technical development where product strategy required it.",
+        "Engineered a learning analytics automation pipeline (Selenium, Google APIs) that replaced manual workflows and cut data collection time by 80%.",
+        "Built a large-scale NLP pipeline over educational forum data to automate student sentiment analysis and surface concerns early."
+      ]
+    }
+  ],
+  "publications": [
+    {
+      "name": "An Energy Cost Model for AI Workloads under Shared Resource Environments",
+      "publisher": "Mathematics, MDPI (SCIE)",
+      "releaseDate": "2026",
+      "summary": "Woorim Shin, Jiyun Kim, Siyeon Kang, Kyungwoon Cho, Hyokyung Bahn. Submitted February 2026. Equal contribution, co-first author."
+    },
+    {
+      "name": "Eliminating Hallucinations in Whisper LoRA Fine-tuning: A Case Study on Korean Lecture Transcription",
+      "publisher": "Independent research, Hiconsy AI R&D",
+      "releaseDate": "2026",
+      "summary": "Woorim Shin. In preparation."
+    }
+  ],
+  "talks": [
+    {
+      "title": "Managing a developer portfolio with github.io",
+      "venue": "Google Developer Group on Campus (GDGoC) Ewha, Seoul",
+      "startDate": "2025-10-01",
+      "slides": "/cv/talks/gdgoc-portfolio-session.pdf",
+      "highlights": [
+        "Member session on building and maintaining a developer portfolio with GitHub Pages.",
+        "Covered Jekyll setup, project page structure, and the continuous deployment workflow."
+      ]
+    },
+    {
+      "title": "Git and GitHub guide for Forest",
+      "venue": "SDIJ Forest Team, Seoul",
+      "startDate": "2026",
+      "highlights": [
+        "Internal workshop on collaborative Git and GitHub workflows for LRS development.",
+        "Designed for non-expert teammates, focused on workflows they could apply the same day."
+      ]
+    }
+  ],
+  "awards": [
+    {
+      "title": "Ewha Startup Contest — 3rd place",
+      "date": "2025",
+      "awarder": "Ewha Womans University",
+      "summary": "SchedAI, a web-based HR and interview scheduling service."
+    },
+    {
+      "title": "Google Developer Group on Campus (GDGoC) Ewha — General Member, AI",
+      "date": "2025",
+      "awarder": "GDGoC Ewha",
+      "summary": "September 2025 to present."
+    }
+  ],
+  "skills": [
+    {
+      "name": "Languages",
+      "keywords": ["Python", "Rust", "Java", "C", "TypeScript"]
+    },
+    {
+      "name": "AI and machine learning",
+      "keywords": [
+        "PyTorch",
+        "Hugging Face",
+        "PEFT/LoRA",
+        "DeepSpeed",
+        "Whisper",
+        "OpenAI / Gemini / Anthropic APIs"
+      ]
+    },
+    {
+      "name": "Data and frameworks",
+      "keywords": ["pandas", "NumPy", "scikit-learn", "Streamlit", "Selenium", "Google Apps Script"]
+    },
+    {
+      "name": "Systems and tools",
+      "keywords": ["Linux", "Git", "Docker", "AWS"]
+    },
+    {
+      "name": "Design",
+      "keywords": ["Figma"]
+    }
+  ],
+  "languages": [
+    { "language": "Korean", "fluency": "Native" },
+    { "language": "English", "fluency": "Advanced" }
+  ],
+  "interests": [
+    {
+      "name": "Natural language processing",
+      "keywords": [
+        "Korean language technology, ASR and speech processing",
+        "LLM evaluation, benchmark design and instruction tuning",
+        "Educational NLP — sentiment analysis and question understanding"
+      ]
+    },
+    {
+      "name": "AI systems and systems programming",
+      "keywords": [
+        "Distributed training and large-scale model optimisation",
+        "Energy efficiency and resource attribution of AI workloads",
+        "Systems security and low-level Linux internals"
+      ]
+    },
+    {
+      "name": "ML engineering",
+      "keywords": [
+        "Parameter-efficient fine-tuning (PEFT/LoRA) and model adaptation",
+        "End-to-end ML pipelines and production deployment"
+      ]
+    }
+  ],
+  "projects": []
+}

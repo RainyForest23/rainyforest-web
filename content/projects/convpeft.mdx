@@ -1,0 +1,63 @@
+---
+title: "ConvPEFT: Adapting Transformer PEFT to CNN Audio Classification"
+summary: "Conv-LoRA and Conv-Adapter, adapting Transformer parameter-efficient fine-tuning to Conv2D layers for on-device audio classification."
+outcome: "Conv-Adapter reached 62.01% accuracy training only 34.9% of parameters, beating full fine-tuning; Conv-LoRA did so with 23.8%."
+period: 
+  start: "2025"
+  end: "2025"
+role: "Team of 3, Ewha CSE"
+teamSize: 3
+stack: ["PyTorch", "PEFT", "UrbanSound8K"]
+category: "research"
+featured: false
+links: 
+  slides: "/projects/convpeft/convpeft-poster.pdf"
+---
+
+### Overview
+
+Parameter-Efficient Fine-Tuning (PEFT) methods such as LoRA and Adapter were originally designed for Transformer architectures. This project systematically adapts them to CNN-based audio classification, proposing **Conv-LoRA** and **Conv-Adapter** as novel variants that preserve spatial structure in convolutional layers.
+
+The motivation is practical: deploying high-accuracy audio classifiers (e.g., for hearing-impaired users in on-device environments) requires efficient fine-tuning with minimal trainable parameters.
+
+### Methods
+
+**Conv-LoRA**
+
+- Adapts LoRA's low-rank decomposition to Conv2D layers
+- Matrix A: 3×3 conv preserves spatial information; Matrix B: 1×1 pointwise conv for channel projection
+- Δ W(x) = Conv_B(Conv_A(x))
+
+**Conv-Adapter**
+
+- Adapts sequential bottleneck structure to Conv2D layers
+- Down-project → ReLU → Up-project with residual connection
+- Serial insertion after main convolution layer
+
+### Experiment Setup
+
+- **Dataset**: UrbanSound8K — 8,732 audio clips across 10 urban sound classes
+- **Input**: MFCC spectrograms (40×174×1)
+- **Base Model**: 3-convolutional-layer CNN; Conv1 frozen, PEFT modules added to Conv2–3
+- **Evaluation**: 10-fold cross-validation
+
+### Key Results
+
+| Method           | Trainable Params   | Accuracy   |
+| ---------------- | ------------------ | ---------- |
+| Scratch          | 110,474 (100%)     | 52.45%     |
+| Full Fine-Tuning | 110,474 (100%)     | 59.38%     |
+| Conv-LoRA        | 26,250 **(23.8%)** | 60.69%     |
+| Conv-Adapter     | 38,570 **(34.9%)** | **62.01%** |
+
+- Conv-Adapter achieves the **best accuracy (62.01%)**, outperforming Full Fine-Tuning with 65.1% fewer parameters
+- Conv-LoRA delivers the **best parameter efficiency (23.8%)** while still exceeding Full FT accuracy
+- Both PEFT methods demonstrate that lightweight adaptation is viable for on-device CNN models
+
+### Technologies
+
+**Framework**: PyTorch, PEFT
+**Architecture**: CNN with Conv-LoRA / Conv-Adapter modules
+**Audio Processing**: MFCC spectrograms
+**Dataset**: UrbanSound8K
+**Design**: Figma — research poster (A1) designed entirely from scratch

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findViolations, TOKENS_FILE } from './check-tokens'
+import { findViolations, TOKENS_FILE, VENDOR_DIR } from './check-tokens'
 
 describe('findViolations', () => {
   it('flags hex colors outside the tokens file', () => {
@@ -20,6 +20,10 @@ describe('findViolations', () => {
 
   it('allows anything in the tokens file', () => {
     expect(findViolations(TOKENS_FILE, '--color-bg: #ffffff; --space: 4px;')).toEqual([])
+  })
+
+  it('skips vendored shadcn primitives, which the CLI regenerates', () => {
+    expect(findViolations(`${VENDOR_DIR}button.tsx`, 'className="px-[10px]"')).toEqual([])
   })
 
   it('ignores anchors that are not hex colors', () => {
