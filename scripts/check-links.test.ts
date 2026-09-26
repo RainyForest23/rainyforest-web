@@ -14,7 +14,7 @@ describe('findBrokenLinks', () => {
     expect(findBrokenLinks(pages, files)).toEqual(['blog/index.html -> /blog/missing/'])
   })
 
-  it('resolves extensionless paths the way the CloudFront function does', () => {
+  it('resolves extensionless paths the way Cloudflare auto-trailing-slash does', () => {
     const pages = new Map([['index.html', '<a href="/blog/a">a</a>']])
     expect(findBrokenLinks(pages, files)).toEqual([])
   })

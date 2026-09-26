@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -35,16 +34,13 @@ jobs:
       - run: npm run build
         env:
           BUILD_SHA: ${{ github.sha }}
-          SITE_URL: https://${{ vars.SITE_DOMAIN }}
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: us-east-1
-      - run: ./scripts/deploy.sh
+          SITE_URL: ${{ vars.SITE_URL }}
+      # Uploads only files whose content changed; the new version goes live atomically.
+      - run: npx wrangler deploy
         env:
-          SITE_BUCKET: ${{ vars.SITE_BUCKET }}
-          DISTRIBUTION_ID: ${{ vars.DISTRIBUTION_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - run: ./scripts/smoke.sh
         env:
-          SITE_DOMAIN: ${{ vars.SITE_DOMAIN }}
+          SITE_URL: ${{ vars.SITE_URL }}
           EXPECTED_SHA: ${{ github.sha }}
