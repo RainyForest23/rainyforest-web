@@ -18,4 +18,7 @@ curl -fsS "https://$SITE_DOMAIN/" | grep -qF "content=\"$EXPECTED_SHA\"" \
 
 [ "$(status "http://$SITE_DOMAIN/")" = "301" ] || fail "http did not redirect to https"
 
+curl -fsS "https://$SITE_DOMAIN/sitemap.xml" | grep -qF "<loc>https://$SITE_DOMAIN/" \
+  || fail "sitemap does not use https://$SITE_DOMAIN (was SITE_URL set for the build?)"
+
 echo "smoke: ok ($SITE_DOMAIN @ $EXPECTED_SHA)"

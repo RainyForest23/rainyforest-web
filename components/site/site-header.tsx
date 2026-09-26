@@ -3,6 +3,7 @@ import Link from 'next/link'
 const NAV = [
   { href: '/cv/', label: 'CV' },
   { href: '/projects/', label: 'Projects' },
+  { href: '/blog/', label: 'Blog' },
 ]
 
 export function SiteHeader() {

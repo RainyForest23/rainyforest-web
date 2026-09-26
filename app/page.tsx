@@ -1,12 +1,15 @@
 import Link from 'next/link'
+import { PostList } from '@/components/site/post-list'
 import { ProjectCard } from '@/components/site/project-card'
 import { Section } from '@/components/site/section'
+import { loadPosts } from '@/lib/content/posts'
 import { loadProjects } from '@/lib/content/projects'
 import { loadResume } from '@/lib/cv/resume'
 
 export default function Home() {
   const resume = loadResume()
   const featured = loadProjects().filter((project) => project.featured)
+  const recent = loadPosts().slice(0, 5)
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -36,6 +39,15 @@ export default function Home() {
         <p className="mt-6 text-sm">
           <Link href="/projects/" className="underline">
             All projects
+          </Link>
+        </p>
+      </Section>
+
+      <Section title="Recent writing">
+        <PostList posts={recent} />
+        <p className="mt-6 text-sm">
+          <Link href="/blog/" className="underline">
+            All posts
           </Link>
         </p>
       </Section>
