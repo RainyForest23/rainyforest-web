@@ -1,4 +1,4 @@
-import { PROJECT_CATEGORIES, type Project } from './model'
+import { PROJECT_CATEGORIES, type Post, type Project } from './model'
 
 const REQUIRED = ['title', 'summary', 'role', 'category'] as const
 
@@ -24,4 +24,41 @@ export function validateProjects(projects: Project[]): string[] {
     }
   }
   return errors
+}
+
+const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+const LANGS = ['ko', 'en'] as const
+
+export function validatePosts(posts: Post[]): string[] {
+  const errors: string[] = []
+  const seen = new Set<string>()
+
+  for (const p of posts) {
+    const where = `blog/${p.slug}`
+    if (seen.has(p.slug)) errors.push(`${where}: duplicate slug`)
+    seen.add(p.slug)
+
+    if (!KEBAB.test(p.slug)) errors.push(`${where}: slug must be lowercase ASCII kebab-case`)
+    if (!p.title) errors.push(`${where}: title is required`)
+    if (!p.summaryEn) errors.push(`${where}: summary_en is required`)
+    if (!LANGS.includes(p.lang)) errors.push(`${where}: lang must be one of ${LANGS.join(', ')}`)
+    if (!ISO_DATE.test(p.date)) errors.push(`${where}: date must be YYYY-MM-DD`)
+    if (p.updated && !ISO_DATE.test(p.updated)) errors.push(`${where}: updated must be YYYY-MM-DD`)
+    for (const tag of p.tags) {
+      if (!KEBAB.test(tag)) errors.push(`${where}: tag "${tag}" must be lowercase ASCII kebab-case`)
+    }
+  }
+  return errors
+}
+
+const LOCAL_IMAGE = /!\[[^\]]*\]\((\/[^)\s]+)\)/g
+
+export function findMissingAssets(posts: Post[], exists: (publicPath: string) => boolean): string[] {
+  return posts.flatMap((p) =>
+    [...p.body.matchAll(LOCAL_IMAGE)]
+      .map((m) => m[1])
+      .filter((path) => !exists(path))
+      .map((path) => `blog/${p.slug}: missing image ${path}`),
+  )
 }
