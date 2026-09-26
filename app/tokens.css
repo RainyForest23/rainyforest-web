@@ -70,6 +70,16 @@
   overflow-x: auto;
   border-collapse: collapse;
 }
+.prose-body img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 1rem;
+}
+/* Long equations scroll sideways instead of widening the page on phones. */
+.prose-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .prose-body th,
 .prose-body td {
   border: 1px solid var(--color-line);
