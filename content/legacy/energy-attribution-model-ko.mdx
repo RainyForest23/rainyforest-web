@@ -251,21 +251,35 @@ LPDDR4 스펙 기준으로 **0.2 W/GB**를 사용합니다.
 
 전체 시스템 에너지를 자원 별로 분해합니다:
 
-$$E^{sys} = E^{cpu} + E^{gpu} + E^{mem} + E^{sto} + E^{other}$$
+$$
+E^{sys} = E^{cpu} + E^{gpu} + E^{mem} + E^{sto} + E^{other}
+$$
 
 각 워크로드 $w_i$가 책임지는 에너지는 다음과 같이 계산합니다:
 
 **CPU** — "내가 CPU를 X% 썼으면, 전체 CPU 에너지의 X%를 부담한다":
-$$E^{cpu}_{w_i} = E^{cpu}_W \cdot \frac{U^{cpu}_i}{\sum_j U^{cpu}_j}$$
+
+$$
+E^{cpu}_{w_i} = E^{cpu}_W \cdot \frac{U^{cpu}_i}{\sum_j U^{cpu}_j}
+$$
 
 **GPU** — "기본으로 점유한 몫(할당 비례) + 실제 연산한 만큼(사용률 비례)":
-$$E^{gpu}_{w_i} = E^{gpu}_{idle} \cdot a_i + (E^{gpu} - E^{gpu}_{idle}) \cdot \frac{U^{gpu}_i}{\sum_j U^{gpu}_j}$$
+
+$$
+E^{gpu}_{w_i} = E^{gpu}_{idle} \cdot a_i + (E^{gpu} - E^{gpu}_{idle}) \cdot \frac{U^{gpu}_i}{\sum_j U^{gpu}_j}
+$$
 
 **Memory** — "사용량과 무관하게, 점유한 용량만큼 부담한다":
-$$E^{mem}_{w_i} = E^{mem}_{idle} \cdot \frac{m_i}{M}$$
+
+$$
+E^{mem}_{w_i} = E^{mem}_{idle} \cdot \frac{m_i}{M}
+$$
 
 **에너지 보존 확인** — 워크로드 합계 + baseline = 시스템 측정값 (오차 없음):
-$$E^{sys} = E^{baseline} + \sum_{i=1}^{n} E_{w_i}$$
+
+$$
+E^{sys} = E^{baseline} + \sum_{i=1}^{n} E_{w_i}
+$$
 
 ### 3-3. 코드 구현: `extract_phase3_data.py`
 
