@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "check:tokens": "tsx scripts/check-tokens.ts",
-    "verify": "npm run check:tokens && npm test && npm run build && npm run typecheck",
+    "check:links": "tsx scripts/check-links.ts",
+    "verify": "npm run check:tokens && npm test && npm run build && npm run check:links && npm run typecheck",
     "cdk": "cdk"
   },
   "dependencies": {
