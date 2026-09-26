@@ -250,21 +250,35 @@ The structure is simple: **measure the total, then split by contribution**. Here
 
 First, split the system's total energy by resource type:
 
-$$E^{sys} = E^{cpu} + E^{gpu} + E^{mem} + E^{sto} + E^{other}$$
+$$
+E^{sys} = E^{cpu} + E^{gpu} + E^{mem} + E^{sto} + E^{other}
+$$
 
 Then, for each workload $w_i$:
 
 **CPU** — "If you used X% of the CPU, you pay X% of the CPU energy":
-$$E^{cpu}_{w_i} = E^{cpu}_W \cdot \frac{U^{cpu}_i}{\sum_j U^{cpu}_j}$$
+
+$$
+E^{cpu}_{w_i} = E^{cpu}_W \cdot \frac{U^{cpu}_i}{\sum_j U^{cpu}_j}
+$$
 
 **GPU** — "Pay for what you reserved (allocation) plus what you actually computed (utilization)":
-$$E^{gpu}_{w_i} = E^{gpu}_{idle} \cdot a_i + (E^{gpu} - E^{gpu}_{idle}) \cdot \frac{U^{gpu}_i}{\sum_j U^{gpu}_j}$$
+
+$$
+E^{gpu}_{w_i} = E^{gpu}_{idle} \cdot a_i + (E^{gpu} - E^{gpu}_{idle}) \cdot \frac{U^{gpu}_i}{\sum_j U^{gpu}_j}
+$$
 
 **Memory** — "Pay for what you hold, not what you touch":
-$$E^{mem}_{w_i} = E^{mem}_{idle} \cdot \frac{m_i}{M}$$
+
+$$
+E^{mem}_{w_i} = E^{mem}_{idle} \cdot \frac{m_i}{M}
+$$
 
 **Sanity check** — workload sum + baseline must equal total measured energy:
-$$E^{sys} = E^{baseline} + \sum_{i=1}^{n} E_{w_i}$$
+
+$$
+E^{sys} = E^{baseline} + \sum_{i=1}^{n} E_{w_i}
+$$
 
 ### 3-3. Implementation: `extract_phase3_data.py`
 
