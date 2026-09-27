@@ -1,0 +1,17 @@
+// Cloudflare Workers, static assets only: no Worker code runs, so requests are
+// free and unmetered. `npm run build` must run first; it writes ./out.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rainyforest-web",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./out",
+    // /blog/x -> /blog/x/ (307), then /blog/x/index.html. Matches trailingSlash: true in next.config.ts.
+    "html_handling": "auto-trailing-slash",
+    // Serves out/404.html with status 404.
+    "not_found_handling": "404-page"
+  }
+  // After buying the domain, add it here and redeploy:
+  // "routes": [{ "pattern": "example.com", "custom_domain": true }, { "pattern": "www.example.com", "custom_domain": true }]
+}

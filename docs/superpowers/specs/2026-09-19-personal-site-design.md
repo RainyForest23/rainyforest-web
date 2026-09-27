@@ -31,8 +31,8 @@
 |---|---|---|---|
 | D1 | 백엔드 깊이 | 경량 동적: 정적 콘텐츠 + 소수 API | 본격 백엔드(인증·CRUD), 완전 정적 |
 | D2 | 볼트 연동 | 빌드타임 export | 런타임 API(홈서버 의존), 분리 유지 |
-| D3 | 호스팅 | AWS: S3 + CloudFront + Lambda + DynamoDB, CDK(TypeScript) | OpenNext/SST, ECS Fargate + RDS |
-| D4 | DNS·도메인 | Cloudflare Registrar + Cloudflare DNS (프록시 끔) | Route 53 |
+| D3 | 호스팅 | ~~AWS: S3 + CloudFront + Lambda + DynamoDB, CDK~~ → **Cloudflare Workers 정적 에셋** (2026-09-26 변경, §7.0) | OpenNext/SST, ECS Fargate + RDS, AWS |
+| D4 | DNS·도메인 | Cloudflare Registrar + Cloudflare DNS (Workers 커스텀 도메인이므로 프록시 켬) | Route 53 |
 | D5 | 언어 | 영문 우선. 루트·CV·프로젝트는 영문, 블로그 글은 원문 언어 + 영문 요약 | 완전 i18n, 전면 영문 |
 | D6 | 콘텐츠 원본 | 기존 24개는 `content/legacy/`에 고정, 신규 글은 볼트 | 볼트 전면 흡수, 대표글만 이관 |
 | D7 | 볼트 UX 범위 | wikilink + 백링크 + 로컬 그래프(1~2홉) + 태그 | 미니멀, 전역 그래프·호버 프리뷰 |
@@ -253,6 +253,28 @@ IP 원문은 저장하지 않는다. 일별 솔트로 해시한 값만 쓴다. �
 
 ## 7. 인프라 · 배포 · DNS
 
+### 7.0 2026-09-26 변경: AWS → Cloudflare Workers
+
+사용자 결정으로 호스팅을 Cloudflare Workers 정적 에셋으로 바꾼다. 아래 §7.1~7.4는 기록용으로 남긴다.
+
+| 항목 | 이전 (AWS) | 이후 (Cloudflare) |
+|---|---|---|
+| 정적 호스팅 | S3 + CloudFront + OAC | Workers 정적 에셋 (`wrangler.jsonc`, Worker 코드 없음 → 요청 무료·무제한) |
+| 경로 보정 | CloudFront Function (`/x` → `/x/index.html`) | `html_handling: auto-trailing-slash` |
+| 404 | CloudFront 오류 응답 | `not_found_handling: 404-page` |
+| `www` → apex | CloudFront Function | Cloudflare Redirect Rule (대시보드 1회 설정) |
+| 캐시 | S3 메타데이터 + `/*` 무효화 | `public/_headers`로 `/_next/static/*` 1년 immutable, 배포 즉시 새 버전 |
+| 배포 권한 | GitHub OIDC → IAM 역할 | Workers 편집 권한만 가진 API 토큰 (GitHub secret) |
+| IaC | CDK 스택 | `wrangler.jsonc` 한 파일. `infra/` 삭제 |
+| 도메인 전 | 배포 불가 | `*.workers.dev`로 바로 공개 가능 |
+
+이유: 도메인 없이 바로 배포할 수 있고, 운영할 설정이 CDK 스택 대신 설정 파일 하나로 줄어든다(판단 기준: 장기 유지보수). 대가로 AWS 인프라를 직접 다뤄 보는 목표(§1 목표 3)는 약해진다.
+
+영향:
+- 5단계 조회수 API는 Lambda + DynamoDB 대신 같은 Worker에 코드를 더하고 D1(또는 KV)을 쓰는 안으로 5단계 계획에서 다시 설계한다. 그때 `run_worker_first: ["/api/*"]`로 API 경로만 Worker 코드로 보낸다.
+- 4단계 볼트 `aliases` 리다이렉트는 CloudFront KVS 대신 빌드 시 `out/_redirects`를 생성한다.
+- 레거시 github.io 경로(`content/legacy/redirects.json`)는 옛 도메인에서 오는 요청이므로 새 사이트가 아니라 7단계 github.io 스텁이 처리한다. 변경 없음.
+
 ### 7.1 AWS (CDK 스택 1개, us-east-1)
 
 리전을 us-east-1 하나로 둔다. CloudFront 인증서가 어차피 us-east-1이어야 하므로 리전 간 스택 참조를 없앤다.
@@ -353,6 +375,8 @@ GitHub에는 장기 액세스 키를 두지 않는다. 비밀값은 두 개뿐�
 | 7 | 전환: github.io에 새 도메인 리다이렉트 스텁, 기존 두 레포 아카이브 | 이행 완료 |
 
 외부에 알리는 전환(7단계)은 디자인 적용(6단계) 이후에 한다. 디자인 세션은 2단계 이후 언제든 병행할 수 있다.
+
+**2026-09-26 변경:** 호스팅을 Cloudflare Workers로 바꾸면서(§7.0) 도메인 없이 `workers.dev`로 1단계 배포가 가능해졌다. 도메인은 구매 후 `wrangler.jsonc`의 `routes`만 더한다.
 
 **2026-09-20 변경:** 도메인 구매를 최후순위로 미룬다. 1단계의 코드(Task 1~5)는 완료했고, 실제 배포(1단계 Task 6)는 도메인을 구매한 뒤에 한다. 그때까지 2~5단계를 로컬에서 진행한다. 대가로, 인프라·DNS·인증서를 실제로 뚫어 보는 검증이 그만큼 늦어진다. 배포가 처음 이뤄지는 시점에 그 위험이 한꺼번에 드러날 수 있다.
 
