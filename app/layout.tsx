@@ -1,6 +1,15 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { SiteHeader } from '@/components/site/site-header'
+import '@fontsource/ibm-plex-sans/300.css'
+import '@fontsource/ibm-plex-sans/400.css'
+import '@fontsource/ibm-plex-sans/500.css'
+import '@fontsource/ibm-plex-sans/600.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource/ibm-plex-sans-kr/300.css'
+import '@fontsource/ibm-plex-sans-kr/400.css'
+import '@fontsource/ibm-plex-sans-kr/500.css'
 import 'katex/dist/katex.min.css'
 import './globals.css'
 
@@ -12,10 +21,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // "dark" switches the shadcn primitives to their dark palette.
+    <html lang="en" className="dark">
       <body>
         <SiteHeader />
-        {children}
+        <main className="page-wrap">
+          {children}
+          <footer className="site-footer">
+            <span>© Woorim Shin</span>
+            <a href="/feed.xml">RSS</a>
+          </footer>
+        </main>
       </body>
     </html>
   )

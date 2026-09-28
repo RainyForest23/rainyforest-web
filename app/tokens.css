@@ -1,36 +1,453 @@
 /* The only place that defines the look (spec §8.1).
-   Neutral placeholders until the design session (stage 6) replaces them. */
+   Dark theme after the reference site (me.aiden-kwak.workers.dev), which uses
+   IBM Carbon's g100 palette and IBM Plex type. */
 @theme {
-  --color-bg: #ffffff;
-  --color-fg: #1f2328;
-  --color-fg-muted: #59636e;
-  --color-line: #d8dee4;
-  /* Placeholder stack: the design session picks the real typefaces. */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-bg: #161616;
+  --color-layer: #262626;
+  --color-layer-hover: #333333;
+  --color-layer-accent: #393939;
+  --color-fg: #f4f4f4;
+  --color-fg-muted: #c6c6c6;
+  --color-fg-subtle: #a8a8a8;
+  --color-line: #393939;
+  --color-line-strong: #6f6f6f;
+  --color-accent: #4589ff;
+  --color-link: #78a9ff;
+  --color-focus: #ffffff;
+
+  /* Plex Sans KR carries the Hangul in Korean posts; Latin glyphs come from Plex Sans. */
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans KR', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'IBM Plex Sans KR', ui-monospace, monospace;
+
+  --header-height: 3rem;
+  --page-width: 75rem;
+  --entry-date-width: 9.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0d1117;
-    --color-fg: #e6edf3;
-    --color-fg-muted: #9198a1;
-    --color-line: #2a3038;
+html {
+  color-scheme: dark;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/* --- Site chrome --------------------------------------------------------- */
+
+.site-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: stretch;
+  height: var(--header-height);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-line);
+}
+.site-header__name {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem 0 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.site-header__nav {
+  display: flex;
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--color-line);
+  margin-block: 0.75rem;
+}
+.site-header__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-block: -0.75rem;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+  transition: background-color 0.11s, color 0.11s;
+}
+.site-header__item:hover {
+  background: var(--color-layer);
+  color: var(--color-fg);
+}
+.site-header__item[aria-current='page'] {
+  color: var(--color-fg);
+}
+.site-header__item[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 0.1875rem;
+  background: var(--color-accent);
+}
+@media (max-width: 40rem) {
+  .site-header__nav {
+    margin-left: auto;
+    border-left: 0;
+  }
+  .site-header__item {
+    padding: 0 0.625rem;
   }
 }
 
-/* Body copy for MDX content. Tailwind Typography is not used: it ships its own
-   colour and spacing values, which would compete with these tokens. */
-.prose-body {
-  line-height: 1.7;
+.page-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: calc(var(--header-height) + 3rem) 1.5rem 4rem;
 }
+@media (min-width: 42rem) {
+  .page-wrap {
+    padding-inline: 4rem;
+  }
+}
+
+.site-footer {
+  margin-top: 5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-line);
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.falling-letters {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Page heading --------------------------------------------------------- */
+
+.hero {
+  margin: 2rem 0 3rem;
+}
+.overline {
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-fg-muted);
+}
+.hero h1 {
+  margin: 0 0 0.75rem;
+  font-size: 2.6rem;
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.hero .lede {
+  max-width: 45rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+}
+
+.section-title {
+  margin: 3.5rem 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+.section-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 3.5rem 0 0.6rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-fg-muted);
+}
+.section-label a {
+  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-link);
+}
+
+/* --- Home cards ---------------------------------------------------------- */
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 42rem) {
+  .nav-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.nav-card {
+  position: relative;
+  display: block;
+  min-height: 12.5rem;
+  padding: 1.5rem 1.5rem 4rem;
+  background: var(--color-layer);
+  border-left: 3px solid var(--color-accent);
+  transition: background 0.15s ease;
+}
+.nav-card:hover {
+  background: var(--color-layer-hover);
+}
+.nav-card__eyebrow {
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--color-fg-muted);
+}
+.nav-card__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+.nav-card__desc {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-fg-muted);
+}
+.nav-card__arrow {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  color: var(--color-fg-muted);
+}
+
+/* --- Entry lists (projects, posts) --------------------------------------- */
+
+.entry-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 0.4rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.entry-row:last-child {
+  border-bottom: 0;
+}
+@media (min-width: 42rem) {
+  .entry-row {
+    grid-template-columns: var(--entry-date-width) minmax(0, 1fr);
+    column-gap: 1.5rem;
+    row-gap: 0.5rem;
+    align-items: baseline;
+  }
+  .entry-row > * {
+    grid-column: 2;
+  }
+  .entry-row > .entry-date {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+  }
+}
+.entry-date {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-fg-muted);
+}
+.entry-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+.entry-row a:hover .entry-title {
+  color: var(--color-link);
+}
+.entry-summary {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-fg-muted);
+}
+.entry-note {
+  font-size: 0.8rem;
+  color: var(--color-fg);
+}
+.entry-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.entry-tag {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.7rem;
+  background: var(--color-layer-accent);
+  color: var(--color-fg-muted);
+}
+a.entry-tag:hover {
+  color: var(--color-fg);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-fg-muted);
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.chip:hover {
+  color: var(--color-fg);
+  border-color: var(--color-line-strong);
+}
+.chip[aria-current='page'] {
+  color: var(--color-bg);
+  background: var(--color-fg);
+  border-color: var(--color-fg);
+}
+.chip__count {
+  opacity: 0.7;
+}
+
+/* --- CV ------------------------------------------------------------------ */
+
+.timeline {
+  margin: 1rem 0 2rem;
+  border-left: 1px solid var(--color-line);
+}
+.timeline-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.1rem;
+  padding: 0.6rem 0 0.6rem 1.25rem;
+}
+@media (min-width: 42rem) {
+  .timeline-row {
+    grid-template-columns: 10rem 1fr;
+    gap: 1rem;
+  }
+}
+.timeline-row::before {
+  content: '';
+  position: absolute;
+  left: -0.3125rem;
+  top: 1.05rem;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.timeline-period {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+}
+.timeline-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.timeline-note {
+  margin-left: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-fg-muted);
+}
+.timeline-detail {
+  margin-top: 0.4rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-fg-muted);
+}
+.timeline-detail li {
+  margin-top: 0.25rem;
+  padding-left: 1rem;
+  text-indent: -1rem;
+}
+.timeline-detail li::before {
+  content: '– ';
+}
+
+.contact-list {
+  display: grid;
+  justify-items: start;
+  gap: 0.4rem;
+  margin: 1rem 0 2rem;
+}
+.contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--color-layer);
+  border-left: 3px solid var(--color-accent);
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+}
+.contact-link svg {
+  color: var(--color-fg-muted);
+  transition: color 0.15s ease;
+}
+.contact-link:hover {
+  background: var(--color-layer-hover);
+}
+.contact-link:hover svg {
+  color: var(--color-link);
+}
+
+.meta-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 1.5rem;
+  margin: 0 0 1.5rem;
+  font-size: 0.875rem;
+}
+.meta-list dt {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-fg-muted);
+}
+
+.summary-box {
+  max-width: 45rem;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-layer);
+  border-left: 3px solid var(--color-accent);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-fg-muted);
+}
+
+/* --- Article body (MDX) --------------------------------------------------
+   Tailwind Typography is not used: it ships its own colour and spacing values,
+   which would compete with these tokens. */
+.prose-body {
+  max-width: 48rem;
+  line-height: 1.75;
+}
+.prose-body h1,
 .prose-body h2 {
-  margin-top: 2.5rem;
-  font-size: 1.25rem;
-  font-weight: 600;
+  margin-top: 2.75rem;
+  font-size: 1.5rem;
+  font-weight: 400;
 }
 .prose-body h3 {
   margin-top: 2rem;
-  font-size: 1.125rem;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+.prose-body h4 {
+  margin-top: 1.5rem;
   font-weight: 600;
 }
 .prose-body p,
@@ -49,26 +466,57 @@
   list-style: decimal;
   padding-left: 1.25rem;
 }
+.prose-body li + li {
+  margin-top: 0.25rem;
+}
+.prose-body strong {
+  font-weight: 600;
+}
 .prose-body a {
+  color: var(--color-link);
+}
+.prose-body a:hover {
   text-decoration: underline;
 }
+.prose-body hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
 .prose-body blockquote {
-  border-left: 2px solid var(--color-line);
-  padding-left: 1rem;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-left: 3px solid var(--color-line-strong);
   color: var(--color-fg-muted);
 }
 .prose-body code {
-  font-size: 0.9em;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+.prose-body :not(pre) > code {
+  padding: 0.1em 0.35em;
+  background: var(--color-layer-accent);
 }
 .prose-body pre {
   overflow-x: auto;
   padding: 1rem;
-  background: color-mix(in oklab, var(--color-fg) 6%, transparent);
+  background: var(--color-layer);
+  line-height: 1.6;
 }
 .prose-body table {
   display: block;
   overflow-x: auto;
   border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.prose-body th,
+.prose-body td {
+  border: 1px solid var(--color-line);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.prose-body th {
+  background: var(--color-layer);
+  font-weight: 500;
 }
 .prose-body img {
   max-width: 100%;
@@ -80,11 +528,13 @@
   overflow-x: auto;
   overflow-y: hidden;
 }
-.prose-body th,
-.prose-body td {
-  border: 1px solid var(--color-line);
-  padding: 0.5rem 0.75rem;
-  text-align: left;
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+  }
 }
 
 /* --- Imported from the shadcn preset. Temporary until the design session. --- */

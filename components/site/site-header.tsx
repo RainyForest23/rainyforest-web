@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const NAV = [
   { href: '/cv/', label: 'CV' },
@@ -7,14 +10,20 @@ const NAV = [
 ]
 
 export function SiteHeader() {
+  const pathname = usePathname()
   return (
-    <header className="mx-auto flex max-w-3xl items-baseline justify-between px-6 py-6">
-      <Link href="/" className="font-semibold">
+    <header className="site-header">
+      <Link href="/" className="site-header__name">
         Woorim Shin
       </Link>
-      <nav className="flex gap-6 text-sm">
+      <nav aria-label="Primary" className="site-header__nav">
         {NAV.map((item) => (
-          <Link key={item.href} href={item.href} className="hover:underline">
+          <Link
+            key={item.href}
+            href={item.href}
+            className="site-header__item"
+            aria-current={pathname.startsWith(item.href) ? 'page' : undefined}
+          >
             {item.label}
           </Link>
         ))}
