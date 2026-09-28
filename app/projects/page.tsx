@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
-import { ProjectCard } from '@/components/site/project-card'
+import { FilterableList } from '@/components/site/filterable-list'
+import { PageHero } from '@/components/site/page-hero'
+import { formatPeriodCompact } from '@/lib/content/format'
+import { PROJECT_CATEGORIES, type ProjectCategory } from '@/lib/content/model'
 import { loadProjects } from '@/lib/content/projects'
 
 export const metadata: Metadata = {
@@ -7,16 +10,37 @@ export const metadata: Metadata = {
   description: 'Selected engineering and research projects.',
 }
 
+const CATEGORY_LABELS: Record<ProjectCategory, string> = {
+  research: 'Research',
+  ai: 'AI',
+  systems: 'Systems',
+  data: 'Data',
+}
+
 export default function ProjectsPage() {
   const projects = loadProjects()
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold">Projects</h1>
-      <div className="mt-10">
-        {projects.map((project) => (
-          <ProjectCard key={project.slug} project={project} />
-        ))}
-      </div>
-    </main>
+    <>
+      <PageHero
+        eyebrow="02 · Projects"
+        title="Projects"
+        lede="Case studies in AI systems, speech recognition and energy measurement: the problem, the decisions and what came of them."
+      />
+      <FilterableList
+        placeholder="Search title, summary or stack"
+        noun={['project', 'projects']}
+        groups={PROJECT_CATEGORIES.map((c) => ({ label: CATEGORY_LABELS[c], value: c }))}
+        items={projects.map((project) => ({
+          key: project.slug,
+          date: formatPeriodCompact(project.period),
+          href: `/projects/${project.slug}/`,
+          title: project.title,
+          summary: project.summary,
+          note: project.outcome,
+          tags: project.stack.map((label) => ({ label })),
+          group: project.category,
+        }))}
+      />
+    </>
   )
 }

@@ -1,19 +1,14 @@
+/* Blueprint's stylesheet is global and unlayered. Putting it in a layer below
+   Tailwind's utilities lets utility classes win, as they would without it. */
+@layer theme, base, blueprint, components, utilities;
+@import "@blueprintjs/core/lib/css/blueprint.css" layer(blueprint);
 @import "tailwindcss";
 @import "./tokens.css";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-
-@custom-variant dark (&:is(.dark *));
-
-/* shadcn primitives rely on these; the page's own look comes from tokens.css. */
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-}
 
 body {
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { PostList } from '@/components/site/post-list'
+import { EntryRow } from '@/components/site/entry-row'
+import { PageHero } from '@/components/site/page-hero'
 import { loadPosts, tagIndex } from '@/lib/content/posts'
 
 export function generateStaticParams() {
@@ -18,14 +20,26 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
   if (!posts) notFound()
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold">#{tag}</h1>
-      <p className="mt-2 text-fg-muted">
-        {posts.length} {posts.length === 1 ? 'post' : 'posts'}
-      </p>
-      <div className="mt-10">
-        <PostList posts={posts} />
-      </div>
-    </main>
+    <>
+      <PageHero
+        eyebrow={<Link href="/blog/">03 · Blog</Link>}
+        title={`#${tag}`}
+        lede={`${posts.length} ${posts.length === 1 ? 'post' : 'posts'}`}
+        compact
+      />
+      <ul>
+        {posts.map((post) => (
+          <EntryRow
+            key={post.slug}
+            date={post.date}
+            href={`/blog/${post.slug}/`}
+            title={post.title}
+            summary={post.summaryEn}
+            lang={post.lang}
+            tags={post.tags.map((t) => ({ label: t, href: `/blog/tags/${t}/` }))}
+          />
+        ))}
+      </ul>
+    </>
   )
 }
