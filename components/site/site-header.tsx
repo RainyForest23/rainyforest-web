@@ -1,5 +1,6 @@
 'use client'
 
+import { Classes, Navbar, NavbarDivider, NavbarGroup, NavbarHeading } from '@blueprintjs/core'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -12,22 +13,33 @@ const NAV = [
 export function SiteHeader() {
   const pathname = usePathname()
   return (
-    <header className="site-header">
-      <Link href="/" className="site-header__name">
-        Woorim Shin
-      </Link>
-      <nav aria-label="Primary" className="site-header__nav">
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="site-header__item"
-            aria-current={pathname.startsWith(item.href) ? 'page' : undefined}
-          >
-            {item.label}
+    <Navbar className={`site-header ${Classes.DARK}`}>
+      <NavbarGroup align="left">
+        <NavbarHeading>
+          <Link href="/" className="site-header__name">
+            Woorim Shin
           </Link>
-        ))}
-      </nav>
-    </header>
+        </NavbarHeading>
+      </NavbarGroup>
+      <NavbarGroup align="right">
+        <NavbarDivider />
+        <nav aria-label="Primary">
+          {NAV.map((item) => {
+            const current = pathname.startsWith(item.href)
+            return (
+              // Next's Link keeps client-side navigation; Blueprint's classes give it the button look.
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`site-header__item ${Classes.BUTTON} ${Classes.MINIMAL} ${current ? Classes.ACTIVE : ''}`}
+                aria-current={current ? 'page' : undefined}
+              >
+                <span className={Classes.BUTTON_TEXT}>{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+      </NavbarGroup>
+    </Navbar>
   )
 }

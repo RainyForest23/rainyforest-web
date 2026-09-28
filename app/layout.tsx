@@ -21,9 +21,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    // "dark" switches the shadcn primitives to their dark palette.
-    <html lang="en" className="dark">
-      <body>
+    <html lang="en">
+      {/* bp6-dark puts every Blueprint component on its dark theme. */}
+      <body className="bp6-dark">
         <SiteHeader />
         <main className="page-wrap">
           {children}

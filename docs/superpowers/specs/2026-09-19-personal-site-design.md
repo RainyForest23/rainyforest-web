@@ -36,7 +36,7 @@
 | D5 | 언어 | 영문 우선. 루트·CV·프로젝트는 영문, 블로그 글은 원문 언어 + 영문 요약 | 완전 i18n, 전면 영문 |
 | D6 | 콘텐츠 원본 | 기존 24개는 `content/legacy/`에 고정, 신규 글은 볼트 | 볼트 전면 흡수, 대표글만 이관 |
 | D7 | 볼트 UX 범위 | wikilink + 백링크 + 로컬 그래프(1~2홉) + 태그 | 미니멀, 전역 그래프·호버 프리뷰 |
-| D8 | UI 구현 | shadcn/ui는 동작·접근성 primitive로만, 룩은 자체 토큰 | 수작업 전부, shadcn 기본 룩 |
+| D8 | UI 구현 | ~~shadcn/ui primitive + 자체 토큰~~ → **Palantir Blueprint(`@blueprintjs/core`) + 자체 토큰** (2026-09-28 변경, §8.0) | 수작업 전부, shadcn 기본 룩, IBM Carbon |
 | D9 | 도메인 | 브랜드/닉네임 계열(rainyforest). 정확한 이름은 구매 시 CDK 설정값 `siteDomain`으로 주입 | 이름+.dev, 이름+.com |
 | D10 | 레포 | 새 단일 레포 `rainyforest-web` (public). 기존 두 레포는 이행 후 아카이브 | 기존 레포 재활용, pnpm 모노레포 |
 
@@ -322,6 +322,13 @@ GitHub에는 장기 액세스 키를 두지 않는다. 비밀값은 두 개뿐�
 비용 사고 방어책: Lambda VPC 밖(NAT Gateway 회피), 예약 동시성 상한, 로그 보존 기한, Budgets 알림. 이 네 가지는 CDK assertion 테스트로 고정한다 (§9).
 
 ## 8. 디자인 계약
+
+### 8.0 2026-09-28 변경: 디자인 방향 확정
+
+- 룩: palantir.com 방향. 검정 배경, 흰 글자, 큰 제목, 헤어라인 격자, 색은 거의 쓰지 않는다. 서체는 IBM Plex Sans/Mono + 한글 IBM Plex Sans KR(자체 호스팅, `@fontsource`).
+- 컴포넌트: Palantir의 오픈소스 툴킷 Blueprint(v6)를 쓴다. shadcn/ui는 쓰던 곳이 없어 제거했다. Blueprint CSS는 `@layer blueprint`에 넣어 Tailwind 유틸리티보다 낮게 두고, 다크 테마(`bp6-dark`) 변수는 `tokens.css`에서 토큰으로 다시 지정한다.
+- Blueprint 모듈에는 `"use client"`가 없으므로 서버 컴포넌트는 `components/bp.tsx`를 거쳐 가져온다.
+- 다크 전용이다. §8.2의 "라이트/다크" 품질 하한은 이 결정으로 대체한다.
 
 ### 8.1 구조
 

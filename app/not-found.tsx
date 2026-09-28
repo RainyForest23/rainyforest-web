@@ -1,10 +1,8 @@
+import Link from 'next/link'
+import { PageHero } from '@/components/site/page-hero'
+
 export default function NotFound() {
   return (
-    <main className="mx-auto max-w-prose px-6 py-24">
-      <h1 className="text-2xl font-semibold">Page not found</h1>
-      <p className="mt-4">
-        <a className="underline" href="/">Go to the home page</a>
-      </p>
-    </main>
+    <PageHero eyebrow="404" title="Page not found" lede={<Link href="/" className="underline underline-offset-4">Go to the home page</Link>} />
   )
 }

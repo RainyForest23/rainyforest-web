@@ -1,56 +1,58 @@
 import Link from 'next/link'
-import { PostList } from '@/components/site/post-list'
-import { ProjectCard } from '@/components/site/project-card'
-import { Section } from '@/components/site/section'
+import { EntryRow } from '@/components/site/entry-row'
+import { IndexCell } from '@/components/site/index-cell'
+import { PageHero, SectionLabel } from '@/components/site/page-hero'
+import { formatPeriodCompact } from '@/lib/content/format'
 import { loadPosts } from '@/lib/content/posts'
 import { loadProjects } from '@/lib/content/projects'
 import { loadResume } from '@/lib/cv/resume'
 
 export default function Home() {
   const resume = loadResume()
-  const featured = loadProjects().filter((project) => project.featured)
-  const recent = loadPosts().slice(0, 5)
+  const projects = loadProjects()
+  const featured = projects.filter((project) => project.featured)
+  const posts = loadPosts()
+  const recent = posts.slice(0, 5)
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold">{resume.basics.name}</h1>
-      <p className="mt-4 text-lg">{resume.basics.summary}</p>
-      <p className="mt-4 text-sm text-fg-muted">
-        {resume.basics.location?.city}, {resume.basics.location?.region} —{' '}
-        <a href={`mailto:${resume.basics.email}`} className="underline">
-          {resume.basics.email}
-        </a>
-        {resume.basics.profiles?.map((profile) => (
-          <span key={profile.network}>
-            {' — '}
-            <a href={profile.url} className="underline">
-              {profile.network}
-            </a>
-          </span>
+    <>
+      <PageHero eyebrow={resume.basics.label} title={resume.basics.name} lede={resume.basics.summary} />
+
+      <nav aria-label="Sections" className="index-grid">
+        <IndexCell num="01" href="/cv/" title="CV" desc="Experience, publications and talks." />
+        <IndexCell num="02" href="/projects/" title="Projects" desc={`${projects.length} case studies in AI systems and research.`} />
+        <IndexCell num="03" href="/blog/" title="Blog" desc={`${posts.length} posts on cloud, AI systems and problem solving.`} />
+      </nav>
+
+      <SectionLabel action={<Link href="/projects/">All projects</Link>}>Selected work</SectionLabel>
+      <ul>
+        {featured.map((project) => (
+          <EntryRow
+            key={project.slug}
+            date={formatPeriodCompact(project.period)}
+            href={`/projects/${project.slug}/`}
+            title={project.title}
+            summary={project.summary}
+            note={project.outcome}
+            tags={project.stack.slice(0, 5).map((label) => ({ label }))}
+          />
         ))}
-      </p>
+      </ul>
 
-      <Section title="Selected work">
-        <div>
-          {featured.map((project) => (
-            <ProjectCard key={project.slug} project={project} />
-          ))}
-        </div>
-        <p className="mt-6 text-sm">
-          <Link href="/projects/" className="underline">
-            All projects
-          </Link>
-        </p>
-      </Section>
-
-      <Section title="Recent writing">
-        <PostList posts={recent} />
-        <p className="mt-6 text-sm">
-          <Link href="/blog/" className="underline">
-            All posts
-          </Link>
-        </p>
-      </Section>
-    </main>
+      <SectionLabel action={<Link href="/blog/">All posts</Link>}>Recent writing</SectionLabel>
+      <ul>
+        {recent.map((post) => (
+          <EntryRow
+            key={post.slug}
+            date={post.date}
+            href={`/blog/${post.slug}/`}
+            title={post.title}
+            summary={post.summaryEn}
+            lang={post.lang}
+            tags={post.tags.slice(0, 4).map((tag) => ({ label: tag, href: `/blog/tags/${tag}/` }))}
+          />
+        ))}
+      </ul>
+    </>
   )
 }
