@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPeriod } from './format'
+import { formatPeriod, formatPeriodCompact } from './format'
 
 describe('formatPeriod', () => {
   it('formats a closed range', () => {
@@ -24,5 +24,21 @@ describe('formatPeriod', () => {
 
   it('treats "Present" as an open range', () => {
     expect(formatPeriod({ start: '2025-06-01', end: 'Present' })).toBe('Jun 2025 – Present')
+  })
+})
+
+describe('formatPeriodCompact', () => {
+  it('writes year.month and drops the day', () => {
+    expect(formatPeriodCompact({ start: '2025-06-01', end: '2026-02' })).toBe('2025.06 – 2026.02')
+  })
+
+  it('leaves an ongoing range open', () => {
+    expect(formatPeriodCompact({ start: '2026-02' })).toBe('2026.02 –')
+    expect(formatPeriodCompact({ start: '2026-02', end: 'Present' })).toBe('2026.02 –')
+  })
+
+  it('keeps year-only dates and collapses a single month', () => {
+    expect(formatPeriodCompact({ start: '2025', end: '2026' })).toBe('2025 – 2026')
+    expect(formatPeriodCompact({ start: '2026-05', end: '2026-05' })).toBe('2026.05')
   })
 })
