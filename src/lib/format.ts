@@ -40,6 +40,9 @@ function label(value: string, locale: Locale): string {
   throw new Error('TODO: label')
 }
 
+/** 기간의 시작과 끝 사이에 넣는 줄표. 하이픈(-)이 아니라 엔 대시(–)다. */
+const DASH = ' – '
+
 /**
  * 기간을 바꾼다.
  *   { start: '2025-06', end: '2026-02' }               → 'Jun 2025 – Feb 2026'
@@ -47,7 +50,7 @@ function label(value: string, locale: Locale): string {
  *   { start: '2025', end: '2025' }                     → '2025'
  *   { start: '2023', end: '2025', approximate: true }  → 'c. 2023 – 2025' / '2023 – 2025 (대략)'
  *
- * 가운데 줄표는 하이픈(-)이 아니라 엔 대시(–)다. 아래 DASH를 쓴다.
+ * 가운데 줄표는 위의 DASH를 쓴다.
  *
  * TODO
  *  1. 시작을 label로 바꾼다.
@@ -57,8 +60,6 @@ function label(value: string, locale: Locale): string {
  *  4. period.approximate가 true면 "대략" 표시를 붙인다.
  *     영어는 앞에 'c. ', 한국어는 뒤에 ' (대략)'.
  */
-const DASH = ' – '
-
 export function formatPeriod(period: Period, locale: Locale): string {
   throw new Error('TODO: formatPeriod')
 }

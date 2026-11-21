@@ -21,4 +21,6 @@ describe('formatPeriod', () => {
     expect(formatPeriod({ start: '2023', end: '2025', approximate: true }, 'ko')).toBe('2023 – 2025 (대략)'))
   it('legacy "Present" end', () =>
     expect(formatPeriod({ start: '2025', end: 'Present' }, 'en')).toBe('2025 – Present'))
+  it('legacy "Present" end ko', () =>
+    expect(formatPeriod({ start: '2025', end: 'Present' }, 'ko')).toBe('2025 – 현재'))
 })

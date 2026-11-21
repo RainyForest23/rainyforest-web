@@ -3,15 +3,27 @@
 //  2. 옛 주소(redirects.json)가 가리키는 페이지가 있는가
 //  3. 공개하지 않기로 한 문자열(학점)이 어디에도 없는가
 //  4. 모든 페이지에 영어·한국어 대체 링크(hreflang)가 있고, 그 대상이 있는가
+//  5. 어느 페이지도 가리키지 않는 파일이 섞여 있지 않은가 (public/은 링크가 없어도 통째로 공개된다)
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LOCALES, localePath } from '../src/i18n/paths'
-import { toFile } from './check-links'
+import { linkedPaths, toFile } from './check-links'
 
-/** 공개 금지 문자열 (spec §3). */
-const FORBIDDEN = [/GPA/i, /0\.00\s*\/\s*4\.5/]
+/** 공개 금지 문자열 (spec §3): 학점. 실제 값은 적지 않고 모양으로 찾는다. */
+export const FORBIDDEN = [/\bGPA\b/i, /학점\s*\d/, /\b\d\.\d{1,2}\s*\/\s*4\.[35]\b/]
 const TEXT_FILE = /\.(html|xml|txt)$/
+
+/**
+ * 어느 페이지도 가리키지 않아도 되는 파일.
+ * public/에 파일을 넣으면 링크가 없어도 공개된다. 여기에 없고 링크도 없는 파일은 검사가 실패한다.
+ */
+const ALLOWED_ORPHANS: (string | RegExp)[] = [
+  '_headers',
+  /^sitemap-.*\.xml$/,
+  // 공개 학회 포스터. content/projects가 2단계에서 경험 페이지가 되면 거기서 링크된다.
+  'projects/convpeft/convpeft-poster.pdf',
+]
 
 export function missingPages(files: Set<string>, required: string[]): string[] {
   return required.filter((path) => !files.has(toFile(path)))
@@ -32,6 +44,25 @@ export function forbiddenText(pages: Map<string, string>, patterns: RegExp[]): s
     }
   }
   return found
+}
+
+/** 우연히 걸릴 수 있는 빌드 부산물(스타일, 스크립트, 해시가 든 이름)을 뺀다. 속성 값은 남긴다. */
+export function scannable(html: string): string {
+  return html
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/g, '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
+    .replace(/\sdata-astro-cid-[a-z0-9]+/g, '')
+    .replace(/\/_astro\/[^"'\s)]*/g, '')
+}
+
+/** HTML이 아닌 파일 가운데 어느 페이지도 가리키지 않고 허용 목록에도 없는 것. */
+export function orphanFiles(pages: Map<string, string>, files: Set<string>, allowed: (string | RegExp)[]): string[] {
+  const linked = new Set([...pages.values()].flatMap(linkedPaths).map(toFile))
+  const isAllowed = (file: string) => allowed.some((rule) => (typeof rule === 'string' ? rule === file : rule.test(file)))
+  return [...files]
+    .filter((file) => !file.endsWith('.html') && !file.startsWith('_astro/'))
+    .filter((file) => !linked.has(file) && !isAllowed(file))
+    .sort()
 }
 
 const LINK_TAG = /<link\b[^>]*>/g
@@ -96,8 +127,13 @@ function main(): void {
   const problems = [
     ...missingPages(files, required).map((p) => `missing page: ${p}`),
     ...brokenRedirects(redirects, files).map((p) => `redirect target is not built: ${p}`),
-    ...forbiddenText(texts, FORBIDDEN).map((p) => `private text: ${p}`),
+    ...forbiddenText(new Map([...texts].map(([file, text]) => [file, scannable(text)])), FORBIDDEN).map(
+      (p) => `private text: ${p}`,
+    ),
     ...missingAlternates(pages).map((p) => `hreflang: ${p}`),
+    ...orphanFiles(pages, files, ALLOWED_ORPHANS).map(
+      (p) => `file is public but no page links to it: ${p} (link it, remove it, or add it to ALLOWED_ORPHANS)`,
+    ),
   ]
 
   if (problems.length === 0) {

@@ -14,7 +14,7 @@ const { locale } = Astro.props
 const resume = loadResume()
 
 // resume.json의 날짜는 'YYYY-MM-DD'까지 올 수 있다. 기간 표시는 달까지만 쓴다.
-const month = (value: string) => value.slice(0, 7)
+const month = (value: string) => (value === 'Present' ? value : value.slice(0, 7))
 // 학력·경력: 끝이 비어 있으면 지금도 진행 중이다.
 const span = (start: string, end?: string) =>
   formatPeriod({ start: month(start), end: end ? month(end) : undefined }, locale)
@@ -115,9 +115,12 @@ const when = (start: string, end?: string) => formatPeriod({ start: month(start)
             <p class="head">
               {talk.title}
               {talk.slides ? (
-                <a class="small" href={talk.slides}>
-                  (slides)
-                </a>
+                <>
+                  {' '}
+                  <a class="small" href={talk.slides}>
+                    (slides)
+                  </a>
+                </>
               ) : null}
             </p>
             <p class="meta">

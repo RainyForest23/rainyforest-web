@@ -28,7 +28,7 @@
 
 1. **한글·퍼센트 인코딩된 경로:** `redirects.json`의 대상 중 일부는 `/blog/`처럼 목록으로 가고, 키는 `%EC%...` 형태다. 대상 경로가 빌드 결과에 실제로 있는지 디코딩해서 확인해야 한다. → Task 7 `brokenRedirects` 테스트.
 2. **언어와 원문이 다른 글:** 한국어 원문 글을 영어 경로(`/blog/x/`)로 열면 영어 요약과 "Korean only" 안내가 보이고 본문 `lang="ko"`가 붙어야 한다. 반대로 `/ko/blog/x/`에서 영어 원문 글은 한국어 안내가 붙는다. → Task 6 dist 검사.
-3. **학점 노출:** `resume.json`에서 지워도 다른 경로(예전 PDF 등)로 새지 않아야 한다. → Task 5 스키마가 `score`를 거부, Task 7이 `dist/` 전체에서 `GPA`와 `[removed]`을 찾으면 실패.
+3. **학점 노출:** `resume.json`에서 지워도 다른 경로(예전 PDF 등)로 새지 않아야 한다. → Task 5 스키마가 `score`를 거부, Task 7이 `dist/` 전체에서 `GPA`와 학점 숫자을 찾으면 실패.
 4. **YAML 날짜:** 따옴표 없는 `date: 2026-04-14`는 Date 객체가 되어 시간대 때문에 하루 밀릴 수 있다. → Task 6 스키마 테스트.
 5. **언어 전환 링크:** 모든 페이지(404 제외)의 언어 전환 링크와 `hreflang` 대체 링크가 실제로 있는 페이지를 가리켜야 한다. → Task 3 단위 테스트 + Task 7 `missingAlternates`.
 
@@ -434,7 +434,7 @@ it('decodes redirect targets', () => {
   expect(brokenRedirects({ '/x/': '/blog/gone/' }, new Set())).toEqual(['/x/ -> /blog/gone/'])
 })
 it('flags a GPA anywhere', () => {
-  expect(forbiddenText(new Map([['cv/index.html', '<p>GPA [removed]</p>']]), [/GPA/i, /0\.00/])).toEqual(['cv/index.html: /GPA/i', 'cv/index.html: /0\\.00/'])
+  expect(forbiddenText(new Map([['cv/index.html', '<p>GPA 1.23/4.5</p>']]), [/GPA/i, /1\.23/])).toEqual(['cv/index.html: /GPA/i', 'cv/index.html: /1\\.23/'])
 })
 it('requires both hreflang links', () => {
   const page = '<link rel="alternate" hreflang="en" href="/cv/">'
@@ -444,7 +444,7 @@ it('requires both hreflang links', () => {
 
 - [ ] **Step 2: 실패 확인** — Run: `npx vitest run scripts/check-dist.test.ts` / Expected: FAIL
 
-- [ ] **Step 3: 구현** — `main()`: 필수 페이지 = `['/', '/cv/', '/blog/']`와 `content/legacy/*.mdx`마다 `/blog/<id>/`, 각각 `LOCALES` 전부에 대해 `localePath`; 여기에 `/404.html`, `/feed.xml`, `/sitemap-index.xml`. 리다이렉트 = `content/legacy/redirects.json`. 금지 패턴 = `[/GPA/i, /0\.00\s*\/\s*4\.5/]` (`.html`, `.xml`, `.txt`를 검사; PDF는 Task 5에서 처리). 하나라도 있으면 줄마다 출력하고 `exit 1`.
+- [ ] **Step 3: 구현** — `main()`: 필수 페이지 = `['/', '/cv/', '/blog/']`와 `content/legacy/*.mdx`마다 `/blog/<id>/`, 각각 `LOCALES` 전부에 대해 `localePath`; 여기에 `/404.html`, `/feed.xml`, `/sitemap-index.xml`. 리다이렉트 = `content/legacy/redirects.json`. 금지 패턴 = `[/GPA/i, /\d\.\d{1,2}\s*\/\s*4\.[35]/]` (`.html`, `.xml`, `.txt`를 검사; PDF는 Task 5에서 처리). 하나라도 있으면 줄마다 출력하고 `exit 1`.
 
 - [ ] **Step 4: 통과 확인** — Run: `npm run verify` / Expected: 모든 단계 ok, `check-dist: ok`
 

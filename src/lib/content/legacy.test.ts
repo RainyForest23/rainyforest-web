@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { legacySchema, sortPosts, tagIndex } from './legacy'
+import { legacySchema, sortPosts, tagIndex, translationOf } from './legacy'
 
 const base = { title: 't', summary_en: 's', lang: 'ko', date: '2026-04-14', tags: [] }
 
@@ -59,5 +59,19 @@ describe('tagIndex', () => {
     expect([...index.keys()]).toEqual(['aws', 'cloud'])
     expect(index.get('aws')!.map((x) => x.id)).toEqual(['new', 'old'])
     expect(index.get('cloud')!.map((x) => x.id)).toEqual(['old'])
+  })
+})
+
+describe('translationOf', () => {
+  const ids = ['energy-model', 'energy-model-ko', 'saa-iam']
+
+  it('pairs a post with its -ko twin, both ways', () => {
+    expect(translationOf('energy-model', ids)).toBe('energy-model-ko')
+    expect(translationOf('energy-model-ko', ids)).toBe('energy-model')
+  })
+
+  it('returns undefined when there is no twin', () => {
+    expect(translationOf('saa-iam', ids)).toBeUndefined()
+    expect(translationOf('other-ko', ['other-ko'])).toBeUndefined()
   })
 })

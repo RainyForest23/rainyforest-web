@@ -11,10 +11,15 @@ export function toFile(path: string): string {
   return clean.split('/').pop()!.includes('.') ? clean : `${clean}/index.html`
 }
 
+/** 페이지 안의 href/src 중 사이트 안쪽 경로('/'로 시작)만 꺼낸다. */
+export function linkedPaths(html: string): string[] {
+  return [...html.matchAll(LINK)].map(([, path]) => path!)
+}
+
 export function findBrokenLinks(pages: Map<string, string>, files: Set<string>): string[] {
   const broken: string[] = []
   for (const [page, html] of pages) {
-    for (const [, path] of html.matchAll(LINK)) {
+    for (const path of linkedPaths(html)) {
       if (path.startsWith('/_astro/')) continue
       if (!files.has(toFile(path))) broken.push(`${page} -> ${path}`)
     }

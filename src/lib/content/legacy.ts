@@ -41,3 +41,12 @@ export function tagIndex<T extends { id: string; data: { date: string; tags: str
   }
   return new Map([...byTag].sort(([a], [b]) => a.localeCompare(b)))
 }
+
+/**
+ * 같은 글의 다른 언어판 id. 옛 글은 한국어판 이름 끝에 '-ko'를 붙여 두었다.
+ *   translationOf('x', ['x', 'x-ko']) → 'x-ko',  translationOf('x-ko', ['x', 'x-ko']) → 'x'
+ */
+export function translationOf(id: string, ids: string[]): string | undefined {
+  const twin = id.endsWith('-ko') ? id.slice(0, -'-ko'.length) : `${id}-ko`
+  return ids.includes(twin) ? twin : undefined
+}

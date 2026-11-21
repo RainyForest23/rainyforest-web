@@ -48,7 +48,7 @@ Astro의 content collection도 Zod를 쓰기 때문에 도구가 하나로 줄�
 
 **`strictObject`가 학점을 막는 방식.** `z.object`는 모르는 필드를 그냥 무시하고, `z.strictObject`는 모르는 필드가 있으면 실패한다. 스키마의 `education`에는 `score` 필드가 없다. 그래서 누가 `resume.json`에 `"score": "GPA ..."`를 다시 넣으면 빌드가 멈춘다. "넣지 말자"는 약속을 기억에 맡기지 않고 검사에 맡긴 것이다. 같은 내용을 `schema.test.ts`의 `rejects a GPA score` 테스트가 확인한다.
 
-예전 CV PDF(`public/cv/woorim-shin-cv.pdf`)에는 학점이 적혀 있어서 내렸다. 학점을 뺀 PDF를 같은 자리에 넣고 `Cv.astro`에 내려받기 링크를 다시 달면 된다.
+예전 CV PDF(`public/cv/woorim-shin-cv.pdf`)에는 학점이 적혀 있어서 내렸다. 학점을 뺀 PDF를 같은 자리에 넣고 `Cv.astro`에 내려받기 링크를 다시 달면 된다. 검사 스크립트는 PDF 안의 글자를 읽지 못하므로, 넣기 전에 `pdftotext 파일.pdf - | grep -i -E "gpa|학점"`으로 직접 확인한다.
 
 ## content collection과 `[slug].astro`
 

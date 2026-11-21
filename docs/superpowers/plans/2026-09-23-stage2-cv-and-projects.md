@@ -383,7 +383,7 @@ npm install -D ajv-formats@3
 출처는 `~/Desktop/github/Woorim-Shin-cv/_data/cv.yml`이다. 그쪽이 `assets/json/resume.json`보다 내용이 풍부하다. 옮길 때 지킬 것:
 
 - `cv.yml`의 `Experience` → `work`. `institution`을 `name`과 `location`으로 분리한다(예: `Hiconsy, Seoul, Korea` → `name: "Hiconsy"`, `location: "Seoul, Korea"`). `year: 2025 - 2026` → `startDate: "2025"`, `endDate: "2026"`. 진행 중이면 `endDate: "Present"`.
-- `Education` → `education`. `GPA: [removed]`는 `score`로, `Expected Graduation: Feb. 2027`은 `endDate: "2027-02"`가 아니라 **`endDate: "2027"`**로 넣는다(스키마의 날짜 형식은 `YYYY-MM-DD`·`YYYY`·`Present`만 허용한다). Selected Coursework 항목들은 `courses` 배열로 펼친다.
+- `Education` → `education`. `GPA: (값 생략)`는 `score`로, `Expected Graduation: Feb. 2027`은 `endDate: "2027-02"`가 아니라 **`endDate: "2027"`**로 넣는다(스키마의 날짜 형식은 `YYYY-MM-DD`·`YYYY`·`Present`만 허용한다). Selected Coursework 항목들은 `courses` 배열로 펼친다.
 - `Publications` → `publications`. HTML 태그(`<strong>`, `<em>`, `<sup>`)를 **모두 제거한다.** 렌더링은 컴포넌트가 하고, 데이터에는 마크업을 남기지 않는다. `name`에 논문 제목, `publisher`에 게재처(`Mathematics, MDPI (SCIE)`), `summary`에 저자 목록과 상태(`Submitted, Feb 2026. Equal contribution, co-first author.`)를 넣는다.
 - `Talks & Sessions` → `talks`. `_projects/8_speaking_sessions.md`에 있는 정확한 날짜(`Oct. 1, 2025`)와 슬라이드 PDF 경로를 함께 반영한다. `slides`는 `/cv/talks/<파일명>.pdf` 형태의 사이트 내 경로로 적고, 해당 PDF를 `public/cv/talks/`로 복사한다.
 - `Honors and Awards` → `awards`. 문자열 하나를 `title`과 `summary`로 나눈다.

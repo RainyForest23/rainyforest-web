@@ -1,7 +1,7 @@
 ---
 // 모든 페이지가 쓰는 바깥 틀: <html>, <head>, 헤더(메뉴와 언어 전환), 본문 자리.
 import '../styles/tokens.css'
-import { alternates, DEFAULT_LOCALE, type Locale, localePath, splitLocale } from '../i18n/paths'
+import { DEFAULT_LOCALE, LOCALES, type Locale, localePath, splitLocale } from '../i18n/paths'
 import { t } from '../i18n/ui'
 
 interface Props {
@@ -10,9 +10,14 @@ interface Props {
   locale: Locale
   /** 다른 언어판이 없는 페이지(404)는 false. 기본값 true. */
   translated?: boolean
+  /**
+   * 언어마다 다른 글이 짝인 경우(옛 글의 x와 x-ko)에만 넘긴다. 언어 없는 경로를 적는다.
+   * 넘기지 않으면 같은 경로의 /ko/ 판이 짝이다.
+   */
+  alternatePaths?: Partial<Record<Locale, string>>
 }
 
-const { title, description, locale, translated = true } = Astro.props
+const { title, description, locale, translated = true, alternatePaths = {} } = Astro.props
 
 // 지금 주소에서 언어 없는 경로를 얻는다. 예: '/ko/cv/' → '/cv/'
 const current = splitLocale(Astro.url.pathname)
@@ -23,6 +28,8 @@ if (translated && current.locale !== locale) {
 
 const other: Locale = locale === 'en' ? 'ko' : 'en'
 const pagePath = translated ? current.path : '/'
+// 그 언어로 이 페이지를 읽으려면 가야 할 주소
+const hrefFor = (target: Locale) => localePath(target, alternatePaths[target] ?? pagePath)
 const absolute = (href: string) => new URL(href, Astro.site).href
 
 // 배포 뒤 smoke.sh가 이 값으로 "방금 올린 빌드가 맞는지" 확인한다.
@@ -40,10 +47,10 @@ const buildSha = import.meta.env.BUILD_SHA ?? 'dev'
     {
       translated && (
         <>
-          {alternates(pagePath).map((a) => (
-            <link rel="alternate" hreflang={a.locale} href={absolute(a.href)} />
+          {LOCALES.map((target) => (
+            <link rel="alternate" hreflang={target} href={absolute(hrefFor(target))} />
           ))}
-          <link rel="alternate" hreflang="x-default" href={absolute(localePath(DEFAULT_LOCALE, pagePath))} />
+          <link rel="alternate" hreflang="x-default" href={absolute(hrefFor(DEFAULT_LOCALE))} />
         </>
       )
     }
@@ -55,7 +62,7 @@ const buildSha = import.meta.env.BUILD_SHA ?? 'dev'
       <nav>
         <a href={localePath(locale, '/cv/')}>{t(locale, 'nav.cv')}</a>
         <a href={localePath(locale, '/blog/')}>{t(locale, 'nav.blog')}</a>
-        <a class="lang" href={localePath(other, pagePath)} lang={other} hreflang={other}>
+        <a class="lang" href={hrefFor(other)} lang={other} hreflang={other}>
           {t(locale, 'lang.switch')}
         </a>
       </nav>
