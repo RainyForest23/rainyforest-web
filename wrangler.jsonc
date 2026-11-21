@@ -1,15 +1,15 @@
 // Cloudflare Workers, static assets only: no Worker code runs, so requests are
-// free and unmetered. `npm run build` must run first; it writes ./out.
+// free and unmetered. `npm run build` must run first; it writes ./dist.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "rainyforest-web",
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
   "assets": {
-    "directory": "./out",
-    // /blog/x -> /blog/x/ (307), then /blog/x/index.html. Matches trailingSlash: true in next.config.ts.
+    "directory": "./dist",
+    // /blog/x -> /blog/x/ (307), then /blog/x/index.html. Matches trailingSlash: 'always' in astro.config.mjs.
     "html_handling": "auto-trailing-slash",
-    // Serves out/404.html with status 404.
+    // Serves dist/404.html with status 404.
     "not_found_handling": "404-page"
   }
   // After buying the domain, add it here and redeploy:

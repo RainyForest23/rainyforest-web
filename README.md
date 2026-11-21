@@ -1,13 +1,13 @@
 # rainyforest-web
 
-Personal site: CV, portfolio and a blog published from an Obsidian vault.
-Design and decisions: `docs/superpowers/specs/2026-09-19-personal-site-design.md`.
+Personal site: an experience timeline, a study log and a CV, built with Astro.
+Design and decisions: `docs/superpowers/specs/2026-11-21-site-rebuild-design.md`.
 
 ## Develop
 
 ```bash
 npm ci
-npm run dev       # http://localhost:3000
+npm run dev       # http://localhost:4321
 npm run verify    # everything CI runs
 ```
 
@@ -19,7 +19,7 @@ npm run build && npx wrangler dev   # http://localhost:8787
 
 ## How it ships
 
-- The site is a static export (`out/`) served by Cloudflare Workers static assets
+- The site is a static Astro build (`dist/`) served by Cloudflare Workers static assets
   (`wrangler.jsonc`). No Worker code runs, so requests are free and unmetered.
 - `main` push → GitHub Actions verifies, builds, runs `wrangler deploy` and then
   `scripts/smoke.sh` against the live site.

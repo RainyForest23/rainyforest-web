@@ -1,0 +1,53 @@
+/* 색·글꼴·간격 값을 정하는 유일한 파일 (spec §3).
+   다른 파일에 색이나 px 값을 쓰면 `npm run check:tokens`가 실패한다.
+   지금 값은 자리만 잡아 둔 것이고, 디자인 단계에서 바꾼다. */
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #1f2328;
+  --color-fg-muted: #59636e;
+  --color-line: #d8dee4;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* 글 한 줄의 최대 폭 */
+  --measure: 42rem;
+
+  --border-thin: 1px;
+  --border-thick: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0d1117;
+    --color-fg: #e6edf3;
+    --color-fg-muted: #9198a1;
+    --color-line: #2a3038;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+}

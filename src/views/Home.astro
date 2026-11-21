@@ -1,0 +1,25 @@
+---
+// 임시 첫 화면. 3단계에서 경험 타임라인으로 바꾼다.
+import Base from '../layouts/Base.astro'
+
+interface Props {
+  locale: 'en' | 'ko'
+}
+
+const { locale } = Astro.props
+---
+
+<Base title="Woorim Shin" locale={locale} path="/">
+  <h1>Woorim Shin</h1>
+  <p class="muted">Timeline coming soon.</p>
+</Base>
+
+<style>
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+  }
+  .muted {
+    color: var(--color-fg-muted);
+  }
+</style>

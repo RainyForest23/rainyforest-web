@@ -1,4 +1,4 @@
 # Cloudflare Workers static assets: extra response headers. Not served as a file.
-# Next.js puts a content hash in every file name under /_next/static/, so they never change.
-/_next/static/*
+# Astro puts a content hash in every file name under /_astro/, so they never change.
+/_astro/*
   Cache-Control: public, max-age=31536000, immutable

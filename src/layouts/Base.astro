@@ -1,0 +1,40 @@
+---
+// 모든 페이지가 쓰는 바깥 틀: <html>, <head>, 본문 자리.
+import '../styles/tokens.css'
+
+interface Props {
+  title: string
+  description?: string
+  locale: 'en' | 'ko'
+  /** 언어 접두어를 뺀 경로. 예: '/cv/' */
+  path: string
+}
+
+const { title, description, locale } = Astro.props
+// 배포 뒤 smoke.sh가 이 값으로 "방금 올린 빌드가 맞는지" 확인한다.
+const buildSha = import.meta.env.BUILD_SHA ?? 'dev'
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="build" content={buildSha} />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style>
+  main {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: var(--space-7) var(--space-4);
+  }
+</style>
