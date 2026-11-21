@@ -1,0 +1,95 @@
+---
+// 글 한 편. 화면 언어(locale)와 글의 언어(entry.data.lang)가 다를 수 있다.
+import { type CollectionEntry, render } from 'astro:content'
+// 수식 글꼴과 배치. 수식은 글 화면에만 있으므로 여기서만 싣는다.
+import 'katex/dist/katex.min.css'
+import '../styles/prose.css'
+import Base from '../layouts/Base.astro'
+import { type Locale, localePath } from '../i18n/paths'
+import { t } from '../i18n/ui'
+import { formatDate } from '../lib/format'
+
+interface Props {
+  locale: Locale
+  entry: CollectionEntry<'legacy'>
+}
+
+const { locale, entry } = Astro.props
+const { title, summary_en, lang, date, updated, tags } = entry.data
+// MDX 본문을 화면에 넣을 수 있는 컴포넌트로 바꾼다.
+const { Content } = await render(entry)
+---
+
+<Base title={`${title} — Woorim Shin`} description={summary_en} locale={locale}>
+  <p class="meta">
+    <time datetime={date}>{formatDate(date, locale)}</time>
+    {
+      updated && updated !== date && (
+        <span>
+          {' '}
+          — {t(locale, 'post.updated')} <time datetime={updated}>{formatDate(updated, locale)}</time>
+        </span>
+      )
+    }
+  </p>
+  <h1 lang={lang}>{title}</h1>
+
+  {
+    locale === 'en' && lang === 'ko' && (
+      <p class="notice">
+        {t(locale, 'post.koreanOnly')} <span>{summary_en}</span>
+      </p>
+    )
+  }
+  {locale === 'ko' && lang === 'en' && <p class="notice">{t(locale, 'post.englishOnly')}</p>}
+
+  {
+    tags.length > 0 && (
+      <p class="tags">
+        {tags.map((tag) => (
+          <a href={localePath(locale, `/blog/tags/${tag}/`)}>#{tag}</a>
+        ))}
+      </p>
+    )
+  }
+
+  <article class="prose-body" lang={lang}>
+    <Content />
+  </article>
+</Base>
+
+<style>
+  .meta {
+    margin: 0;
+    color: var(--color-fg-muted);
+    font-size: 0.875rem;
+  }
+  h1 {
+    margin: var(--space-2) 0 0;
+    font-size: 1.75rem;
+    line-height: 1.3;
+  }
+  .notice {
+    margin: var(--space-4) 0 0;
+    border-left: var(--border-thick) solid var(--color-line);
+    padding-left: var(--space-4);
+    color: var(--color-fg-muted);
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin: var(--space-4) 0 0;
+    color: var(--color-fg-muted);
+    font-size: 0.875rem;
+  }
+  .tags a {
+    text-decoration: none;
+  }
+  .tags a:hover {
+    text-decoration: underline;
+  }
+  article {
+    margin-top: var(--space-6);
+  }
+</style>

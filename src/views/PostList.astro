@@ -1,0 +1,72 @@
+---
+// 글 목록. BlogIndex와 Tag가 함께 쓴다.
+import type { CollectionEntry } from 'astro:content'
+import { type Locale, localePath } from '../i18n/paths'
+import { t } from '../i18n/ui'
+import { formatDate } from '../lib/format'
+
+interface Props {
+  locale: Locale
+  posts: CollectionEntry<'legacy'>[]
+}
+
+const { locale, posts } = Astro.props
+---
+
+<ul>
+  {
+    posts.map((post) => (
+      <li>
+        <p class="meta">
+          <time datetime={post.data.date}>{formatDate(post.data.date, locale)}</time>
+          {post.data.lang !== locale && (
+            <span> — {t(locale, post.data.lang === 'ko' ? 'post.inKorean' : 'post.inEnglish')}</span>
+          )}
+        </p>
+        <h2>
+          <a href={localePath(locale, `/blog/${post.id}/`)} lang={post.data.lang}>
+            {post.data.title}
+          </a>
+        </h2>
+        {locale === 'en' && <p class="summary">{post.data.summary_en}</p>}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    padding: var(--space-5) 0;
+    border-top: var(--border-thin) solid var(--color-line);
+  }
+  li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  p {
+    margin: 0;
+  }
+  .meta {
+    color: var(--color-fg-muted);
+    font-size: 0.875rem;
+  }
+  h2 {
+    margin: var(--space-1) 0 0;
+    font-size: 1.125rem;
+  }
+  h2 a {
+    text-decoration: none;
+  }
+  h2 a:hover {
+    text-decoration: underline;
+  }
+  .summary {
+    margin-top: var(--space-1);
+    color: var(--color-fg-muted);
+  }
+</style>

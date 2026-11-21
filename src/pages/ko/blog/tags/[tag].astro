@@ -1,0 +1,14 @@
+---
+import { getCollection } from 'astro:content'
+import { tagIndex } from '../../../../lib/content/legacy'
+import Tag from '../../../../views/Tag.astro'
+
+export async function getStaticPaths() {
+  const tags = tagIndex(await getCollection('legacy'))
+  return [...tags].map(([tag, posts]) => ({ params: { tag }, props: { tag, posts } }))
+}
+
+const { tag, posts } = Astro.props
+---
+
+<Tag locale="ko" tag={tag} posts={posts} />

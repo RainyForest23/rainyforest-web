@@ -22,6 +22,8 @@ const en = {
   'post.koreanOnly': 'This post is written in Korean. Summary in English:',
   'post.englishOnly': 'This post is written in English only.',
   'post.updated': 'Updated',
+  'post.inKorean': 'in Korean',
+  'post.inEnglish': 'in English',
   'notFound.title': 'Page not found',
 }
 
@@ -47,6 +49,8 @@ const ko: Record<UiKey, string> = {
   'post.koreanOnly': '이 글은 한국어로만 있습니다.',
   'post.englishOnly': '이 글은 영어로만 있습니다.',
   'post.updated': '수정',
+  'post.inKorean': '한국어 글',
+  'post.inEnglish': '영어 글',
   'notFound.title': '페이지를 찾을 수 없습니다',
 }
 

@@ -1,0 +1,15 @@
+---
+// 이 파일 하나가 글마다 페이지 하나씩을 만든다.
+// getStaticPaths가 돌려준 목록의 항목 하나가 페이지 하나가 된다.
+import { getCollection } from 'astro:content'
+import Post from '../../../views/Post.astro'
+
+export async function getStaticPaths() {
+  const posts = await getCollection('legacy')
+  return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
+}
+
+const { entry } = Astro.props
+---
+
+<Post locale="ko" entry={entry} />

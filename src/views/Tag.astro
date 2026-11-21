@@ -1,0 +1,34 @@
+---
+// 태그 하나에 속한 글 목록.
+import type { CollectionEntry } from 'astro:content'
+import Base from '../layouts/Base.astro'
+import { type Locale, localePath } from '../i18n/paths'
+import { t } from '../i18n/ui'
+import PostList from './PostList.astro'
+
+interface Props {
+  locale: Locale
+  tag: string
+  posts: CollectionEntry<'legacy'>[]
+}
+
+const { locale, tag, posts } = Astro.props
+---
+
+<Base title={`#${tag} — Woorim Shin`} locale={locale}>
+  <p class="back"><a href={localePath(locale, '/blog/')}>← {t(locale, 'blog.title')}</a></p>
+  <h1>#{tag}</h1>
+  <PostList locale={locale} posts={posts} />
+</Base>
+
+<style>
+  .back {
+    margin: 0;
+    color: var(--color-fg-muted);
+    font-size: 0.875rem;
+  }
+  h1 {
+    margin: var(--space-2) 0 var(--space-6);
+    font-size: 1.75rem;
+  }
+</style>

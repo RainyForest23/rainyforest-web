@@ -60,6 +60,8 @@
 .prose-body .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
+  /* 분수의 위아래 끝이 잘리지 않게 여유를 둔다. */
+  padding: var(--space-1) 0;
 }
 .prose-body th,
 .prose-body td {

@@ -49,3 +49,28 @@ Astro의 content collection도 Zod를 쓰기 때문에 도구가 하나로 줄�
 **`strictObject`가 학점을 막는 방식.** `z.object`는 모르는 필드를 그냥 무시하고, `z.strictObject`는 모르는 필드가 있으면 실패한다. 스키마의 `education`에는 `score` 필드가 없다. 그래서 누가 `resume.json`에 `"score": "GPA ..."`를 다시 넣으면 빌드가 멈춘다. "넣지 말자"는 약속을 기억에 맡기지 않고 검사에 맡긴 것이다. 같은 내용을 `schema.test.ts`의 `rejects a GPA score` 테스트가 확인한다.
 
 예전 CV PDF(`public/cv/woorim-shin-cv.pdf`)에는 학점이 적혀 있어서 내렸다. 학점을 뺀 PDF를 같은 자리에 넣고 `Cv.astro`에 내려받기 링크를 다시 달면 된다.
+
+## content collection과 `[slug].astro`
+
+옛 글 18편은 `content/legacy/`에 `.mdx` 파일로 있다. 각 파일 맨 위에는 제목, 날짜, 태그 같은 머리말(frontmatter)이 있다.
+
+**content collection이 하는 일.** `src/content.config.ts`에 "이 폴더의 `.mdx` 파일이 `legacy`라는 묶음이고, 머리말은 이 스키마를 따른다"고 적어 두면 Astro가 빌드할 때 세 가지를 해 준다.
+
+1. 파일을 찾아서 읽는다.
+2. 머리말을 스키마(`src/lib/content/legacy.ts`)로 검사한다. 날짜 형식이 틀리거나 영어 요약이 없으면 어느 파일인지 알려 주며 빌드가 멈춘다.
+3. `getCollection('legacy')`로 꺼내 쓸 수 있게 하고, 타입도 만들어 준다. 그래서 `post.data.titel`처럼 오타를 내면 편집기가 바로 알려 준다.
+
+**파일 하나가 18개 페이지가 되는 원리.** `src/pages/blog/[slug].astro`의 대괄호는 "이 자리는 값마다 달라진다"는 뜻이다. Astro는 빌드할 때 이 파일의 `getStaticPaths()`를 불러서 "어떤 값들로 페이지를 만들까요?"를 묻는다. 우리는 글 18편의 목록을 돌려준다.
+
+```ts
+export async function getStaticPaths() {
+  const posts = await getCollection('legacy')
+  return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
+}
+```
+
+`params.slug`가 주소의 `[slug]` 자리에 들어가고, `props.entry`가 그 페이지에 전달된다. 목록에 18개가 있으니 페이지도 18개가 생긴다. 한국어 쪽(`src/pages/ko/blog/[slug].astro`)도 같은 일을 해서 모두 36개다. 태그 페이지(`tags/[tag].astro`)도 같은 방식이다.
+
+**화면 언어와 글 언어.** 글은 대부분 한국어로만 있다. 영어 주소로 한국어 글을 열면 "Korean only" 안내와 영어 요약이 나오고, 본문에는 `lang="ko"`가 붙는다. 브라우저와 화면 낭독기가 이 표시를 보고 글꼴과 발음을 고른다.
+
+**수식에서 겪은 문제.** 수식 HTML은 `rehype-katex` 안에 들어 있는 KaTeX가 만들고, 모양을 잡는 CSS는 우리가 따로 설치한 `katex`에서 온다. 두 버전이 달랐더니 빌드도 되고 검사도 통과했는데 위첨자와 분수가 겹쳐 보였다. 브라우저로 직접 열어 보고서야 알았다. `package.json`의 `katex`를 같은 버전으로 맞췄고, 다시 어긋나면 `scripts/katex-version.test.ts`가 실패한다. 화면에 보이는 것은 테스트가 통과해도 눈으로 한 번 확인해야 한다.

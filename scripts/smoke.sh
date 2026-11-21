@@ -20,7 +20,7 @@ done
 [ "$(status "$SITE_URL/definitely-missing-page/")" = "404" ] \
   || fail "a missing page did not return 404"
 
-curl -fsS "$SITE_URL/sitemap.xml" | grep -qF "<loc>$SITE_URL/" \
+curl -fsS "$SITE_URL/sitemap-index.xml" | grep -qF "<loc>$SITE_URL/" \
   || fail "sitemap does not use $SITE_URL (was SITE_URL set for the build?)"
 
 # Only a custom domain has a www twin (redirected by a Cloudflare Redirect Rule, see README).

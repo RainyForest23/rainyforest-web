@@ -1,0 +1,47 @@
+---
+// 글 목록 화면.
+import { getCollection } from 'astro:content'
+import Base from '../layouts/Base.astro'
+import { type Locale, localePath } from '../i18n/paths'
+import { t } from '../i18n/ui'
+import { sortPosts, tagIndex } from '../lib/content/legacy'
+import PostList from './PostList.astro'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const posts = sortPosts(await getCollection('legacy'))
+const tags = tagIndex(posts)
+---
+
+<Base title={`${t(locale, 'blog.title')} — Woorim Shin`} description="Study notes and write-ups." locale={locale}>
+  <h1>{t(locale, 'blog.title')}</h1>
+  <p class="tags">
+    <span>{t(locale, 'blog.tags')}:</span>
+    {[...tags].map(([tag, tagged]) => <a href={localePath(locale, `/blog/tags/${tag}/`)}>#{tag} ({tagged.length})</a>)}
+  </p>
+  <PostList locale={locale} posts={posts} />
+</Base>
+
+<style>
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin: var(--space-4) 0 var(--space-6);
+    color: var(--color-fg-muted);
+    font-size: 0.875rem;
+  }
+  .tags a {
+    text-decoration: none;
+  }
+  .tags a:hover {
+    text-decoration: underline;
+  }
+</style>
