@@ -24,8 +24,13 @@ describe('findBrokenLinks', () => {
     expect(findBrokenLinks(pages, files)).toEqual([])
   })
 
-  it('ignores Next.js runtime assets, which are emitted separately', () => {
-    const pages = new Map([['index.html', '<script src="/_next/static/chunks/x.js"></script>']])
-    expect(findBrokenLinks(pages, files)).toEqual([])
+  it('ignores Astro build assets', () => {
+    const pages = new Map([['index.html', '<script src="/_astro/a.js"></script>']])
+    expect(findBrokenLinks(pages, new Set(['index.html']))).toEqual([])
+  })
+
+  it('resolves percent-encoded Korean paths', () => {
+    const pages = new Map([['index.html', '<a href="/blog/%ED%95%9C/">x</a>']])
+    expect(findBrokenLinks(pages, new Set(['index.html', 'blog/한/index.html']))).toEqual([])
   })
 })

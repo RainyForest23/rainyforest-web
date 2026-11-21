@@ -15,7 +15,7 @@ export function findBrokenLinks(pages: Map<string, string>, files: Set<string>):
   const broken: string[] = []
   for (const [page, html] of pages) {
     for (const [, path] of html.matchAll(LINK)) {
-      if (path.startsWith('/_next/')) continue
+      if (path.startsWith('/_astro/')) continue
       if (!files.has(toFile(path))) broken.push(`${page} -> ${path}`)
     }
   }
@@ -30,7 +30,7 @@ function listFiles(dir: string): string[] {
 }
 
 function main(): void {
-  const out = join(process.cwd(), 'out')
+  const out = join(process.cwd(), 'dist')
   const all = listFiles(out).map((f) => relative(out, f))
   const pages = new Map(
     all.filter((f) => f.endsWith('.html')).map((f) => [f, readFileSync(join(out, f), 'utf8')] as const),
