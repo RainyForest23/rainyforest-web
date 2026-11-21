@@ -29,7 +29,6 @@
       "studyType": "B.S.",
       "startDate": "2023",
       "endDate": "2027",
-      "score": "GPA [removed]",
       "summary": "Seoul, Korea. Expected graduation February 2027.",
       "courses": [
         "Operating Systems",
@@ -48,10 +47,10 @@
       "name": "Hiconsy",
       "position": "AI R&D Intern",
       "location": "Seoul, Korea",
-      "startDate": "2025",
+      "startDate": "2025-06",
       "endDate": "2026",
       "highlights": [
-        "Led the AI/ML R&D function at a Korean CSAT education technology subsidiary, directing research strategy and coordinating a cross-functional team.",
+        "Led the AI/ML R&D function at Hiconsy, the parent company of the Sidae Injae CSAT academy, directing research strategy and coordinating a cross-functional team.",
         "Architected and deployed a production Korean lecture ASR system end to end.",
         "Established QA workflows by building custom annotation tools for non-technical QC staff."
       ]

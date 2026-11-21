@@ -32,3 +32,20 @@ Astro는 `src/pages/` 안의 파일 위치가 곧 주소다. `src/pages/cv/index
 - 주소 계산은 `src/i18n/paths.ts`에 모았다. `localePath('ko', '/cv/')`는 `/ko/cv/`를 준다.
 - `Base.astro`는 지금 주소를 보고 언어 전환 링크와 `hreflang` 링크를 만든다. `hreflang`은 검색 엔진에 "이 페이지의 한국어판은 저기 있다"고 알려 주는 표시다.
 - 라우트 파일이 언어를 잘못 넘기면(`/ko/` 아래에서 `locale="en"`) `Base.astro`가 빌드를 멈춘다.
+
+## `resume.json`을 Zod로 검사하는 이유
+
+CV 내용은 `content/resume.json` 한 파일에 있다. 이 파일을 손으로 고치다 보면 필드 이름을 틀리거나 날짜를 `June 2025`처럼 쓸 수 있다. 그러면 화면이 조용히 비거나 깨진다. 그래서 빌드할 때 "이 JSON이 약속한 모양인가"를 먼저 검사한다. 그 약속을 적은 것이 `src/lib/cv/schema.ts`의 스키마다.
+
+이전 사이트는 Ajv라는 도구를 썼다. Ajv는 검사 규칙과 TypeScript 타입을 따로 써야 해서 같은 내용이 두 번 있었다. Zod는 규칙을 한 번 쓰면 타입이 따라 나온다.
+
+```ts
+const resumeSchema = z.strictObject({ basics: z.strictObject({ name: z.string(), ... }) })
+type Resume = z.infer<typeof resumeSchema>   // 규칙에서 타입을 뽑는다
+```
+
+Astro의 content collection도 Zod를 쓰기 때문에 도구가 하나로 줄었다. 2단계에서 경험·원칙·공부 기록의 스키마를 직접 쓸 때 이 파일이 예시가 된다.
+
+**`strictObject`가 학점을 막는 방식.** `z.object`는 모르는 필드를 그냥 무시하고, `z.strictObject`는 모르는 필드가 있으면 실패한다. 스키마의 `education`에는 `score` 필드가 없다. 그래서 누가 `resume.json`에 `"score": "GPA ..."`를 다시 넣으면 빌드가 멈춘다. "넣지 말자"는 약속을 기억에 맡기지 않고 검사에 맡긴 것이다. 같은 내용을 `schema.test.ts`의 `rejects a GPA score` 테스트가 확인한다.
+
+예전 CV PDF(`public/cv/woorim-shin-cv.pdf`)에는 학점이 적혀 있어서 내렸다. 학점을 뺀 PDF를 같은 자리에 넣고 `Cv.astro`에 내려받기 링크를 다시 달면 된다.
