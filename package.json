@@ -10,7 +10,8 @@
     "test": "vitest run --passWithNoTests",
     "check:tokens": "tsx scripts/check-tokens.ts",
     "check:links": "tsx scripts/check-links.ts",
-    "verify": "npm run check:tokens && npm test && npm run build && npm run check:links && npm run typecheck",
+    "check:dist": "tsx scripts/check-dist.ts",
+    "verify": "npm run check:tokens && npm test && npm run build && npm run check:links && npm run check:dist && npm run typecheck",
     "deploy": "wrangler deploy"
   },
   "dependencies": {

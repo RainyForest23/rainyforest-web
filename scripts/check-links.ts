@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 const LINK = /(?:href|src)="(\/[^"#?]*)[^"]*"/g
 
 /** Same resolution as html_handling: "auto-trailing-slash" in wrangler.jsonc. */
-function toFile(path: string): string {
+export function toFile(path: string): string {
   const clean = decodeURIComponent(path).replace(/^\//, '')
   if (clean === '' || clean.endsWith('/')) return `${clean}index.html`
   return clean.split('/').pop()!.includes('.') ? clean : `${clean}/index.html`
