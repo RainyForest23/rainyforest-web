@@ -1,16 +1,30 @@
 ---
-// 모든 페이지가 쓰는 바깥 틀: <html>, <head>, 본문 자리.
+// 모든 페이지가 쓰는 바깥 틀: <html>, <head>, 헤더(메뉴와 언어 전환), 본문 자리.
 import '../styles/tokens.css'
+import { alternates, DEFAULT_LOCALE, type Locale, localePath, splitLocale } from '../i18n/paths'
+import { t } from '../i18n/ui'
 
 interface Props {
   title: string
   description?: string
-  locale: 'en' | 'ko'
-  /** 언어 접두어를 뺀 경로. 예: '/cv/' */
-  path: string
+  locale: Locale
+  /** 다른 언어판이 없는 페이지(404)는 false. 기본값 true. */
+  translated?: boolean
 }
 
-const { title, description, locale } = Astro.props
+const { title, description, locale, translated = true } = Astro.props
+
+// 지금 주소에서 언어 없는 경로를 얻는다. 예: '/ko/cv/' → '/cv/'
+const current = splitLocale(Astro.url.pathname)
+if (translated && current.locale !== locale) {
+  // 라우트 파일이 언어를 잘못 넘긴 경우를 빌드에서 잡는다.
+  throw new Error(`${Astro.url.pathname} is a "${current.locale}" route but got locale="${locale}"`)
+}
+
+const other: Locale = locale === 'en' ? 'ko' : 'en'
+const pagePath = translated ? current.path : '/'
+const absolute = (href: string) => new URL(href, Astro.site).href
+
 // 배포 뒤 smoke.sh가 이 값으로 "방금 올린 빌드가 맞는지" 확인한다.
 const buildSha = import.meta.env.BUILD_SHA ?? 'dev'
 ---
@@ -23,8 +37,29 @@ const buildSha = import.meta.env.BUILD_SHA ?? 'dev'
     <meta name="build" content={buildSha} />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
+    {
+      translated && (
+        <>
+          {alternates(pagePath).map((a) => (
+            <link rel="alternate" hreflang={a.locale} href={absolute(a.href)} />
+          ))}
+          <link rel="alternate" hreflang="x-default" href={absolute(localePath(DEFAULT_LOCALE, pagePath))} />
+        </>
+      )
+    }
+    <link rel="alternate" type="application/rss+xml" title="Woorim Shin" href="/feed.xml" />
   </head>
   <body>
+    <header>
+      <a class="name" href={localePath(locale, '/')}>Woorim Shin</a>
+      <nav>
+        <a href={localePath(locale, '/cv/')}>{t(locale, 'nav.cv')}</a>
+        <a href={localePath(locale, '/blog/')}>{t(locale, 'nav.blog')}</a>
+        <a class="lang" href={localePath(other, pagePath)} lang={other} hreflang={other}>
+          {t(locale, 'lang.switch')}
+        </a>
+      </nav>
+    </header>
     <main>
       <slot />
     </main>
@@ -32,9 +67,40 @@ const buildSha = import.meta.env.BUILD_SHA ?? 'dev'
 </html>
 
 <style>
+  header,
   main {
     max-width: var(--measure);
     margin: 0 auto;
-    padding: var(--space-7) var(--space-4);
+    padding: 0 var(--space-4);
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-5);
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-thin) solid var(--color-line);
+  }
+  header a {
+    text-decoration: none;
+  }
+  header a:hover {
+    text-decoration: underline;
+  }
+  .name {
+    font-weight: 600;
+  }
+  nav {
+    display: flex;
+    gap: var(--space-5);
+  }
+  .lang {
+    color: var(--color-fg-muted);
+  }
+  main {
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-8);
   }
 </style>

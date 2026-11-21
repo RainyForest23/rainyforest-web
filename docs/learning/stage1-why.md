@@ -21,3 +21,14 @@
 - `/_astro/` 아래 파일은 이름에 내용의 해시가 들어 있어서 1년 동안 캐시해도 된다 (`public/_headers`)
 
 Keynote 덱처럼 큰 파일은 이 방식으로 올릴 수 없다 (파일 하나에 25MiB 제한). 그 부분은 7단계에서 R2와 Worker 코드로 따로 만든다.
+
+## `views`와 `pages`를 나눈 이유
+
+Astro는 `src/pages/` 안의 파일 위치가 곧 주소다. `src/pages/cv/index.astro`는 `/cv/`, `src/pages/ko/cv/index.astro`는 `/ko/cv/`가 된다. 영어와 한국어 주소가 둘 다 필요하니 파일도 둘이어야 한다.
+
+같은 화면을 두 번 쓰면 한쪽만 고치는 실수가 생긴다. 그래서 화면 본문은 `src/views/Cv.astro`에 한 번만 쓰고, `locale`(언어)을 받게 했다. `pages` 쪽 파일은 `<Cv locale="en" />` 또는 `<Cv locale="ko" />` 한 줄만 있는 얇은 파일이다.
+
+- 화면에 고정으로 나오는 문구는 `src/i18n/ui.ts` 사전에 있고, `t(locale, 'nav.blog')`처럼 꺼낸다.
+- 주소 계산은 `src/i18n/paths.ts`에 모았다. `localePath('ko', '/cv/')`는 `/ko/cv/`를 준다.
+- `Base.astro`는 지금 주소를 보고 언어 전환 링크와 `hreflang` 링크를 만든다. `hreflang`은 검색 엔진에 "이 페이지의 한국어판은 저기 있다"고 알려 주는 표시다.
+- 라우트 파일이 언어를 잘못 넘기면(`/ko/` 아래에서 `locale="en"`) `Base.astro`가 빌드를 멈춘다.
