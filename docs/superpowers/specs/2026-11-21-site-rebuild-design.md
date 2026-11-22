@@ -121,7 +121,9 @@ Vercel(참고 사이트의 호스팅)도 검토했으나 덱 파일을 둘 곳�
 |---|---|
 | `/` | 숲 첫 화면(이름, 한 줄 소개) + 스크롤하면 경험 타임라인 (§15.3) |
 | `/about` | 이름(雨林)과 뱀띠 이야기. 스크롤로 넘어가는 장면 일곱 개 (§15.4) |
-| `/work/[slug]` | 경험 페이지. 핵심 둘은 딥다이브 |
+| `/work` | 모든 경험 목록. 경험마다 설명글 링크, 시각화가 있으면 시각화 링크 |
+| `/work/[slug]` | 설명글. 페이지가 있는 모든 경험이 같은 8단계 틀로 쓴다 (§7.2). 경험의 대표 주소 |
+| `/work/[slug]/story` | 시각화. 스크롤로 넘어가는 그림 설명. 있는 경험만 (§7.6) |
 | `/principles` , `/principles/[slug]` | 원칙 목록, 원칙 페이지(리니지 + 이력) |
 | `/study` , `/study/[slug]` | 공부 기록 목록(날짜순), 기록 페이지. 로드맵 체크리스트는 `/study` 상단 |
 | `/keynotes` | 덱 전시 벽, 클릭 시 재생 |
@@ -130,7 +132,9 @@ Vercel(참고 사이트의 호스팅)도 검토했으나 덱 파일을 둘 곳�
 | `/ko/...` | 위 모든 경로의 한국어판 (§10) |
 | `/feed.xml`, `/sitemap.xml` | Study + blog RSS, 사이트맵 |
 
-상단 메뉴: Work · Principles · Study · Keynotes · CV, 오른쪽에 EN/KO. About은 메뉴에 넣지 않고 첫 화면의 "Why Rainyforest?" 링크로 간다. *(Claude 결정)*
+**경험을 누르면 가는 곳 (2026-11-22):** 시각화가 있으면 `/work/[slug]/story`로, 없으면 `/work/[slug]`로 간다. 타임라인의 점과 이름, `/work` 목록의 제목이 모두 이 규칙을 따른다. 시각화의 마지막 장면과 그 아래에는 설명글로 가는 "More detail →"가 있고, 설명글 맨 위에는 시각화로 가는 링크가 있다. 그래서 어느 쪽으로 들어와도 다른 쪽에 닿는다.
+
+상단 메뉴: Work · Principles · Study · Keynotes · CV, 오른쪽에 EN/KO. Work는 `/work`로 간다. About은 메뉴에 넣지 않고 첫 화면의 "Why Rainyforest?" 링크로 간다. *(Claude 결정)*
 
 ## 6. 온톨로지 (콘텐츠 모델)
 
@@ -147,8 +151,8 @@ Source ◀─cites── StudyLog ──develops──▶ Principle ◀──app
 
 | 객체 | 파일 | 주요 필드 |
 |---|---|---|
-| Experience | `content/experiences/[slug].mdx` | `title`, `org`, `lane`(work/research/club/study/award), `period{start,end?,approximate?}` 또는 `date`, `tier`(deep/standard/brief), `hero`(anatomy/pipeline/none), `summary`, `role`, `stack[]`, `outcome?`, `resumeRef?` |
-| Step | Experience MDX 안의 `<Step>` 컴포넌트 | `n`(1–8), `applies[]`(principle slug) |
+| Experience | `content/experiences/[slug].mdx` | `title`, `org`, `lane`(work/research/club/study/award), `period{start,end?,approximate?}` 또는 `date`, `tier`(deep/standard/brief), `hero`(anatomy/pipeline/none), `story`(시각화 페이지가 있는가), `summary`, `role`, `stack[]`, `outcome?`, `resumeRef?` |
+| Step | Experience MDX 안의 `<Step>` 컴포넌트 | `n`(1–8), `applies[]`(principle slug), `draft?`(AI가 쓴 초안이고 아직 검토하지 않음) |
 | Principle | `content/principles/[slug].mdx` | `title`, `summary`, `status`(draft/stable) |
 | StudyLog | `content/study/[YYYY-MM-DD]-[slug].mdx` | `title`, `date`, `kind`(log/python/notes/build), `develops[]`(principle slug), `cites[]`(source id), `lang` |
 | Source | `content/sources.yaml` | `id`, `title`, `url`, `kind`(doc/course/book/talk) |
@@ -178,7 +182,7 @@ Source ◀─cites── StudyLog ──develops──▶ Principle ◀──app
 - 넓은 화면의 움직임: 타임라인이 화면에 올라오는 동안 가지가 위 갈래부터 차례로 자라고, 가지 끝이 닿으면 그 자리의 경험이 펼쳐진다. 위로 스크롤하면 되돌아간다.
 - 좁은 화면: 세로 방향. 연도가 위에서 아래로 흐르고 갈래가 세로 줄로 선다. 줄기와 가지는 없다. 가로 스크롤 없음.
 - 가지는 수평 직선으로 둔다. 비스듬히 뻗으면 연도를 세로로 맞춰 읽을 수 없다. *(Claude 결정)*
-- 점 누르기: 페이지가 있으면 이동, brief면 그 자리에 한 줄 설명.
+- 점이나 이름 누르기: 시각화가 있으면 시각화로, 없으면 설명글로 이동 (§5). brief면 그 자리에 한 줄 설명. 시각화가 있는 경험은 이름 옆에 노란 점 하나로 표시한다.
 - 움직임 줄이기 설정이 켜져 있으면 처음부터 다 자란 상태로 보인다.
 
 ## 7. 경험 페이지
@@ -244,6 +248,20 @@ Source ◀─cites── StudyLog ──develops──▶ Principle ◀──app
 - Hiconsy: 강의 테이프 → VAD 커터 → Whisper+LoRA 판독기 → 용어 서랍 → 자막 릴. 수치는 §3의 확인된 값만.
 - 시대인재: 학생 질문이 투입구로 들어가 QM0–QM7 칸으로 분류되고, TA 자리로 배달되며, 위에 리더보드가 도는 분류 기계.
 - 그림 하나에 몇 시간이 걸린다. 다른 단계가 그림을 기다리지 않도록, 그림이 없는 동안은 `PipelineStepper`로 대신한다.
+
+### 7.6 시각화와 설명글 (2026-11-22 추가)
+
+한 경험은 두 가지 방식으로 읽을 수 있다.
+
+- **시각화 (`/work/[slug]/story`)**: §7.5의 그림을 스크롤 장면으로 이어 붙인 것. 화면 하나가 고정되고 장면이 넘어간다. 첫 사례는 에너지 비용 모델: 받침대 둘(같은 배정, 다른 에너지) → 한 서버로 합쳐짐 → 부품별 규칙이 하나씩 적용되며 식이 한 항씩 쌓임 → 합계와 검증. 식은 KaTeX로 조판하고 항의 색은 그림의 막대 색과 맞춘다. 좁은 화면에서는 받침대를 위아래로 쌓는다.
+- **설명글 (`/work/[slug]`)**: §7.2의 8단계 틀. 모든 경험이 같은 순서와 같은 질문으로 쓴다. 넓은 화면에서는 왼쪽에 8단계 목차가 따라온다. 3단계에는 객체·관계 그림, 4단계에는 분해 트리, 7단계에는 결과 표가 들어간다.
+- 시각화가 없는 경험은 설명글만 가진다. 시각화가 있는 경험도 설명글을 반드시 가진다.
+
+**[초안] 표시.** AI가 쓴 설명글에는 `[초안]`(영어판은 `[Draft]`)을 붙인다. 단계 제목과 머리말 옆에 붙고, 페이지 위쪽에 그 뜻을 한 줄로 적는다. 사이트 주인이 그 부분을 검토하거나 고쳐 쓰면 그 부분의 표시를 뗀다. 시각화에는 붙이지 않는다. 표시가 붙은 글도 §3의 규칙(확인된 수치만, 비공개 범위)을 지켜야 한다.
+
+수치의 출처가 둘 이상이면 어느 조건의 값인지 적는다. 에너지 비용 모델은 논문 값(CPU 주파수 고정 실행)과 공개 블로그 글 값(6회 평균)이 다르고, 사이트는 논문 값을 쓴다.
+
+시안: `docs/design/concept-spike/work/` (목록, 설명글, 시각화). 설명글과 목록은 `build-pages.mjs` 하나가 경험 목록과 틀 하나로 만든다. 링크는 `check-links.mjs`로 검사한다.
 
 ## 8. Principles와 Study
 
@@ -476,12 +494,23 @@ Pyodide: `PyCell`이 화면에 들어올 때만 jsDelivr에서 불러온다. 버
 
 ### 15.6 글 읽는 페이지
 
-숲은 첫 화면과 About에만 둔다. 경험, 공부 기록, 블로그, CV는 평평한 어두운 면에 글을 쓴다. *(Claude 결정)*
+숲을 양옆에만 두고 글 뒤는 비운다. 카드는 쓰지 않는다 (2026-11-22 본인 결정. 평평한 면, 숲 위에 카드, 양옆 숲 셋 중에서 고름).
+
+- 넓은 화면 (글 칸 양옆에 72px 이상 남을 때): 숲이 페이지 뒤에 고정된다. 양옆에 줄기와 잎, 아래 구석에 큰 잎. 글 칸 뒤에는 점도 그리지 않는다. 땅과 뱀은 없다.
+- 좁은 화면: 나무가 설 옆자리가 없으므로 메뉴 아래에 잎 띠 한 줄만 두고, 페이지와 함께 스크롤되어 올라간다.
+- Work 목록: 양옆에서만 비가 내린다.
+- 설명글과 그 밖에 오래 읽는 페이지(공부 기록, 블로그, CV): 나무는 멈춘 그림이고 비는 내리지 않는다.
+- 시각화(`/work/[slug]/story`): 숲을 두지 않는다. 그림이 화면의 주인이다.
+- 움직임 줄이기 설정이 켜져 있으면 비를 끈다.
+
+시안: `docs/design/concept-spike/forest.js` (홈의 숲 그리기 코드를 떼어 낸 것).
 
 ### 15.7 아직 정하지 않은 것
 
 - 글꼴 (지금은 시스템 글꼴).
 - 한국어판 문구.
 - "뱀은 우림에서 가장 잘 산다"는 사실 확인을 하지 않은 비유다. 그대로 둘지 정한다.
+- 에너지 비용 모델 시각화의 235W, 143W, 13W는 논문 그래프에서 읽은 근사값이다. 원본 데이터 값으로 바꾼다.
+- 에너지 비용 모델 설명글 8단계는 전부 `[초안]`이다. 사이트 주인의 검토가 필요하다. "지금 다시 분해하면" 블록은 비어 있다.
 - 휴대폰에서는 Experience 뒤에 나무가 거의 보이지 않는다. 그대로 둘지 정한다.
 - 창 크기가 바뀔 때 숲을 다시 그리는 비용 (휴대폰 주소창이 접힐 때 끊길 수 있음).

@@ -69,6 +69,8 @@
   .wrap { width: 100%; max-width: 62rem; margin: 0 auto; }
   h2 { margin: 0; font-size: var(--step-1); font-weight: 600; }
   .sub { margin: 0.2rem 0 1.75rem; color: var(--ink-2); font-size: var(--step--1); }
+  .sub .vis { margin: 0 0.15em 0 0.3em; }
+  .sub a { color: var(--ink); text-underline-offset: 0.25em; text-decoration-style: dotted; }
 
   .timeline { container-type: inline-size; }
   .grid {
@@ -118,11 +120,16 @@
   .lbl { grid-column: var(--a) / -1; grid-row: var(--lane); align-self: start; padding-top: 0.25rem; font-size: var(--step--1); line-height: 1.3; white-space: nowrap; pointer-events: none; }
   .lbl.end { grid-column: 2 / var(--b); justify-self: end; text-align: right; }
   .lbl b { font-weight: 600; }
+  .lbl a { pointer-events: auto; color: inherit; text-decoration: none; }
+  .lbl a:hover, .lbl a:focus-visible { text-decoration: underline dotted; text-underline-offset: 0.25em; }
+  .vis { display: inline-block; width: 0.45em; height: 0.45em; border-radius: 50%; background: var(--snake); margin-left: 0.5em; vertical-align: 0.12em; }
+  a.bar { display: block; text-decoration: none; }
   .lbl span { color: var(--ink-2); margin-left: 0.5em; }
   .lbl .when { display: none; }
 
   .readout { margin: 1.25rem 0 0; min-height: 1.6em; font-size: var(--step--1); color: var(--ink-2); }
   .readout b { color: var(--ink); font-weight: 600; }
+  .readout a { color: var(--ink); text-underline-offset: 0.25em; text-decoration-style: dotted; }
 
   /* narrow: time runs top to bottom, lanes become columns */
   /* wide: everything hangs off the tree and grows out along its branch as you scroll */
@@ -175,7 +182,7 @@
   <nav class="nav" aria-label="Site">
     <a class="me" href="#">Rainyforest</a>
     <ul>
-      <li><a href="#experience">Experience</a></li>
+      <li><a href="work/index.html">Work</a></li>
       <li><a href="#">Study</a></li>
       <li><a href="#">Principles</a></li>
       <li><a href="#">Keynotes</a></li>
@@ -197,7 +204,7 @@
 <main id="experience">
   <div class="wrap timeline">
     <h2>Experience</h2>
-    <p class="sub">One dot is one month. 2023 to now.</p>
+    <p class="sub">One dot is one month. 2023 to now. <i class="vis"></i> opens a visual explanation; the others open a write-up. <a href="work/index.html">All work →</a></p>
     <div class="grid" id="grid"></div>
     <p class="readout" id="readout" aria-live="polite">Point at a row of dots, or tap it.</p>
   </div>
@@ -213,9 +220,9 @@
   const NOW = idx('2026-11');
   const lanes = [['work', 'Work', 'Work'], ['research', 'Research', 'Res.'], ['club', 'Club', 'Club'], ['study', 'Study', 'Study'], ['award', 'Award', 'Awd']];
   const items = [
-    { lane: 'work', title: 'SDIJ Forest Team', role: 'Project Leader', when: '2023 – 2025', s: '2023-03', e: '2025-04', tier: 'deep', cls: 'approx' },
-    { lane: 'work', title: 'Hiconsy', role: 'AI R&D Intern', when: 'Jun 2025 – 2026', s: '2025-06', e: '2026-02', tier: 'deep', cls: 'approx-end' },
-    { lane: 'research', title: 'Energy cost model for AI workloads', role: '', when: '2026', s: '2026-01', e: '2026-08', tier: 'standard', cls: 'approx' },
+    { lane: 'work', title: 'SDIJ Forest Team', role: 'Project Leader', when: '2023 – 2025', href: 'work/sdij-forest/index.html', s: '2023-03', e: '2025-04', tier: 'deep', cls: 'approx' },
+    { lane: 'work', title: 'Hiconsy', role: 'AI R&D Intern', when: 'Jun 2025 – 2026', href: 'work/hiconsy-lecture-asr/index.html', s: '2025-06', e: '2026-02', tier: 'deep', cls: 'approx-end' },
+    { lane: 'research', title: 'Energy cost model for AI workloads', role: '', when: '2026', href: 'work/energy-cost-model/story/index.html', visual: true, s: '2026-01', e: '2026-08', tier: 'standard', cls: 'approx' },
     { lane: 'club', title: 'GDGoC Ewha', role: 'General Member, AI', when: '2025', s: '2025-03', e: '2025-12', tier: 'brief', cls: 'approx' },
     { lane: 'study', title: 'Study log', role: '', when: 'Nov 2026 – now', s: '2026-11', e: '2026-11', tier: 'standard', cls: 'ongoing' },
     { lane: 'award', title: 'Ewha Startup Contest, 3rd place', role: '', when: '2025', s: '2025-09', e: '2025-09', tier: 'brief', cls: 'award' },
@@ -243,16 +250,16 @@
   let lastLabelRow = 0;
   for (const it of items) {
     const a = idx(it.s) + 1, b = idx(it.e) + 2, lane = lanes.findIndex(l => l[0] === it.lane) + 2;
-    const bar = el('button', `bar ${it.tier} ${it.cls}`, { '--a': a, '--b': b, '--lane': lane }), part = { lane: lane - 2, els: [bar], fx: 0 };
+    const bar = el(it.href ? 'a' : 'button', `bar ${it.tier} ${it.cls}`, { '--a': a, '--b': b, '--lane': lane }), part = { lane: lane - 2, els: [bar], fx: 0 };
     parts.push(part);
-    bar.type = 'button';
+    if (it.href) bar.href = it.href; else bar.type = 'button';
     bar.setAttribute('aria-label', `${it.title}${it.role ? ', ' + it.role : ''}, ${it.when}`);
-    const show = () => { readout.innerHTML = `<b>${it.title}</b>${it.role ? ' — ' + it.role : ''} · ${it.when}`; };
+    const show = () => { readout.innerHTML = `<b>${it.title}</b>${it.role ? ' — ' + it.role : ''} · ${it.when}${it.href ? ` · <a href="${it.href}">${it.visual ? 'Visual explanation' : 'Write-up'} →</a>` : ''}`; };
     bar.addEventListener('pointerenter', show); bar.addEventListener('focus', show); bar.addEventListener('click', show);
     if (it.tier !== 'brief') {
       const la = Math.max(a, lastLabelRow + 4); lastLabelRow = la;       // keep stacked labels apart on narrow screens
       part.els.push(el('div', `lbl${a > N - 16 ? ' end' : ''}`, { '--a': a, '--b': b, '--lane': lane, '--la': la },
-        `<b>${it.title}</b>${it.role ? `<span>${it.role}</span>` : ''}<p class="when">${it.when}</p>`));
+        `<b>${it.href ? `<a href="${it.href}">${it.title}</a>` : it.title}</b>${it.visual ? '<i class="vis" title="Has a visual explanation"></i>' : ''}${it.role ? `<span>${it.role}</span>` : ''}<p class="when">${it.when}</p>`));
     }
   }
 

@@ -1,0 +1,112 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Energy cost model for AI workloads — Rainyforest (concept spike)</title><style>
+:root{--bg:#0a0f0d;--ink:#e6ebe4;--ink-2:#93a199;--ink-3:#5d6b64;--line:#1f2a25;--now:#72b98e;--snake:#e0b84c;
+  --dot:#1a231f;--leaf-lo:#1d2f26;--leaf:#37604b;--leaf-hi:#5f9478;--bark-lo:#1f1c19;--bark-hi:#74695b;--rain:#a9c4b8;
+  --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --step--1:clamp(.75rem,.72rem + .15vw,.84rem);--step-0:clamp(.97rem,.92rem + .22vw,1.08rem);--step-1:clamp(1.1rem,1rem + .5vw,1.4rem);--gutter:clamp(16px,4vw,48px)}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--step-0)/1.65 var(--font)}
+a{color:inherit;text-underline-offset:.25em;text-decoration-style:dotted}
+/* the forest stays behind the page: trees beside the text on wide screens, a band of canopy under the nav on narrow ones */
+.forest{position:fixed;top:0;left:0;width:100%;pointer-events:none;z-index:0}.nav,main,footer{position:relative;z-index:1}
+.nav{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem 1.25rem;padding:1rem var(--gutter);font-size:var(--step--1)}
+.nav .me{font-weight:600;text-decoration:none;margin-right:auto}.nav ul{display:flex;flex-wrap:wrap;gap:.25rem 1.1rem;list-style:none;margin:0;padding:0}
+.nav ul a,.nav .lang{color:var(--ink-2);text-decoration:none}.nav ul a:hover,.nav ul a[aria-current],.nav .lang:hover{color:var(--ink)}
+@media (max-width:40rem){.nav ul{order:3;flex-basis:100%;gap:.25rem .85rem}}
+@media (max-width:69rem){.nav{padding-bottom:4.5rem}}   /* room for the band of canopy when there is no space for trees beside the text */
+main{padding:clamp(1.5rem,4vw,3rem) var(--gutter) 4rem}.wrap{max-width:60rem;margin:0 auto}
+.crumb{font:var(--step--1) var(--mono);color:var(--ink-3);margin:0 0 1.2rem}.crumb a{color:var(--ink-2);text-decoration:none}.crumb a:hover{color:var(--ink)}
+h1{margin:0;font-size:clamp(1.8rem,1.2rem + 3vw,3.1rem);line-height:1.08;letter-spacing:-.03em;text-wrap:balance}
+.lead{margin:1rem 0 0;max-width:44rem;color:var(--ink-2);font-size:var(--step-1);line-height:1.5}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.9rem 1.5rem;margin:1.8rem 0 0;padding:1rem 0;border-block:1px dotted var(--line)}
+.meta dt{font:var(--step--1) var(--mono);color:var(--ink-3)}.meta dd{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink)}
+.see{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin:1.2rem 0 0;font-size:var(--step--1)}
+.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.5em;border-radius:50%;background:var(--snake);margin-right:.55em;vertical-align:.08em}
+.soon{color:var(--ink-3)}
+.draft{font:500 .72em/1 var(--mono);letter-spacing:.02em;color:var(--snake);white-space:nowrap;vertical-align:.12em;cursor:help}
+.draft-note{margin:1rem 0 0;max-width:44rem;font-size:var(--step--1);color:var(--ink-3)}
+
+/* write-up: a rail of the eight steps beside the text on wide screens */
+.writeup{display:grid;grid-template-columns:minmax(0,1fr);gap:2rem;margin-top:clamp(2rem,5vw,3.5rem)}
+.rail{display:none}
+@media (min-width:62rem){.writeup{grid-template-columns:11rem minmax(0,44rem);gap:3rem}.rail{display:block;position:sticky;top:1.5rem;align-self:start}}
+.rail ol{list-style:none;margin:0;padding:0;display:grid;gap:.55rem;font-size:var(--step--1)}
+.rail a{display:flex;align-items:center;gap:.7rem;color:var(--ink-3);text-decoration:none}
+.rail a::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;flex:none;transition:transform .2s}
+.rail a:hover{color:var(--ink-2)}.rail a.on{color:var(--ink)}.rail a.on::before{background:var(--snake);transform:scale(1.7)}
+.step{padding:0 0 clamp(2rem,4vw,3rem);margin:0 0 clamp(2rem,4vw,3rem);border-bottom:1px dotted var(--line);scroll-margin-top:1.5rem}
+.step:last-of-type{border-bottom:0}
+.step header{display:grid;grid-template-columns:auto 1fr;column-gap:.9rem;align-items:baseline;margin-bottom:1rem}
+.step .no{font:var(--step--1) var(--mono);color:var(--snake)}
+.step h2{margin:0;font-size:var(--step-1);font-weight:600;letter-spacing:-.01em}
+.step .ask{grid-column:2;margin:.15rem 0 0;font-size:var(--step--1);color:var(--ink-3)}
+.step p{margin:0 0 .8em;max-width:42rem}.step p:last-child{margin-bottom:0}.step b{font-weight:600}
+.step ul{margin:0 0 .9em;padding-left:1.1rem;max-width:42rem}.step li{margin:.3em 0}.step li::marker{color:var(--ink-3)}
+.step .empty{color:var(--ink-3)}
+.objects{margin:0 0 1rem;display:grid;gap:.75rem}.objects div{display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem}
+@media (min-width:44rem){.objects div{grid-template-columns:11.5rem minmax(0,1fr);gap:1rem}}
+.objects dt{font-weight:600}.objects dd{margin:0;color:var(--ink-2)}
+.map{margin:1.4rem 0;display:none}@media (min-width:44rem){.map{display:block}}
+.map svg{width:100%;height:auto;display:block}
+.map rect{fill:var(--bg);stroke:var(--ink-3);stroke-dasharray:1.5 3;stroke-linecap:round}
+.map line{stroke:var(--ink-3);stroke-dasharray:1.5 4;stroke-linecap:round}.map circle{fill:var(--ink-2)}
+.map text{font-family:var(--font);fill:var(--ink)}.map .n{font-size:14px;font-weight:600}.map .s{font-size:11px;fill:var(--ink-2)}.map .e{font:11px var(--mono);fill:var(--ink-3)}
+.map figcaption{margin-top:.6rem;font-size:var(--step--1);color:var(--ink-3);max-width:42rem}
+.tree,.tree ul{list-style:none;margin:0;padding:0}.tree{margin:1rem 0 1.1rem}
+.tree ul{margin-left:.45rem;padding-left:1.1rem;border-left:1px dotted var(--ink-3)}
+.tree li{margin:.35rem 0;position:relative}.tree ul>li::before{content:"";position:absolute;left:-1.1rem;top:.85em;width:.8rem;border-top:1px dotted var(--ink-3)}
+.tree>li{font-weight:600}.tree>li>ul>li{font-weight:400}.tree ul ul li{color:var(--ink-2);font-size:var(--step--1)}
+table{border-collapse:collapse;margin:.4rem 0 1rem;width:100%;max-width:42rem;font-size:var(--step--1)}
+th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px dotted var(--line);vertical-align:top}th{color:var(--ink-3);font-weight:500}
+.now{margin:1.2rem 0 0;padding:.9rem 1rem;border-left:2px dotted var(--now);background:#0e1512;font-size:var(--step--1);color:var(--ink-2)}
+.now strong{display:block;font:var(--step--1) var(--mono);color:var(--now);margin-bottom:.3rem;font-weight:500}
+.next{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 2rem;margin-top:2.5rem;padding-top:1.2rem;border-top:1px dotted var(--line);font-size:var(--step--1)}
+
+/* work index */
+.lane{margin-top:clamp(2rem,5vw,3rem)}.lane h2{margin:0 0 .4rem;font:var(--step--1) var(--mono);color:var(--ink-3);font-weight:500}
+.row{display:grid;grid-template-columns:minmax(0,1fr);gap:.2rem;padding:1rem 0;border-top:1px dotted var(--line)}
+@media (min-width:48rem){.row{grid-template-columns:9rem minmax(0,1fr) auto;gap:1.5rem;align-items:baseline}}
+.row .when{font:var(--step--1) var(--mono);color:var(--ink-3)}
+.row h3{margin:0;font-size:var(--step-1);font-weight:600;letter-spacing:-.01em}.row h3 a{text-decoration:none}.row h3 a:hover{text-decoration:underline dotted}
+.row .who{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink-2)}.row .sum{margin:.4rem 0 0;color:var(--ink-2);max-width:40rem}
+.row .see{margin:.5rem 0 0}@media (min-width:48rem){.row .see{margin:0;flex-direction:column;align-items:flex-end;gap:.3rem}}
+footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step--1)}
+</style></head><body>
+<canvas class="forest" aria-hidden="true" data-rain="none"></canvas>
+<nav class="nav" aria-label="Site"><a class="me" href="../../index.html">Rainyforest</a><ul>
+<li><a href="../../work/index.html" aria-current="page">Work</a></li><li><a href="#">Study</a></li><li><a href="#">Principles</a></li><li><a href="#">Keynotes</a></li><li><a href="#">Blog</a></li><li><a href="#">CV</a></li>
+</ul><a class="lang" href="#" lang="ko">한국어</a></nav><main><div class="wrap">
+<p class="crumb"><a href="../index.html">Work</a> / Research</p>
+<h1>An energy cost model for AI workloads on shared servers</h1>
+<p class="lead">A model that splits a shared server's measured energy between the workloads running on it. Checked against each workload measured alone, the split was within about 5 %. Submitted to <i>Mathematics</i> (MDPI) in February 2026. <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></p>
+<dl class="meta"><div><dt>Kind</dt><dd>Research</dd></div><div><dt>Where</dt><dd>Ewha Womans University</dd></div><div><dt>When</dt><dd>2026, out of a 2025 capstone project</dd></div><div><dt>Role</dt><dd>Co-first author</dd></div><div><dt>Built with</dt><dd>Python, Intel RAPL, NVML, cgroup v2, a current clamp on the power cable</dd></div></dl>
+<p class="see"><a class="visual" href="story/index.html">Visual explanation, six scenes →</a></p>
+<p class="draft-note"><span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span> marks text written with AI from the paper and the public post. The author has not reviewed it yet; the tag comes off a section once they have.</p>
+<div class="writeup"><nav class="rail" aria-label="Steps"><ol><li><a href="#step-1">Decision</a></li><li><a href="#step-2">Before</a></li><li><a href="#step-3">Ontology</a></li><li><a href="#step-4">Smallest version</a></li><li><a href="#step-5">Trade-offs</a></li><li><a href="#step-6">What broke</a></li><li><a href="#step-7">Measured</a></li><li><a href="#step-8">Next</a></li></ol></nav>
+<div><section class="step" id="step-1"><header><span class="no">01</span><h2>Decision <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">Whose decision does this help?</p></header>
+<p>An operator runs many tenants' workloads on shared servers and has to decide what each one pays.</p><p>Today the bill follows what was handed out: cores, memory, the type of GPU. This work supports a different decision: how much of a server's <b>energy</b> to charge to each workload when several run on it at once.</p><p>The question matters now because energy has become a large part of what AI workloads cost to run.</p></section><section class="step" id="step-2"><header><span class="no">02</span><h2>Before <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">How was it done before, in numbers?</p></header>
+<p>Billing by allocation. Two workloads given the same 2 cores, 4 GB and 1 GPU pay the same.</p><ul><li>Measured alone on that same slice, a ResNet workload drew 145 W above idle and a Node.js web server 14 W.</li><li>Across the AI workloads tested, that is 4.8 to 10.5 times the web server.</li><li>Run together in pairs, the gap was 4.7 to 11.0 times.</li></ul><p>Measuring each workload directly is not an option. Once two workloads share a machine, the meter at the wall gives one number for both.</p><p>Earlier energy models mostly predict CPU power from how busy the CPU is. That leaves out the GPU, where AI workloads spend most of their energy, and it mishandles parts such as memory that draw power whether or not they are being used.</p></section><section class="step" id="step-3"><header><span class="no">03</span><h2>Ontology <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">What are the objects, how are they related, what can be done to them?</p></header>
+<dl class="objects"><div><dt>Server</dt><dd>One physical machine. Its total energy is read at the wall.</dd></div><div><dt>Part</dt><dd>CPU, GPU, memory, storage, and everything else (power supply loss, fans, the board). Each part has an idle energy and a measured energy.</dd></div><div><dt>Workload</dt><dd>One tenant's program, running in its own slice of the server.</dd></div><div><dt>Allocation</dt><dd>What a workload was given: cores, an amount of memory, a share of the GPU.</dd></div><div><dt>Usage</dt><dd>What a workload did: how busy it kept the CPU and the GPU, how many bytes it read and wrote.</dd></div><div><dt>Interval</dt><dd>The window of time over which energy is counted.</dd></div><div><dt>Measurement</dt><dd>A reading of one part over one interval: the wall meter, the CPU's own energy counter (RAPL), the GPU's power interface (NVML), per-slice statistics (cgroup).</dd></div></dl><figure class="map"><svg viewBox="0 0 720 300" role="img" aria-label="Objects and relations: a server has parts, each part is read by a measurement over an interval; a workload runs on the server, is given an allocation and does some usage during the interval.">
+<line x1="170" y1="66" x2="290" y2="66"/><circle cx="290" cy="66" r="2.6"/><text class="e" x="218" y="58">has</text><line x1="450" y1="66" x2="550" y2="66"/><circle cx="550" cy="66" r="2.6"/><text class="e" x="478" y="58">read by</text><line x1="105" y1="196" x2="105" y2="100"/><circle cx="105" cy="100" r="2.6"/><text class="e" x="114" y="152">runs on</text>
+<line x1="170" y1="212" x2="290" y2="178"/><circle cx="290" cy="178" r="2.6"/><text class="e" x="196" y="184">is given</text><line x1="170" y1="232" x2="290" y2="262"/><circle cx="290" cy="262" r="2.6"/><text class="e" x="214" y="262">does</text><line x1="450" y1="262" x2="550" y2="236"/><circle cx="550" cy="236" r="2.6"/><text class="e" x="478" y="262">during</text><line x1="625" y1="100" x2="625" y2="196"/><circle cx="625" cy="196" r="2.6"/><text class="e" x="634" y="152">over</text>
+<g><rect x="40" y="40" width="130" height="52"/><text class="n" x="52" y="62">Server</text><text class="s" x="52" y="79">one machine</text></g><g><rect x="290" y="40" width="160" height="52"/><text class="n" x="302" y="62">Part</text><text class="s" x="302" y="79">CPU · GPU · memory · …</text></g><g><rect x="550" y="40" width="150" height="52"/><text class="n" x="562" y="62">Measurement</text><text class="s" x="562" y="79">wall · RAPL · NVML</text></g>
+<g><rect x="40" y="200" width="130" height="52"/><text class="n" x="52" y="222">Workload</text><text class="s" x="52" y="239">one tenant's program</text></g><g><rect x="290" y="152" width="160" height="52"/><text class="n" x="302" y="174">Allocation</text><text class="s" x="302" y="191">cores · memory · GPU share</text></g><g><rect x="290" y="236" width="160" height="52"/><text class="n" x="302" y="258">Usage</text><text class="s" x="302" y="275">CPU % · GPU % · bytes</text></g><g><rect x="550" y="200" width="150" height="52"/><text class="n" x="562" y="222">Interval</text><text class="s" x="562" y="239">the window counted</text></g>
+</svg><figcaption>Objects and how they relate. The split is an action on a part: it takes that part's energy for an interval and divides it across workloads by that part's rule.</figcaption></figure><p>Actions: <b>measure</b> a part, <b>split</b> a part's energy across workloads by that part's rule, <b>sum</b> the parts for each workload, and <b>check</b> that the workloads plus the machine's own baseline add up to the wall reading.</p></section><section class="step" id="step-4"><header><span class="no">04</span><h2>Smallest version <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">What was the smallest version that worked, and what were the sub-problems?</p></header>
+<p>One idle server and one workload. Measure the server idle, run the workload alone, subtract.</p><p>That gives each workload's own energy. Later it is the reference the split is checked against.</p><ul class="tree"><li>Split a shared server's energy between workloads
+            <ul><li>Measure the whole machine<ul><li>A current clamp on the power cable, logged every second</li></ul></li>
+            <li>Measure each part<ul><li>CPU from its energy counter</li><li>GPU from its power interface</li></ul></li>
+            <li>Tell workloads apart<ul><li>One slice each: 2 cores, 4 GB, 1 GPU</li></ul></li>
+            <li>Split each part by its own rule<ul><li>CPU, GPU, memory, storage</li></ul></li>
+            <li>Check the split<ul><li>Workloads + baseline = wall reading</li><li>Share under sharing vs the workload alone</li></ul></li></ul></li></ul><p>Then the full run: idle, each workload alone, and six pairs (three AI workloads each with the web server, and the three AI pairs). Every experiment was repeated five times and averaged.</p></section><section class="step" id="step-5"><header><span class="no">05</span><h2>Trade-offs <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">What were the options, and why this one?</p></header>
+<dl class="objects"><div><dt>CPU: by use</dt><dd>Power is not strictly proportional to use when the chip changes frequency. Tracking frequency per workload would add monitoring cost, and frequency follows the total load rather than any one workload. So the measured CPU energy, minus idle, is split by how busy each workload kept it.</dd></div><div><dt>GPU: reserved, plus used</dt><dd>A GPU draws power for being held, even with little to compute. Charging only by use would make that part nobody's. So the idle part follows the reservation and the rest follows use.</dd></div><div><dt>Memory: by amount held</dt><dd>Memory power is mostly static. Charging by access would undercharge a workload that holds memory without touching it. So memory is charged by the amount held, at 0.2 W per GB.</dd></div><div><dt>One GPU per workload</dt><dd>Each workload ran on its own GPU rather than a partitioned one. That gave clean GPU readings per workload without needing partitioning support. The cost: a GPU shared between workloads was not tested.</dd></div><div><dt>No extra instruments in the model</dt><dd>The split uses only counters and statistics a server already exposes. It is coarser than instrumenting every component, and it can be deployed as it is.</dd></div></dl></section><section class="step" id="step-6"><header><span class="no">06</span><h2>What broke <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">What failed, and how was it fixed?</p></header>
+<dl class="objects"><div><dt>The wall reading looked flat</dt><dd>In several runs the wall power stayed at the idle level whatever was running. The server's clock and the logger's clock had drifted apart, so the two logs were being lined up at the wrong moments. Fixed by keeping both in time sync.</dd></div><div><dt>The logger went quiet</dt><dd>During the AI + AI pairs the wall logger stopped responding, so those wall readings are missing. They were approximated from the neighbouring intervals.</dd></div><div><dt>Two sets of numbers</dt><dd>The paper reports runs at a fixed CPU frequency. The raw logs, averaged over six runs, give different absolute values: the web server's whole-system power is 64 W in the paper and 77.9 W in the raw average. Each number now says which condition it comes from.</dd></div></dl></section><section class="step" id="step-7"><header><span class="no">07</span><h2>Measured <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">What was the result, and how do we know?</p></header>
+<p>The check: take each workload's share when two run together, and compare it with the same workload measured alone.</p><table><thead><tr><th>Pair</th><th>Error of the split</th></tr></thead><tbody>
+            <tr><td>AI + web server</td><td>0.1–0.4 % for the AI workload, 0.4–4.1 % for the web server</td></tr>
+            <tr><td>AI + AI, unequal energy</td><td>2.4–5.2 %, average 3.7 %</td></tr>
+            <tr><td>AI + AI, similar energy</td><td>1.8–2.0 %</td></tr></tbody></table><p>The largest error was about 5 %. The web server's percentage looks larger than the AI workloads' because its energy is small, not because the miss in watts is bigger.</p><p>With the same allocation, energy differed by 4.7 to 11.0 times in the AI + web server pairs, and by 2.2 and 2.4 times in two of the AI pairs.</p></section><section class="step" id="step-8"><header><span class="no">08</span><h2>Next <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">What is the next version?</p></header>
+<ul><li>From slices to virtual machines, which is how tenants are actually separated.</li><li>A billing model on top of the split.</li><li>A GPU shared between workloads, which this experiment avoided.</li></ul><p>None of these is done yet.</p></section>
+<p class="who" style="color:var(--ink-2);font-size:var(--step--1)"><b style="color:var(--ink)">My part.</b> Built the measurement stack, designed the split, and analysed the gap between billing by allocation and actual energy.</p>
+<aside class="now"><strong>Re-decomposed: not written yet</strong>How I would break this problem down today goes here, dated, and apart from what was done then. No new numbers go in this block.</aside>
+<p class="next"><a href="../index.html">← All work</a><a href="../sdij-forest/index.html">Next: SDIJ Forest Team →</a></p>
+</div></div></div></main><footer>Concept spike.</footer><script src="../../forest.js"></script><script>const links=[...document.querySelectorAll('.rail a')];
+const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))},{rootMargin:'-20% 0px -65% 0px'});
+document.querySelectorAll('.step').forEach(s=>io.observe(s));</script></body></html>
