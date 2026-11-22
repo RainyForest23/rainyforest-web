@@ -333,7 +333,7 @@
   };
 
   let W = 0, H = 0, s = 8, ox = 0, cols = 0, rows = 0, G = 0, dpr = 1;
-  const mk = () => document.createElement('canvas'), base = mk(), baseB = mk(), floorImg = mk(), front = mk();   // forest for the first screen, forest for the timeline, ground, corner leaves
+  const mk = () => document.createElement('canvas'), base = mk(), baseB = mk(), floorImg = mk(), front = mk(), layers = { far: mk(), mid: mk(), near: mk() };   // forest for the first screen, forest for the timeline, ground, corner leaves
   let calm = null, column = null, zones = [], minQ = 0, expX = null, drops = [], splashes = [];
   const snake = { hx: null, dir: 1, wait: 0 };
   const groundAt = c => G + Math.round((vnoise(c * 0.05, 5) - 0.5) * 4);
@@ -344,7 +344,7 @@
     W = document.documentElement.clientWidth; H = window.innerHeight;
     s = W < 520 ? 6 : W < 1000 ? 7 : 8;
     dpr = Math.min(2, window.devicePixelRatio || 1);
-    for (const c of [cv, gcv, base, baseB, floorImg, front]) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    for (const c of [cv, gcv, base, baseB, floorImg, front, layers.far, layers.mid, layers.near]) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
     cols = Math.ceil(W / s); rows = Math.ceil(H / s); ox = (W - cols * s) / 2;
     G = rows - Math.max(12, Math.round(rows * 0.16));
     document.documentElement.style.setProperty('--floor', (rows - G + 2) * s + 'px');   // the page leaves this much room for the ground
@@ -458,7 +458,8 @@
 
     const g = target.getContext('2d'), fg = front.getContext('2d'), fl = floorImg.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = rgb(K.bg); g.fillRect(0, 0, W, H);
-    if (withFront) for (const x of [fg, fl]) { x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H); }
+    const lg = { far: layers.far.getContext('2d'), mid: layers.mid.getContext('2d'), near: layers.near.getContext('2d') };
+    if (withFront) for (const x of [fg, fl, lg.far, lg.mid, lg.near]) { x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H); }
     const rad0 = Math.max(0.6, s * 0.07);
 
     const trunk = (t, c, r, gr) => {
@@ -481,19 +482,26 @@
 
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       const q = quiet(c, r), gr = groundAt(c), key = c * 4096 + r;
-      let hit = null;
+      let far = null, mid = null, near = null;                               // what stands in this cell, by distance
       if (q > 0) {
-        for (const t of trees) if (t.z < .6) hit = trunk(t, c, r, gr) || hit;
-        for (const b of blobs) if (b.z < .7) hit = blob(b, c, r) || hit;
-        hit = hang.get(key) || hit;
-        for (const t of trees) if (t.z >= .6 && t.z < 1) hit = trunk(t, c, r, gr) || hit;
-        hit = limbs.mid.get(key) || hit;
-        for (const t of trees) if (t.z >= 1) hit = trunk(t, c, r, gr) || hit;
-        const solid = hit && hit.solid && q < 0.99 ? hit : null;
-        hit = limbs.near.get(key) || hit;
-        for (const b of blobs) if (b.z >= .7) hit = blob(b, c, r) || hit;
-        hit = ferns.get(key) || hit;
-        if (solid) hit = solid;
+        for (const t of trees) if (t.z < .6) far = trunk(t, c, r, gr) || far;
+        for (const b of blobs) if (b.z < .7) far = blob(b, c, r) || far;
+        far = hang.get(key) || far;
+        for (const t of trees) if (t.z >= .6 && t.z < 1) mid = trunk(t, c, r, gr) || mid;
+        mid = limbs.mid.get(key) || mid;
+        for (const t of trees) if (t.z >= 1) near = trunk(t, c, r, gr) || near;
+        const solid = near && near.solid && q < 0.99 ? near : null;
+        near = limbs.near.get(key) || near;
+        for (const b of blobs) if (b.z >= .7) near = blob(b, c, r) || near;
+        near = ferns.get(key) || near;
+        if (solid) near = solid;
+      }
+      const hit = near || mid || far;                                         // the nearest one is what you see
+      if (withFront) for (const [name, h] of [['far', far], ['mid', mid], ['near', near]]) {
+        if (!h) continue;
+        const x = lg[name], a = Math.min(1, q);
+        if (name !== 'far') { x.globalAlpha = a; x.fillStyle = rgb(K.bg); x.fillRect(ox + c * s, r * s, s, s); }   // nearer things hide what is behind them
+        x.globalAlpha = a; x.fillStyle = rgb(lerp(K.bg, ramp(h.mat, h.l), h.fade)); dot(x, c, r, s * (0.06 + 0.45 * clamp(h.l)) * (0.55 + 0.45 * a)); x.globalAlpha = 1;
       }
       g.fillStyle = rgb(K.dot); dot(g, c, r, rad0);
       if (hit) {
@@ -600,6 +608,14 @@
     }
   }
 
+  // the walk: how far away the camera starts, and the planes it moves through.
+  // z is how far a plane stands beyond the place where you stop; negative z is passed on the way in.
+  const WALK = 2.6;
+  const PLANES = [
+    { img: 'far', z: 9 }, { img: 'mid', z: 6 }, { img: 'near', z: 3.6 },                         // the picture you arrive at: these end at full size
+    { img: 'near', z: -0.45, ref: 2.2, flip: true }, { img: 'far', z: -0.9, ref: 2.2 }, { img: 'mid', z: -1.3, ref: 2.2 },   // trees you pass on the way in
+    { img: 'near', z: -1.8, ref: 2.2 }, { img: 'far', z: -2.1, ref: 2.2, flip: true }, { img: 'near', z: -2.45, ref: 2.2, flip: true },
+  ].sort((p, q) => q.z - p.z);
   let last = 0, raf = 0, over = 0;
   const root = document.documentElement;
   let opening = root.classList.contains('opening'), openedAt = performance.now();
@@ -619,27 +635,54 @@
     const moving = !reduce.matches;
     const goal = forced !== null ? clamp(parseFloat(forced)) : clamp(window.scrollY / (H * 0.75));   // 0 on the first screen, 1 once the timeline has arrived
     over = moving && forced === null ? over + (goal - over) * (1 - Math.exp(-dt * 6)) : goal;
-    // opening: 0 black · 0.3 s rain · 1.3 s the ground, then the trees grow from the bottom up · 2.9 s title · 3.8 s name · 4.4 s the rest and the snake
+    // opening: you walk into the forest. 0 black · 0.3 s rain · 0.5–3.9 s walking: trees come out of the dark,
+    // the near ones pass by on both sides · 3.5 s title · 4.3 s name · 4.9 s the rest and the snake
     const it = opening ? (pinnedAt !== null ? parseFloat(pinnedAt) : (ms - openedAt) / 1000) : Infinity;
     if (opening) {
-      if (it > 2.9) root.classList.add('op-title');
-      if (it > 3.8) root.classList.add('op-name');
-      if (it > 4.4) root.classList.add('op-rest');
-      if (it > 5.6) endOpening(false);
+      if (it > 3.5) root.classList.add('op-title');
+      if (it > 4.3) root.classList.add('op-name');
+      if (it > 4.9) root.classList.add('op-rest');
+      if (it > 6.0) endOpening(false);
     }
-    const grow = it === Infinity ? 1 : sm(clamp((it - 1.4) / 1.5)), shown = Math.floor(rows * (1 - grow)) * s * dpr;   // the reveal moves up one row of dots at a time
+    const walking = it < 4.2;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    if (grow < 1) { ctx.fillStyle = rgb(K.bg); ctx.fillRect(0, 0, cv.width, cv.height); }
-    if (grow > 0) {
-      ctx.drawImage(base, 0, shown, cv.width, cv.height - shown, 0, shown, cv.width, cv.height - shown);
-      if (over > 0.002) { ctx.globalAlpha = over; ctx.drawImage(baseB, 0, shown, cv.width, cv.height - shown, 0, shown, cv.width, cv.height - shown); ctx.globalAlpha = 1; }
+    if (walking) {
+      const wt = clamp((it - 0.5) / 3.4), ahead = WALK * (1 - wt) ** 1.7;       // how far there still is to go; slows as you arrive
+      const cx = cv.width / 2, cy = G * s * dpr + Math.sin(it * 11) * 5 * dpr * Math.min(1, ahead);   // eye line, with the small rise and fall of steps
+      const lit = clamp((it - 0.3) / 0.9);
+      ctx.fillStyle = rgb(K.bg); ctx.fillRect(0, 0, cv.width, cv.height);
+      for (const pl of PLANES) {
+        const depth = pl.z + ahead; if (depth < 0.22) continue;                   // already behind you
+        const k = (pl.ref || pl.z) / depth;                                       // nearer is larger
+        const alpha = lit * clamp((13 - depth) / 7, 0.28, 1) * clamp((4.2 - k) / 1.6);   // far things sit in the dark; things passing the eye fade
+        if (alpha <= 0.01) continue;
+        ctx.globalAlpha = alpha;
+        const img = layers[pl.img], span = Math.ceil((1 / k - 1) / 2);            // the forest carries on to both sides: mirrored copies
+        for (let i = -span; i <= span; i++) {
+          const mirrored = (Math.abs(i) % 2 === 1) !== !!pl.flip;
+          ctx.setTransform(k, 0, 0, k, cx * (1 - k), cy * (1 - k));
+          ctx.transform(1, 0, 0, 1, i * cv.width, 0);
+          if (mirrored) ctx.transform(-1, 0, 0, 1, cv.width, 0);
+          ctx.drawImage(img, 0, 0);
+        }
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = clamp((it - 3.7) / 0.5);  // arrive: the layers settle into the still picture
+      if (ctx.globalAlpha > 0) ctx.drawImage(base, 0, 0);
+      ctx.globalAlpha = 1;
+    } else {
+      ctx.drawImage(base, 0, 0);
+      if (over > 0.002) { ctx.globalAlpha = over; ctx.drawImage(baseB, 0, 0); ctx.globalAlpha = 1; }
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (it > 0.3) drawRain(dt, moving, over, it === Infinity ? 1 : clamp((it - 0.3) / 0.6));
     gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gcv.width, gcv.height);
-    gx.globalAlpha = it === Infinity ? 1 : clamp((it - 1.2) / 0.5); gx.drawImage(floorImg, 0, 0); gx.globalAlpha = 1;
-    if (it > 4.4) { gx.setTransform(dpr, 0, 0, dpr, 0, 0); drawSnake(dt, moving, ms / 1000); }
-    gx.setTransform(1, 0, 0, 1, 0, 0); gx.globalAlpha = grow; gx.drawImage(front, 0, 0); gx.globalAlpha = 1;
+    gx.globalAlpha = it === Infinity ? 1 : clamp((it - 0.4) / 0.8); gx.drawImage(floorImg, 0, 0); gx.globalAlpha = 1;
+    if (it > 4.9) { gx.setTransform(dpr, 0, 0, dpr, 0, 0); drawSnake(dt, moving, ms / 1000); }
+    if (walking) {                                                                // the big leaves at your feet come up as you reach them
+      const ahead = WALK * (1 - clamp((it - 0.5) / 3.4)) ** 1.7, k = 1 / (1 + ahead * 1.1);
+      gx.setTransform(k, 0, 0, k, gcv.width / 2 * (1 - k), G * s * dpr * (1 - k) + gcv.height * 0.5 * (1 - k)); gx.globalAlpha = clamp((it - 1.2) / 1.2);
+      gx.drawImage(front, 0, 0); gx.globalAlpha = 1;
+    } else { gx.setTransform(1, 0, 0, 1, 0, 0); gx.drawImage(front, 0, 0); }
     if ((moving && !document.hidden) || Math.abs(goal - over) > 0.002) raf = requestAnimationFrame(frame);
   }
   const kick = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
