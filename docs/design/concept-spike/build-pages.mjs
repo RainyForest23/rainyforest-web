@@ -150,7 +150,7 @@ h1{margin:0;font-size:clamp(1.8rem,1.2rem + 3vw,3.1rem);line-height:1.08;letter-
 .step .ask{grid-column:2;margin:.15rem 0 0;font-size:var(--step--1);color:var(--ink-3)}
 .step p{margin:0 0 .8em;max-width:42rem}.step p:last-child{margin-bottom:0}.step b{font-weight:600}
 .step ul{margin:0 0 .9em;padding-left:1.1rem;max-width:42rem}.step li{margin:.3em 0}.step li::marker{color:var(--ink-3)}
-.step .empty{color:var(--ink-3)}
+.empty{color:var(--ink-2);max-width:42rem}
 .objects{margin:0 0 1rem;display:grid;gap:.75rem}.objects div{display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem}
 @media (min-width:44rem){.objects div{grid-template-columns:11.5rem minmax(0,1fr);gap:1rem}}
 .objects dt{font-weight:600}.objects dd{margin:0;color:var(--ink-2)}
@@ -181,16 +181,40 @@ th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px dotted var
 footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step--1)}
 `;
 
+/* ---- sections that are not built yet: each gets the "under construction" page ---- */
+const SOON = [
+  ["study", "Study", "Notes from what I am studying, with code you can run in the page."],
+  ["principles", "Principles", "The rules I work by, each traced to where it came from and where it was used."],
+  ["keynotes", "Keynotes", "Talks, playable in the page."],
+  ["blog", "Blog", "Older posts, moving over from the previous site."],
+];
 const nav = (root, current) => `<nav class="nav" aria-label="Site"><a class="me" href="${root}index.html">Rainyforest</a><ul>
-<li><a href="${root}work/index.html"${current === "work" ? ' aria-current="page"' : ""}>Work</a></li><li><a href="#">Study</a></li><li><a href="#">Principles</a></li><li><a href="#">Keynotes</a></li><li><a href="#">Blog</a></li><li><a href="#">CV</a></li>
+<li><a href="${root}work/index.html"${current === "work" ? ' aria-current="page"' : ""}>Work</a></li>${SOON.map(([slug, name]) => `<li><a href="${root}${slug}/index.html"${current === slug ? ' aria-current="page"' : ""}>${name}</a></li>`).join("")}<li><a href="#">CV</a></li>
 </ul><a class="lang" href="#" lang="ko">한국어</a></nav>`;
-const shell = ({ root, title, body, script = "", rain = "none" }) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title} — Rainyforest (concept spike)</title><style>${CSS}</style></head><body>
+const soonPage = ([slug, name, what]) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${name} — Rainyforest</title><style>${CSS}
+:root{--floor-lo:#18211d;--floor-hi:#2c3b34;--snake-2:#8a6a22;--snake-hi:#f3dd92;--tongue:#d2654e}
+html,body{height:100%}body{overflow:hidden}.soon{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main.soon-main{padding:clamp(2.5rem,9vh,6rem) var(--gutter) 0}
+.soon-text{max-width:min(30rem,calc(100% - 7.5rem))}@media (min-width:45rem){.soon-text{max-width:min(30rem,52%)}}
+.soon-text .kicker{margin:0 0 .5rem;font:var(--step--1) var(--mono);color:var(--snake);letter-spacing:.12em;text-transform:uppercase}
+.soon-text h1{font-size:clamp(2rem,1.3rem + 3.6vw,3.6rem)}
+.soon-text p{margin:1rem 0 0;color:var(--ink-2);text-wrap:pretty}
+.soon-text .links{display:flex;flex-wrap:wrap;gap:.4rem 1.5rem;margin-top:1.4rem;font-size:var(--step--1)}.soon-text .links a{color:var(--ink)}
+</style></head><body>
+<canvas class="soon" aria-hidden="true"></canvas>
+${nav("../", slug)}<main class="soon-main"><div class="soon-text"><p class="kicker">${name}</p><h1>Under construction</h1>
+<p>${what}</p><p>Not built yet. The snake is on it.</p>
+<p class="links"><a href="../work/index.html">See the work →</a><a href="../index.html">Home</a></p></div></main>
+<script src="../soon.js"></script></body></html>`;
+const shell = ({ root, title, body, script = "", rain = "none" }) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title} — Rainyforest</title><style>${CSS}</style></head><body>
 <canvas class="forest" aria-hidden="true" data-rain="${rain}"></canvas>
-${nav(root, "work")}${body}<footer>Concept spike.</footer><script src="${root}forest.js"></script>${script ? `<script>${script}</script>` : ""}</body></html>`;
+${nav(root, "work")}${body}<footer>A preview. The site is still being built.</footer><script src="${root}forest.js"></script>${script ? `<script>${script}</script>` : ""}</body></html>`;
 const out = (path, html) => { mkdirSync(dirname(join(HERE, path)), { recursive: true }); writeFileSync(join(HERE, path), html); console.log("wrote", path); };
 
 /* ---- where a click on an experience goes: the visual explanation if there is one, otherwise the write-up ---- */
 export const hrefOf = (e, root) => (e.slug ? `${root}work/${e.slug}/${e.story ? "story/" : ""}index.html` : null);
+
+for (const section of SOON) out(`${section[0]}/index.html`, soonPage(section));
 
 /* ---- work index ---- */
 const lanes = [...new Set(EXPERIENCES.map((e) => e.lane))];
@@ -216,11 +240,13 @@ paged.forEach((e, i) => {
 <dl class="meta">${meta.map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join("")}</dl>
 <p class="see">${e.story ? `<a class="visual" href="story/index.html">Visual explanation, six scenes →</a>` : `<span class="soon">Visual explanation: ${e.tier === "deep" ? "planned" : "none"}</span>`}</p>
 ${c && c.draft ? `<p class="draft-note">${DRAFT} marks text written with AI from the paper and the public post. The author has not reviewed it yet; the tag comes off a section once they have.</p>` : ""}
-<div class="writeup"><nav class="rail" aria-label="Steps"><ol>${STEPS.map(([name], n) => `<li><a href="#${id(n)}">${name}</a></li>`).join("")}</ol></nav>
+${c ? "" : `<div class="writeup"><div><p class="empty">This write-up is in progress. It will answer the same eight questions as the others: ${STEPS.map(([name]) => name).join(", ")}.</p>
+<p class="next"><a href="../index.html">← All work</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p></div></div>`}
+${!c ? "" : `<div class="writeup"><nav class="rail" aria-label="Steps"><ol>${STEPS.map(([name], n) => `<li><a href="#${id(n)}">${name}</a></li>`).join("")}</ol></nav>
 <div>${STEPS.map(([name, ask], n) => `<section class="step" id="${id(n)}"><header><span class="no">${String(n + 1).padStart(2, "0")}</span><h2>${name}${c && c.draft && c.draft.steps[n] ? " " + DRAFT : ""}</h2><p class="ask">${ask}</p></header>
-${c ? c.steps[n] : `<p class="empty">Not written yet.</p>`}</section>`).join("")}
-${c && c.part ? `<p class="who" style="color:var(--ink-2);font-size:var(--step--1)"><b style="color:var(--ink)">My part.</b> ${c.part}</p>` : ""}
-<aside class="now"><strong>Re-decomposed: not written yet</strong>How I would break this problem down today goes here, dated, and apart from what was done then. No new numbers go in this block.</aside>
+${c.steps[n]}</section>`).join("")}
+${c.part ? `<p class="who" style="color:var(--ink-2);font-size:var(--step--1)"><b style="color:var(--ink)">My part.</b> ${c.part}</p>` : ""}
+${c.now ? `<aside class="now"><strong>Re-decomposed on ${c.now.date}</strong>${c.now.text}</aside>` : ""}
 <p class="next"><a href="../index.html">← All work</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p>
-</div></div></div></main>` }));
+</div></div>`}</div></main>` }));
 });

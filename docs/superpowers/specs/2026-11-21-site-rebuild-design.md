@@ -509,6 +509,14 @@ Pyodide: `PyCell`이 화면에 들어올 때만 jsDelivr에서 불러온다. 버
 
 시안: `docs/design/concept-spike/forest.js` (홈의 숲 그리기 코드를 떼어 낸 것).
 
+### 15.6.1 아직 만들지 않은 섹션 (2026-11-22 본인 요청)
+
+메뉴에 있지만 아직 만들지 않은 섹션(Study, Principles, Keynotes, Blog)은 "Under construction" 페이지로 간다. 같은 점 격자로 나무 한 그루를 그리고, 안전모를 쓴 뱀이 줄기를 감으며 올라간다. 수관 속으로 사라졌다가 잠시 뒤 아래에서 다시 올라온다. 안전모는 흰색이다(노랑은 뱀의 색이라 구별되지 않는다). 글은 섹션 이름, "Under construction", 그 섹션에 들어올 것 한 줄, Work와 Home 링크. 섹션이 만들어지면 그 페이지는 없앤다. 시안: `docs/design/concept-spike/soon.js`.
+
+### 15.6.2 임시 공개 (2026-11-22)
+
+실제 사이트를 배포하기 전까지 시안을 GitHub Pages에 임시로 올려 둔다: `https://rainyforest23.github.io/rainyforest-web/` (`gh-pages` 브랜치, `docs/design/concept-spike/publish.mjs --push`로 갱신). 검색에 잡히지 않게 `noindex`를 붙인다. 도메인(.dev 또는 .me)을 사서 실제 사이트를 올리면 이 임시 공개는 내린다.
+
 ### 15.7 아직 정하지 않은 것
 
 - 글꼴 (지금은 시스템 글꼴).

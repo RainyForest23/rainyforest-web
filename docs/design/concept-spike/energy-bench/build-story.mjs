@@ -3,7 +3,7 @@
 // Numbers: Mathematics-energy.pdf. Stated in the text: Node.js 14 W and ResNet 145 W alone (workload-induced), GPU share 93 %,
 // CPU 9 W, memory 0.2 W/GB x 4 GB, attribution error 0.1-0.4 % (AI) and 0.4-4.1 % (Node.js).
 // Read off the charts (Fig. 6 and 7, so approximate): 235 W at the wall for ResNet + Node.js, attributed 143 W and 13 W.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
@@ -231,6 +231,7 @@ const svg = k.figureSvg({
 /* ---- the formula, typeset with KaTeX (the site already ships it for the blog) ---- */
 const REPO = join(HERE, "..", "..", "..", "..");
 const katex = (await import(`${REPO}/node_modules/katex/dist/katex.mjs`)).default;
+const KATEX_VERSION = JSON.parse(readFileSync(`${REPO}/node_modules/katex/package.json`, "utf8")).version;   // the stylesheet must be the same version as the markup
 const tex = (s) => katex.renderToString("\\displaystyle " + s, { throwOnError: true });
 const T = (s) => `\\text{${s}}`;
 const share = (unit) => `\\frac{U^{${T(unit)}}_{i}}{\\sum_{j} U^{${T(unit)}}_{j}}`;
@@ -383,8 +384,8 @@ addEventListener("scroll", kick, { passive: true }); addEventListener("resize", 
 kick();
 `;
 
-const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Energy cost model — story (concept spike)</title>
-<link rel="stylesheet" href="../../../../../../node_modules/katex/dist/katex.min.css">
+const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Energy cost model, in six scenes — Rainyforest</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@${KATEX_VERSION}/dist/katex.min.css">
 <style>${k.ISO_CSS}${CSS}${PAGE_CSS}</style></head><body class="iso" data-theme="dark">
 <main class="story" style="--n:${steps.length}"><div class="stage">
 ${crumb}
@@ -394,7 +395,7 @@ ${formula}
 <div class="ticks" aria-hidden="true">${steps.map(() => "<span></span>").join("")}</div>
 </div></main>
 <section class="after"><h2>The picture is the short version.</h2><p>The write-up has the rest: whose decision this helps, the objects and their relations, the trade-offs, what broke, and how the result was checked.</p><p class="links"><a href="../index.html">More detail →</a><a href="../../index.html">All work</a><a href="../../../index.html">Home</a></p></section>
-<footer>Concept spike. The 235 W, 143 W and 13 W are read off the paper's charts and are approximate.</footer>
+<footer>A preview. The 235 W, 143 W and 13 W are read off the paper's charts and are approximate.</footer>
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script></body></html>`;
 const OUT = join(HERE, "..", "work", "energy-cost-model", "story");
 mkdirSync(OUT, { recursive: true });

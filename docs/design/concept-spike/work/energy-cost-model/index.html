@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Energy cost model for AI workloads — Rainyforest (concept spike)</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Energy cost model for AI workloads — Rainyforest</title><style>
 :root{--bg:#0a0f0d;--ink:#e6ebe4;--ink-2:#93a199;--ink-3:#5d6b64;--line:#1f2a25;--now:#72b98e;--snake:#e0b84c;
   --dot:#1a231f;--leaf-lo:#1d2f26;--leaf:#37604b;--leaf-hi:#5f9478;--bark-lo:#1f1c19;--bark-hi:#74695b;--rain:#a9c4b8;
   --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
@@ -41,7 +41,7 @@ h1{margin:0;font-size:clamp(1.8rem,1.2rem + 3vw,3.1rem);line-height:1.08;letter-
 .step .ask{grid-column:2;margin:.15rem 0 0;font-size:var(--step--1);color:var(--ink-3)}
 .step p{margin:0 0 .8em;max-width:42rem}.step p:last-child{margin-bottom:0}.step b{font-weight:600}
 .step ul{margin:0 0 .9em;padding-left:1.1rem;max-width:42rem}.step li{margin:.3em 0}.step li::marker{color:var(--ink-3)}
-.step .empty{color:var(--ink-3)}
+.empty{color:var(--ink-2);max-width:42rem}
 .objects{margin:0 0 1rem;display:grid;gap:.75rem}.objects div{display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem}
 @media (min-width:44rem){.objects div{grid-template-columns:11.5rem minmax(0,1fr);gap:1rem}}
 .objects dt{font-weight:600}.objects dd{margin:0;color:var(--ink-2)}
@@ -73,7 +73,7 @@ footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step
 </style></head><body>
 <canvas class="forest" aria-hidden="true" data-rain="none"></canvas>
 <nav class="nav" aria-label="Site"><a class="me" href="../../index.html">Rainyforest</a><ul>
-<li><a href="../../work/index.html" aria-current="page">Work</a></li><li><a href="#">Study</a></li><li><a href="#">Principles</a></li><li><a href="#">Keynotes</a></li><li><a href="#">Blog</a></li><li><a href="#">CV</a></li>
+<li><a href="../../work/index.html" aria-current="page">Work</a></li><li><a href="../../study/index.html">Study</a></li><li><a href="../../principles/index.html">Principles</a></li><li><a href="../../keynotes/index.html">Keynotes</a></li><li><a href="../../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
 </ul><a class="lang" href="#" lang="ko">한국어</a></nav><main><div class="wrap">
 <p class="crumb"><a href="../index.html">Work</a> / Research</p>
 <h1>An energy cost model for AI workloads on shared servers</h1>
@@ -81,6 +81,7 @@ footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step
 <dl class="meta"><div><dt>Kind</dt><dd>Research</dd></div><div><dt>Where</dt><dd>Ewha Womans University</dd></div><div><dt>When</dt><dd>Sep 2025 – Jun 2026, capstone and research</dd></div><div><dt>Role</dt><dd>Co-first author</dd></div><div><dt>Built with</dt><dd>Python, Intel RAPL, NVML, cgroup v2, a current clamp on the power cable</dd></div></dl>
 <p class="see"><a class="visual" href="story/index.html">Visual explanation, six scenes →</a></p>
 <p class="draft-note"><span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span> marks text written with AI from the paper and the public post. The author has not reviewed it yet; the tag comes off a section once they have.</p>
+
 <div class="writeup"><nav class="rail" aria-label="Steps"><ol><li><a href="#step-1">Decision</a></li><li><a href="#step-2">Before</a></li><li><a href="#step-3">Ontology</a></li><li><a href="#step-4">Smallest version</a></li><li><a href="#step-5">Trade-offs</a></li><li><a href="#step-6">What broke</a></li><li><a href="#step-7">Measured</a></li><li><a href="#step-8">Next</a></li></ol></nav>
 <div><section class="step" id="step-1"><header><span class="no">01</span><h2>Decision <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">Whose decision does this help?</p></header>
 <p>An operator runs many tenants' workloads on shared servers and has to decide what each one pays.</p><p>Today the bill follows what was handed out: cores, memory, the type of GPU. This work supports a different decision: how much of a server's <b>energy</b> to charge to each workload when several run on it at once.</p><p>The question matters now because energy has become a large part of what AI workloads cost to run.</p></section><section class="step" id="step-2"><header><span class="no">02</span><h2>Before <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">How was it done before, in numbers?</p></header>
@@ -105,8 +106,8 @@ footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step
             <tr><td>AI + AI, similar energy</td><td>1.8–2.0 %</td></tr></tbody></table><p>The largest error was about 5 %. The web server's percentage looks larger than the AI workloads' because its energy is small, not because the miss in watts is bigger.</p><p>With the same allocation, energy differed by 4.7 to 11.0 times in the AI + web server pairs, and by 2.2 and 2.4 times in two of the AI pairs.</p></section><section class="step" id="step-8"><header><span class="no">08</span><h2>Next <span class="draft" title="Written with AI from the paper and the public post. Not yet reviewed by the author.">[Draft]</span></h2><p class="ask">What is the next version?</p></header>
 <ul><li>From slices to virtual machines, which is how tenants are actually separated.</li><li>A billing model on top of the split.</li><li>A GPU shared between workloads, which this experiment avoided.</li></ul><p>None of these is done yet.</p></section>
 <p class="who" style="color:var(--ink-2);font-size:var(--step--1)"><b style="color:var(--ink)">My part.</b> Built the measurement stack, designed the split, and analysed the gap between billing by allocation and actual energy.</p>
-<aside class="now"><strong>Re-decomposed: not written yet</strong>How I would break this problem down today goes here, dated, and apart from what was done then. No new numbers go in this block.</aside>
+
 <p class="next"><a href="../index.html">← All work</a><a href="../sdij-forest/index.html">Next: SDIJ Forest Team →</a></p>
-</div></div></div></main><footer>Concept spike.</footer><script src="../../forest.js"></script><script>const links=[...document.querySelectorAll('.rail a')];
+</div></div></div></main><footer>A preview. The site is still being built.</footer><script src="../../forest.js"></script><script>const links=[...document.querySelectorAll('.rail a')];
 const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))},{rootMargin:'-20% 0px -65% 0px'});
 document.querySelectorAll('.step').forEach(s=>io.observe(s));</script></body></html>

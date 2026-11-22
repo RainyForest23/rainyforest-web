@@ -1,10 +1,10 @@
 // Checks every internal link in the concept spike: href/src attributes and .html paths inside inline scripts.
-// Run: node check-links.mjs
+// Run: node check-links.mjs [folder]   (default: this folder)
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = process.argv[2] ? resolve(process.argv[2]) : dirname(fileURLToPath(import.meta.url));
 const pages = [];
 (function walk(dir) {
   for (const name of readdirSync(dir)) {
