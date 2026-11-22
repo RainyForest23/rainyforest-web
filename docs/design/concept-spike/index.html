@@ -210,7 +210,7 @@
   </div>
 </main>
 
-<footer><div class="wrap">Concept spike. Where the résumé gives only a year, the month positions here are placeholders.</div></footer>
+<footer><div class="wrap">Concept spike. Dates follow the résumé; the club entry is still approximate.</div></footer>
 
 <script>
 /* ============ timeline (static mock of the spec's lanes × years) ============ */
@@ -220,12 +220,13 @@
   const NOW = idx('2026-11');
   const lanes = [['work', 'Work', 'Work'], ['research', 'Research', 'Res.'], ['club', 'Club', 'Club'], ['study', 'Study', 'Study'], ['award', 'Award', 'Awd']];
   const items = [
-    { lane: 'work', title: 'SDIJ Forest Team', role: 'Project Leader', when: '2023 – 2025', href: 'work/sdij-forest/index.html', s: '2023-03', e: '2025-04', tier: 'deep', cls: 'approx' },
-    { lane: 'work', title: 'Hiconsy', role: 'AI R&D Intern', when: 'Jun 2025 – 2026', href: 'work/hiconsy-lecture-asr/index.html', s: '2025-06', e: '2026-02', tier: 'deep', cls: 'approx-end' },
-    { lane: 'research', title: 'Energy cost model for AI workloads', role: '', when: '2026', href: 'work/energy-cost-model/story/index.html', visual: true, s: '2026-01', e: '2026-08', tier: 'standard', cls: 'approx' },
+    { lane: 'work', title: 'SDIJ Forest Team', role: 'Project Lead', when: 'Feb 2023 – Jun 2025', href: 'work/sdij-forest/index.html', s: '2023-02', e: '2025-06', tier: 'deep', cls: '' },
+    { lane: 'work', title: 'Hiconsy', role: 'AI R&D Intern', when: 'Jun 2025 – Jul 2026', href: 'work/hiconsy-lecture-asr/index.html', s: '2025-06', e: '2026-07', tier: 'deep', cls: '' },
+    { lane: 'research', title: 'Energy cost model for AI workloads', role: '', when: 'Sep 2025 – Jun 2026', href: 'work/energy-cost-model/story/index.html', visual: true, s: '2025-09', e: '2026-06', tier: 'standard', cls: '' },
     { lane: 'club', title: 'GDGoC Ewha', role: 'General Member, AI', when: '2025', s: '2025-03', e: '2025-12', tier: 'brief', cls: 'approx' },
     { lane: 'study', title: 'Study log', role: '', when: 'Nov 2026 – now', s: '2026-11', e: '2026-11', tier: 'standard', cls: 'ongoing' },
-    { lane: 'award', title: 'Ewha Startup Contest, 3rd place', role: '', when: '2025', s: '2025-09', e: '2025-09', tier: 'brief', cls: 'award' },
+    { lane: 'award', title: 'Ewha Startup Exploration Competition, Encouragement Award', role: '', when: 'Nov 2025', s: '2025-11', e: '2025-11', tier: 'brief', cls: 'award' },
+    { lane: 'award', title: 'Boeing Capstone Innovation Award, Grand Prize', role: '', when: 'Jun 2026', s: '2026-06', e: '2026-06', tier: 'brief', cls: 'award' },
   ];
   const grid = document.getElementById('grid'), readout = document.getElementById('readout');
   const el = (tag, cls, vars = {}, html = '') => {

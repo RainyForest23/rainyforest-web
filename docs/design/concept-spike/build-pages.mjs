@@ -11,14 +11,15 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 
 /* ---- the experiences. tier: deep | standard | brief (brief has no page). story: has a visual explanation ---- */
 export const EXPERIENCES = [
-  { slug: "sdij-forest", lane: "Work", title: "SDIJ Forest Team", org: "Sidae Injae", role: "Project Leader", when: "2023 – 2025", tier: "deep", story: false,
+  { slug: "sdij-forest", lane: "Work", title: "SDIJ Forest Team", org: "Sidae Injae", role: "Project Lead and sole developer, 4-person team", when: "Feb 2023 – Jun 2025", tier: "deep", story: false,
     summary: "Internal tools for a university-entrance academy: student question classification, learning analytics, forum monitoring." },
-  { slug: "hiconsy-lecture-asr", lane: "Work", title: "Hiconsy lecture ASR", org: "Hiconsy Inc.", role: "AI R&D Intern", when: "Jun 2025 – 2026", tier: "deep", story: false,
+  { slug: "hiconsy-lecture-asr", lane: "Work", title: "Hiconsy lecture ASR", org: "Hiconsy Inc.", role: "AI R&D Intern", when: "Jun 2025 – Jul 2026", tier: "deep", story: false,
     summary: "Korean lecture transcription. A token-handling fix cut insertion errors from 3,622 to 175 on one 107-minute lecture." },
-  { slug: "energy-cost-model", lane: "Research", title: "Energy cost model for AI workloads", org: "Ewha Womans University", role: "Co-first author", when: "2026", tier: "standard", story: true,
+  { slug: "energy-cost-model", lane: "Research", title: "Energy cost model for AI workloads", org: "Ewha Womans University", role: "Co-first author", when: "Sep 2025 – Jun 2026", tier: "standard", story: true,
     summary: "Splits a shared server's measured energy between the workloads on it, to within about 5 %." },
   { slug: null, lane: "Club", title: "GDGoC Ewha", org: "", role: "General Member, AI", when: "2025", tier: "brief", summary: "" },
-  { slug: null, lane: "Awards", title: "Ewha Startup Contest, 3rd place", org: "Ewha Womans University", role: "", when: "2025", tier: "brief", summary: "" },
+  { slug: null, lane: "Awards", title: "Boeing Capstone Innovation Award, Grand Prize and Poster Excellence Award", org: "Ewha Womans University", role: "1st of 41", when: "Jun 2026", tier: "brief", summary: "" },
+  { slug: null, lane: "Awards", title: "Ewha Startup Exploration Competition, Encouragement Award", org: "Ewha Womans University", role: "4th of 20", when: "Nov 2025", tier: "brief", summary: "" },
 ];
 
 /* ---- the eight steps every write-up answers, in this order ---- */
@@ -53,8 +54,8 @@ const CONTENT = {
   "energy-cost-model": {
     title: "An energy cost model for AI workloads on shared servers",
     draft: { lead: true, steps: [true, true, true, true, true, true, true, true] },   // set an entry to false once the author has reviewed or rewritten that part
-    meta: [["Kind", "Research"], ["Where", "Ewha Womans University"], ["When", "2026, out of a 2025 capstone project"], ["Role", "Co-first author"], ["Built with", "Python, Intel RAPL, NVML, cgroup v2, a current clamp on the power cable"]],
-    outcome: "A model that splits a shared server's measured energy between the workloads running on it. Checked against each workload measured alone, the split was within about 5 %. Submitted to <i>Mathematics</i> (MDPI) in February 2026.",
+    meta: [["Kind", "Research"], ["Where", "Ewha Womans University"], ["When", "Sep 2025 – Jun 2026, capstone and research"], ["Role", "Co-first author"], ["Built with", "Python, Intel RAPL, NVML, cgroup v2, a current clamp on the power cable"]],
+    outcome: "A model that splits a shared server's measured energy between the workloads running on it. Checked against each workload measured alone, the split was within about 5 %. The paper is in <i>Mathematics</i> (MDPI, SCIE), 2026.",
     part: "Built the measurement stack, designed the split, and analysed the gap between billing by allocation and actual energy.",
     steps: [
       p("An operator runs many tenants' workloads on shared servers and has to decide what each one pays.",
