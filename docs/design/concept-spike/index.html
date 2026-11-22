@@ -1,6 +1,16 @@
 <!doctype html>
 <html lang="en">
 <head>
+<script>
+  // The opening plays once per browser session, and not at all for people who ask for less motion,
+  // or when the page is opened at a section (#experience). ?opening=1 always plays it, ?opening=0 never does.
+  (() => {
+    const ask = new URLSearchParams(location.search).get('opening');
+    let seen = false; try { seen = sessionStorage.getItem('opening') === 'seen'; } catch (e) {}
+    const play = ask === '1' || (ask !== '0' && !seen && !location.hash && !matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (play) document.documentElement.classList.add('opening');
+  })();
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rainyforest — Woorim Shin</title>
@@ -59,6 +69,15 @@
   .center { position: relative; display: grid; justify-items: center; align-content: center; padding: 2rem var(--gutter) 24svh; text-align: center; }
   .center h1 { margin: 0; font-size: clamp(2.75rem, 1.5rem + 6.2vw, 6.5rem); font-weight: 700; line-height: 1; letter-spacing: -0.035em; }
   .intro { max-width: 34rem; margin-top: clamp(1rem, 2.5vw, 1.75rem); }
+
+  /* opening: black, rain, trees, then the words in order. Classes are set by the script in <head> and the hero script */
+  .center h1 .ch { display: inline-block; }
+  .opening .center h1 .ch { opacity: 0; transform: translateY(0.35em); }
+  .opening.op-title .center h1 .ch { opacity: 1; transform: none; transition: opacity 0.6s var(--ease) calc(var(--i) * 55ms), transform 0.8s var(--ease) calc(var(--i) * 55ms); }
+  .opening .who, .opening .what, .opening .more, .opening .nav { opacity: 0; transform: translateY(0.5rem); }
+  .opening.op-name .who, .opening.op-rest .what, .opening.op-rest .more, .opening.op-rest .nav { opacity: 1; transform: none; transition: opacity 0.7s var(--ease), transform 0.8s var(--ease); }
+  .opening.op-rest .more { transition-delay: 0.15s; }
+  .opening.op-skip * { transition: none !important; }
   .intro .who { margin: 0; font-size: var(--step-1); font-weight: 600; }
   .intro .what { margin: 0.4rem 0 0; color: var(--ink-2); text-wrap: balance; }
   .intro .more { display: inline-block; margin: 1.25rem 0.7rem 0; font-size: var(--step--1); color: var(--ink-2); text-underline-offset: 0.3em; text-decoration-style: dotted; }
@@ -192,7 +211,7 @@
     <a class="lang" href="#" lang="ko">한국어</a>
   </nav>
   <div class="center">
-    <h1>Rainyforest</h1>
+    <h1 aria-label="Rainyforest"><span class="ch" aria-hidden="true" style="--i:0">R</span><span class="ch" aria-hidden="true" style="--i:1">a</span><span class="ch" aria-hidden="true" style="--i:2">i</span><span class="ch" aria-hidden="true" style="--i:3">n</span><span class="ch" aria-hidden="true" style="--i:4">y</span><span class="ch" aria-hidden="true" style="--i:5">f</span><span class="ch" aria-hidden="true" style="--i:6">o</span><span class="ch" aria-hidden="true" style="--i:7">r</span><span class="ch" aria-hidden="true" style="--i:8">e</span><span class="ch" aria-hidden="true" style="--i:9">s</span><span class="ch" aria-hidden="true" style="--i:10">t</span></h1>
     <div class="intro">
       <p class="who">Woorim Shin</p>
       <p class="what">I take hard, messy problems from the people who have them to systems that hold up in production, and I stay until they do.</p>
@@ -344,7 +363,7 @@
     zones = [column]; minQ = 0.16; paintScene(baseB, false);     // timeline: trees stay at the sides, faint behind the content
     drops = Array.from({ length: Math.round(cols * 0.3) }, () => newDrop(true));
     splashes = [];
-    snake.hx = snake.hx === null ? cols * 0.46 : clamp(snake.hx, -10, cols + 70);
+    snake.hx = snake.hx === null ? (document.documentElement.classList.contains('opening') ? -4 : cols * 0.46) : clamp(snake.hx, -10, cols + 70);
   }
 
   /* ---- the forest: every shape below only decides how big and what colour a grid dot is ---- */
@@ -504,9 +523,9 @@
   function newDrop(anywhere) {
     return { c: Math.floor(Math.random() * cols), y: anywhere ? Math.random() * rows : -Math.random() * rows * 0.6, v: 55 + Math.random() * 35 };
   }
-  function drawRain(dt, moving, over) {
+  function drawRain(dt, moving, over, amount = 1) {
     ctx.fillStyle = rgb(K.rain);
-    for (let i = 0; i < drops.length; i++) {
+    for (let i = 0, n = Math.round(drops.length * amount); i < n; i++) {
       const d = drops[i];
       if (moving) d.y += d.v * dt;
       const gy = groundAt(d.c) + 2;
@@ -582,6 +601,17 @@
   }
 
   let last = 0, raf = 0, over = 0;
+  const root = document.documentElement;
+  let opening = root.classList.contains('opening'), openedAt = performance.now();
+  const pinnedAt = new URLSearchParams(location.search).get('at');   // ?opening=1&at=3.5 holds the opening at 3.5 s, for checking
+  function endOpening(skipped) {                                // also runs when the visitor scrolls, clicks or presses a key
+    if (!opening) return;
+    opening = false;
+    if (skipped) root.classList.add('op-skip');
+    root.classList.add('op-title', 'op-name', 'op-rest');
+    try { sessionStorage.setItem('opening', 'seen'); } catch (e) {}
+  }
+  if (opening) for (const type of ['wheel', 'touchstart', 'keydown', 'pointerdown']) addEventListener(type, () => endOpening(true), { once: true, passive: true });
   const forced = new URLSearchParams(location.search).get('t');   // ?t=1 pins the forest in its timeline state, for checking layouts
   function frame(ms) {
     raf = 0;
@@ -589,13 +619,27 @@
     const moving = !reduce.matches;
     const goal = forced !== null ? clamp(parseFloat(forced)) : clamp(window.scrollY / (H * 0.75));   // 0 on the first screen, 1 once the timeline has arrived
     over = moving && forced === null ? over + (goal - over) * (1 - Math.exp(-dt * 6)) : goal;
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(base, 0, 0);
-    if (over > 0.002) { ctx.globalAlpha = over; ctx.drawImage(baseB, 0, 0); ctx.globalAlpha = 1; }
+    // opening: 0 black · 0.3 s rain · 1.3 s the ground, then the trees grow from the bottom up · 2.9 s title · 3.8 s name · 4.4 s the rest and the snake
+    const it = opening ? (pinnedAt !== null ? parseFloat(pinnedAt) : (ms - openedAt) / 1000) : Infinity;
+    if (opening) {
+      if (it > 2.9) root.classList.add('op-title');
+      if (it > 3.8) root.classList.add('op-name');
+      if (it > 4.4) root.classList.add('op-rest');
+      if (it > 5.6) endOpening(false);
+    }
+    const grow = it === Infinity ? 1 : sm(clamp((it - 1.4) / 1.5)), shown = Math.floor(rows * (1 - grow)) * s * dpr;   // the reveal moves up one row of dots at a time
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (grow < 1) { ctx.fillStyle = rgb(K.bg); ctx.fillRect(0, 0, cv.width, cv.height); }
+    if (grow > 0) {
+      ctx.drawImage(base, 0, shown, cv.width, cv.height - shown, 0, shown, cv.width, cv.height - shown);
+      if (over > 0.002) { ctx.globalAlpha = over; ctx.drawImage(baseB, 0, shown, cv.width, cv.height - shown, 0, shown, cv.width, cv.height - shown); ctx.globalAlpha = 1; }
+    }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawRain(dt, moving, over);
-    gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gcv.width, gcv.height); gx.drawImage(floorImg, 0, 0);
-    gx.setTransform(dpr, 0, 0, dpr, 0, 0); drawSnake(dt, moving, ms / 1000);
-    gx.setTransform(1, 0, 0, 1, 0, 0); gx.drawImage(front, 0, 0);
+    if (it > 0.3) drawRain(dt, moving, over, it === Infinity ? 1 : clamp((it - 0.3) / 0.6));
+    gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gcv.width, gcv.height);
+    gx.globalAlpha = it === Infinity ? 1 : clamp((it - 1.2) / 0.5); gx.drawImage(floorImg, 0, 0); gx.globalAlpha = 1;
+    if (it > 4.4) { gx.setTransform(dpr, 0, 0, dpr, 0, 0); drawSnake(dt, moving, ms / 1000); }
+    gx.setTransform(1, 0, 0, 1, 0, 0); gx.globalAlpha = grow; gx.drawImage(front, 0, 0); gx.globalAlpha = 1;
     if ((moving && !document.hidden) || Math.abs(goal - over) > 0.002) raf = requestAnimationFrame(frame);
   }
   const kick = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
