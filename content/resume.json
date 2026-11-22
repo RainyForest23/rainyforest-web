@@ -44,15 +44,6 @@
   ],
   "work": [
     {
-      "name": "Ewha DAIA Lab",
-      "position": "Undergraduate Researcher",
-      "startDate": "2026-05",
-      "endDate": "Present",
-      "highlights": [
-        "LLM agent memory reliability: treating agent degradation as a state-update failure, and building a versioned memory store that propagates invalidation to dependent memories, evaluated on two public benchmarks."
-      ]
-    },
-    {
       "name": "Hiconsy",
       "position": "AI R&D Intern",
       "location": "Seoul, Korea",
@@ -82,19 +73,13 @@
       "name": "An Energy Attribution Model for Multi-Tenant AI Workloads in Industrial IoT Edge Computing Environments",
       "publisher": "Mathematics, MDPI (SCIE)",
       "releaseDate": "2026",
-      "summary": "Woorim Shin†, Kyungwoon Cho†, Jiyun Kim, Siyeon Kang, Hyokyung Bahn. Co-first author († equal contribution)."
+      "summary": "Woorim Shin†, Kyungwoon Cho†, Jiyun Kim, Siyeon Kang, Hyokyung Bahn. Co-first author († equal contribution). doi:10.3390/math14173113"
     },
     {
       "name": "Energy Behavior of AI Workloads Under Resource Partitioning in Multi-Tenant Systems",
       "publisher": "Applied Sciences, MDPI (SCIE)",
       "releaseDate": "2026",
-      "summary": "Jiyun Kim, Siyeon Kang, Woorim Shin, Kyungwoon Cho, Hyokyung Bahn. Third author: review and editing, visualization."
-    },
-    {
-      "name": "Eliminating Hallucinations in Whisper LoRA Fine-tuning: A Case Study on Korean Lecture Transcription",
-      "publisher": "Independent research, Hiconsy AI R&D",
-      "releaseDate": "2026",
-      "summary": "Woorim Shin. In preparation."
+      "summary": "Jiyun Kim, Siyeon Kang, Woorim Shin, Kyungwoon Cho, Hyokyung Bahn. Third author: review and editing, visualization. doi:10.3390/app16073129"
     }
   ],
   "talks": [

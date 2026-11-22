@@ -55,7 +55,7 @@ const CONTENT = {
     title: "An energy cost model for AI workloads on shared servers",
     draft: { lead: true, steps: [true, true, true, true, true, true, true, true] },   // set an entry to false once the author has reviewed or rewritten that part
     meta: [["Kind", "Research"], ["Where", "Ewha Womans University"], ["When", "Sep 2025 – Jun 2026, capstone and research"], ["Role", "Co-first author"], ["Built with", "Python, Intel RAPL, NVML, cgroup v2, a current clamp on the power cable"]],
-    outcome: "A model that splits a shared server's measured energy between the workloads running on it. Checked against each workload measured alone, the split was within about 5 %. The paper is in <i>Mathematics</i> (MDPI, SCIE), 2026.",
+    outcome: "A model that splits a shared server's measured energy between the workloads running on it. Checked against each workload measured alone, the split was within about 5 %. Published in <i>Mathematics</i> (MDPI, SCIE), 2026.",
     part: "Built the measurement stack, designed the split, and analysed the gap between billing by allocation and actual energy.",
     steps: [
       p("An operator runs many tenants' workloads on shared servers and has to decide what each one pays.",
