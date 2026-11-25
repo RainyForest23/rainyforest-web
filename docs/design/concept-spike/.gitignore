@@ -1,2 +1,4 @@
 # earlier iterations kept locally for comparison
 *.v[0-9].*
+# prepared Keynote decks: too large for the repository (see keynotes/prepare-deck.mjs)
+keynotes/*/deck/

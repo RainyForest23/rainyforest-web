@@ -5,3 +5,4 @@ dist/
 .superpowers/
 *.tsbuildinfo
 .DS_Store
+.keynote-export/
