@@ -17,6 +17,8 @@ export const EXPERIENCES = [
     summary: "Korean lecture transcription. A token-handling fix cut insertion errors from 3,622 to 175 on one 107-minute lecture." },
   { slug: "energy-cost-model", lane: "Research", title: "Energy cost model for AI workloads", org: "Ewha Womans University", role: "Co-first author", when: "Sep 2025 – Jun 2026", tier: "standard", story: true,
     summary: "Splits a shared server's measured energy between the workloads on it, to within about 5 %." },
+  { slug: "tesla-jr", lane: "Coursework", title: "Tesla Jr.", org: "Ewha Womans University, Intelligent Robotics", role: "One-person project", when: "May – Jun 2026", tier: "standard", story: true,
+    summary: "A car-like robot that drives to a goal using only cameras and no map, in simulation." },
   { slug: null, lane: "Club", title: "GDGoC Ewha", org: "", role: "General Member, AI", when: "2025", tier: "brief", summary: "" },
   { slug: null, lane: "Awards", title: "Boeing Capstone Innovation Award, Grand Prize and Poster Excellence Award", org: "Ewha Womans University", role: "1st of 41", when: "Jun 2026", tier: "brief", summary: "" },
   { slug: null, lane: "Awards", title: "Ewha Startup Exploration Competition, Encouragement Award", org: "Ewha Womans University", role: "4th of 20", when: "Nov 2025", tier: "brief", summary: "" },
@@ -50,10 +52,21 @@ ${box(40, 200, 130, "Workload", "one tenant's program")}${box(290, 152, 160, "Al
 </svg><figcaption>Objects and how they relate. The split is an action on a part: it takes that part's energy for an interval and divides it across workloads by that part's rule.</figcaption></figure>`;
 })();
 
+const loopMap = (() => {
+  const box = (x, y, w, name, sub) => `<g><rect x="${x}" y="${y}" width="${w}" height="52"/><text class="n" x="${x + 12}" y="${y + 22}">${name}</text><text class="s" x="${x + 12}" y="${y + 39}">${sub}</text></g>`;
+  const edge = (x1, y1, x2, y2, label, lx, ly) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><circle cx="${x2}" cy="${y2}" r="2.6"/><text class="e" x="${lx}" y="${ly}">${label}</text>`;
+  return `<figure class="map"><svg viewBox="0 0 720 300" role="img" aria-label="A loop: the camera gives points, points mark costmap cells, cells and the goal give a path, the path gives a command, the command is converted for the vehicle, and the vehicle's new pose changes what the camera sees.">
+${edge(150, 66, 215, 66, "sees", 166, 58)}${edge(345, 66, 410, 66, "mark", 362, 58)}${edge(540, 66, 590, 66, "", 0, 0)}${edge(645, 92, 645, 196, "plan", 654, 150)}
+${edge(590, 222, 540, 222, "follow", 546, 214)}${edge(410, 222, 345, 222, "convert", 352, 214)}${edge(215, 222, 150, 222, "", 0, 0)}${edge(95, 196, 95, 92, "moves", 104, 150)}
+${box(40, 40, 110, "Camera", "3 stereo pairs")}${box(215, 40, 130, "Point", "where something is")}${box(410, 40, 130, "Costmap cell", "free or blocked")}${box(590, 40, 110, "Goal", "a place to reach")}
+${box(590, 196, 110, "Path", "drivable curve")}${box(410, 196, 130, "Command", "speed, turn rate")}${box(215, 196, 130, "Steering, spin", "what a car has")}${box(40, 196, 110, "Vehicle", "pose on the floor")}
+</svg><figcaption>One turn of the loop. It runs about 20 times a second, and nothing in it is a stored map.</figcaption></figure>`;
+})();
+
 const CONTENT = {
   "energy-cost-model": {
     title: "An energy cost model for AI workloads on shared servers",
-    draft: { lead: true, steps: [true, true, true, true, true, true, true, true] },   // set an entry to false once the author has reviewed or rewritten that part
+    draft: { lead: true, from: "the paper and the public post", steps: [true, true, true, true, true, true, true, true] },   // set an entry to false once the author has reviewed or rewritten that part
     meta: [["Kind", "Research"], ["Where", "Ewha Womans University"], ["When", "Sep 2025 – Jun 2026, capstone and research"], ["Role", "Co-first author"], ["Built with", "Python, Intel RAPL, NVML, cgroup v2, a current clamp on the power cable"]],
     outcome: "A model that splits a shared server's measured energy between the workloads running on it. Checked against each workload measured alone, the split was within about 5 %. Published in <i>Mathematics</i> (MDPI, SCIE), 2026.",
     part: "Built the measurement stack, designed the split, and analysed the gap between billing by allocation and actual energy.",
@@ -101,6 +114,64 @@ const CONTENT = {
         + p("The largest error was about 5 %. The web server's percentage looks larger than the AI workloads' because its energy is small, not because the miss in watts is bigger.",
           "With the same allocation, energy differed by 4.7 to 11.0 times in the AI + web server pairs, and by 2.2 and 2.4 times in two of the AI pairs."),
       ul("From slices to virtual machines, which is how tenants are actually separated.", "A billing model on top of the split.", "A GPU shared between workloads, which this experiment avoided.")
+        + p("None of these is done yet."),
+    ],
+  },
+  "tesla-jr": {
+    title: "Tesla Jr.: a car that drives on cameras alone",
+    draft: { lead: true, from: "the project's repository", steps: [true, true, true, true, true, true, true, true] },
+    meta: [["Kind", "Course project"], ["Where", "Ewha Womans University, Intelligent Robotics, spring 2026"], ["When", "May – Jun 2026"], ["Role", "One-person project"], ["Built with", "Isaac Sim 4.2, ROS 2 Humble, Nav2 (Smac Hybrid-A*, MPPI), YOLOv8, Python"],
+      ["Links", '<a href="https://github.com/RainyForest23/tesla-jr">Code</a> · <a href="https://youtu.be/XRJORmt7uws">Demo video</a>']],
+    outcome: "A car-like robot that reaches a goal 11 m away, around two obstacles, using only cameras and no map. It runs in a simulator; the real car is the next step and is not done.",
+    part: "Everything in the project: the simulation, the car model, the three nodes, the navigation set-up and the tests. As the repository says, an AI coding assistant helped with environment set-up, debugging and documentation.",
+    steps: [
+      p("The decision is a build decision: can a small car be driven with cameras only, or does it need a LiDAR and a map?",
+        "It is my own decision, for the next step. A real ride-on car (a Henes Broon T870) is waiting for whatever works here, and cameras are the cheap option.",
+        "So the question for the simulator was narrow: does a camera-only, map-free stack get a car-shaped vehicle to a goal past obstacles?"),
+      p("The usual course project looks like this:")
+        + ul("a two-wheel base that can turn on the spot,", "a LiDAR,", "a map made beforehand with SLAM,", "a stock robot in Gazebo.")
+        + p("Each of those makes navigation easier. A car cannot turn on the spot, a camera gives depth only where it looks, and with no map there is nothing to plan on except what has been seen so far."),
+      dl(["Vehicle", "Steers with its front wheels. Wheelbase 0.65 m, wheel radius 0.12 m, footprint 1.0 × 0.6 m, tightest turn 1.0 m."],
+        ["Camera", "A stereo pair facing forward, later one more on each side, together covering about 180° ahead. Each gives a depth image."],
+        ["Point", "A place where the camera saw something: 307,200 of them per frame, about 27 frames a second."],
+        ["Costmap cell", "A small square of floor, free or blocked. The near map rolls along with the car; nothing is stored between runs."],
+        ["Goal", "A position to reach, within a tolerance of 0.35 m."],
+        ["Path", "A curve from the car to the goal that a car can actually follow."],
+        ["Command", "A forward speed and a turn rate, sent many times a second."],
+        ["Detection", "A person found in the camera image by YOLO."])
+        + loopMap
+        + p("Actions: <b>see</b> (camera to points), <b>mark</b> (points to cells), <b>plan</b> (cells and goal to path), <b>follow</b> (path to command), <b>convert</b> (command to steering angle and wheel speed), <b>stop</b> (a person ahead)."),
+      p("The smallest version was not a car. It was the simulator's stock robot driven by keyboard, with one question: do camera images and points arrive on the other side at all?")
+        + `<ul class="tree"><li>Drive a car to a goal on cameras alone
+            <ul><li>Get data across<ul><li>Images at about 30 a second, points at about 27</li></ul></li>
+            <li>See obstacles<ul><li>Points into costmap cells</li></ul></li>
+            <li>Model the car<ul><li>My own T870 model, steering and drive joints</li></ul></li>
+            <li>Turn commands into wheel motion<ul><li>The conversion node, which also reports the car's position</li></ul></li>
+            <li>Plan for a car<ul><li>A planner and controller that do not ask it to spin</li></ul></li>
+            <li>Check it<ul><li>A straight goal, then obstacles, a gate, a corner, a maze</li></ul></li></ul></li></ul>`
+        + p("Only after the stock robot worked end to end was it swapped for the car."),
+      dl(["Car steering, not a two-wheel base", "Harder to plan for, and the point of the project: the real vehicle is a car."],
+        ["Cameras, no LiDAR", "Cheaper, and blind wherever no camera points. Side cameras were added for that; there is still none at the back."],
+        ["No map", "Nothing to prepare and nothing to go stale. The cost is that the car only knows what it has seen, which is what stopped it in the maze."],
+        ["Planner: the default, then Hybrid-A*", "The default planner asked for turns a car cannot make. Hybrid-A* plans with the car's turning circle."],
+        ["Controller: three tries", "The default one turns on the spot. The second followed curves but hugged walls in a corner. The third (MPPI) checks the car's real outline and may reverse."],
+        ["Depth from the simulator", "The depth image is the simulator's exact one, a stand-in for real stereo matching. It kept the project about navigation. It is also the largest gap to the real car."],
+        ["One node owns the car", "Driving the wheels and reporting position are done by one node, because two programs holding the same simulated car broke each other."]),
+      dl(["The floor looked like a wall", "Floor points were marked as obstacles: 2,243 of 6,400 cells. A goal 2 m away came back as a 14 m path and the car stood still. The floor appeared to rise with distance and crossed the 0.15 m line. Raising it to 0.35 m fixed it."],
+        ["The wheels spun in place", "The rear wheels turned at the right speed and the car barely moved. The simulator had turned each round wheel into a rough many-sided shape. Giving the wheels a sphere to roll on fixed it."],
+        ["Driving stopped when position reporting started", "Two scripts each took hold of the simulated car and cancelled each other's hold. They became one node."],
+        ["Data that was listed but never arrived", "The two sides of the link used different versions of the same transport and failed silently over shared memory. Forcing plain network transport fixed it."],
+        ["Points that would not show", "The points and the car's position were stamped by two different clocks. Everything was moved to one clock."]),
+      p("All of this is in simulation.")
+        + `<table><thead><tr><th>Test</th><th>Result</th></tr></thead><tbody>
+            <tr><td>Goal 11 m ahead, two obstacles</td><td>Reached. Swerved 0.13 m right, then 0.12 m left, stopped at 10.81 m (tolerance 0.35 m)</td></tr>
+            <tr><td>Posts outside the front camera's view</td><td>Passed, once the side cameras were added</td></tr>
+            <tr><td>A 2.4 m wide corner</td><td>Driven without touching the walls</td></tr>
+            <tr><td>A person ahead</td><td>Detected at 0.82 confidence, about 18 frames a second; the car stops and goes on</td></tr>
+            <tr><td>A closed maze with four corners</td><td><b>Failed</b> after the first corner</td></tr></tbody></table>`
+        + p("The maze is the honest limit. With no rear camera the car could not see the wall behind it when backing up. A fallback was added: if the car is told to move and does not, it assumes something is there and marks it. That stopped it from cheating around the outside, and did not get it through.",
+          "The conclusion written down at the time: a maze like that needs a map."),
+      ul("Real stereo matching in place of the simulator's depth.", "The same stack on the real car: a Jetson for the computing, motor drivers for steering and drive.", "A language model choosing the goal. The small node that accepts a goal as text is already there.")
         + p("None of these is done yet."),
     ],
   },
@@ -239,7 +310,7 @@ paged.forEach((e, i) => {
 <p class="lead">${c ? c.outcome : e.summary}${c && c.draft && c.draft.lead ? " " + DRAFT : ""}</p>
 <dl class="meta">${meta.map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join("")}</dl>
 <p class="see">${e.story ? `<a class="visual" href="story/index.html">Visual explanation, six scenes →</a>` : `<span class="soon">Visual explanation: ${e.tier === "deep" ? "planned" : "none"}</span>`}</p>
-${c && c.draft ? `<p class="draft-note">${DRAFT} marks text written with AI from the paper and the public post. The author has not reviewed it yet; the tag comes off a section once they have.</p>` : ""}
+${c && c.draft ? `<p class="draft-note">${DRAFT} marks text written with AI from ${c.draft.from}. The author has not reviewed it yet; the tag comes off a section once they have.</p>` : ""}
 ${c ? "" : `<div class="writeup"><div><p class="empty">This write-up is in progress. It will answer the same eight questions as the others: ${STEPS.map(([name]) => name).join(", ")}.</p>
 <p class="next"><a href="../index.html">← All work</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p></div></div>`}
 ${!c ? "" : `<div class="writeup"><nav class="rail" aria-label="Steps"><ol>${STEPS.map(([name], n) => `<li><a href="#${id(n)}">${name}</a></li>`).join("")}</ol></nav>

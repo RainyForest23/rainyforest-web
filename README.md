@@ -46,6 +46,7 @@ Open [`docs/design/concept-spike/index.html`](docs/design/concept-spike/index.ht
 cd docs/design/concept-spike
 node build-pages.mjs                # the Work list and the write-ups, from one template
 node energy-bench/build-story.mjs   # the visual explanation of the energy cost model
+node tesla-jr/build-story.mjs       # the visual explanation of Tesla Jr.
 node check-links.mjs                # every internal link in the mock pages
 ```
 
