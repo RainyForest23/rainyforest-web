@@ -161,7 +161,8 @@ const CONTENT = {
         ["The wheels spun in place", "The rear wheels turned at the right speed and the car barely moved. The simulator had turned each round wheel into a rough many-sided shape. Giving the wheels a sphere to roll on fixed it."],
         ["Driving stopped when position reporting started", "Two scripts each took hold of the simulated car and cancelled each other's hold. They became one node."],
         ["Data that was listed but never arrived", "The two sides of the link used different versions of the same transport and failed silently over shared memory. Forcing plain network transport fixed it."],
-        ["Points that would not show", "The points and the car's position were stamped by two different clocks. Everything was moved to one clock."]),
+        ["Points that would not show", "The points and the car's position were stamped by two different clocks. Everything was moved to one clock."],
+        ["It kept reversing into a wall", "The cameras look forward, left and right. Backing out of a dead end, the car could not see the wall behind it and went on reversing into it. A virtual bumper fixed that: if the car is told to move and has not moved for a second, the place 0.7 m that way is marked as an obstacle, like anything a camera saw, and the wheels stop."]),
       p("All of this is in simulation.")
         + `<table><thead><tr><th>Test</th><th>Result</th></tr></thead><tbody>
             <tr><td>Goal 11 m ahead, two obstacles</td><td>Reached. Swerved 0.13 m right, then 0.12 m left, stopped at 10.81 m (tolerance 0.35 m)</td></tr>
@@ -169,7 +170,7 @@ const CONTENT = {
             <tr><td>A 2.4 m wide corner</td><td>Driven without touching the walls</td></tr>
             <tr><td>A person ahead</td><td>Detected at 0.82 confidence, about 18 frames a second; the car stops and goes on</td></tr>
             <tr><td>A closed maze with four corners</td><td><b>Failed</b> after the first corner</td></tr></tbody></table>`
-        + p("The maze is the honest limit. With no rear camera the car could not see the wall behind it when backing up. A fallback was added: if the car is told to move and does not, it assumes something is there and marks it. That stopped it from cheating around the outside, and did not get it through.",
+        + p("The maze is the honest limit. The virtual bumper stopped the endless reversing and stopped the car from cheating around the outside of the maze. It did not get it through.",
           "The conclusion written down at the time: a maze like that needs a map."),
       ul("Real stereo matching in place of the simulator's depth.", "The same stack on the real car: a Jetson for the computing, motor drivers for steering and drive.", "A language model choosing the goal. The small node that accepts a goal as text is already there.")
         + p("None of these is done yet."),
