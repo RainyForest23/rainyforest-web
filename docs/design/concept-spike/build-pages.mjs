@@ -3,7 +3,7 @@
 //   work/<slug>/index.html          the write-up: the same eight steps for every experience (spec §7.2)
 // The visual explanation of an experience lives at work/<slug>/story/index.html and is built by its own script.
 // Run: node build-pages.mjs
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -288,72 +288,101 @@ export const hrefOf = (e, root) => (e.slug ? `${root}work/${e.slug}/${e.story ? 
 
 for (const section of SOON) out(`${section[0]}/index.html`, soonPage(section));
 
-/* ---- Keynotes: an outdoor cinema in the forest. The deck plays on a screen that stands on two posts;
-        the caption for each step sits between the posts, under the screen, never on it ---- */
-const DECK = { slug: "tesla-jr", title: "Tesla Jr.", where: "Intelligent Robotics, Jun 2026", slides: 15 };
-const CAPTIONS = JSON.parse(readFileSync(join(HERE, "keynotes", DECK.slug, "captions.json"), "utf8"));   // one caption per step, keyed by step number; written by the author
+/* ---- Keynotes: an outdoor cinema in the forest. The deck plays on a screen held between two posts;
+        the caption for each animation step sits under the screen, between the posts, never on it.
+        If the deck has been prepared from Keynote's HTML export (keynotes/prepare-deck.mjs) it plays with its
+        builds and transitions; otherwise the page falls back to one still image per slide ---- */
+const DECK = { slug: "tesla-jr", title: "Tesla Jr.", where: "Intelligent Robotics, Jun 2026", stills: 15 };
+const deckDir = join(HERE, "keynotes", DECK.slug), LIVE = existsSync(join(deckDir, "deck", "index.html"));
+const DECK_STEPS = LIVE ? JSON.parse(readFileSync(join(deckDir, "deck.json"), "utf8")).steps : DECK.stills;
+const CAPTIONS = LIVE ? JSON.parse(readFileSync(join(deckDir, "captions.json"), "utf8")) : {};   // one caption per animation step, keyed by step number; written by the author
 out("keynotes/index.html", `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Keynotes — Rainyforest</title><style>${CSS}
-:root{--floor-lo:#18211d;--floor-hi:#2c3b34}
-.cinema-main{padding:0 var(--gutter)}
-.cinema{width:100%;max-width:max(18rem,calc((100svh - 20rem) * 16 / 9));margin:0 auto}
-.bill{margin:.3rem 0 .8rem;font:var(--step--1) var(--mono);color:var(--ink-3);text-align:center}.bill b{color:var(--ink);font-weight:600}
-.screen{position:relative;aspect-ratio:16/9;background:#000;outline:1px solid var(--ink-3);outline-offset:3px;cursor:pointer}
-.screen img{display:block;width:100%;height:100%;object-fit:contain}
-.screen:focus-visible{outline:1px dotted var(--ink)}
-.under{margin:4px 7% 0;padding:.9rem 1rem 0;border-inline:2px solid var(--bark-hi);min-height:8.2rem;display:grid;grid-template-rows:1fr auto;gap:.5rem}
-.caption{margin:0;min-height:4.4rem;display:grid;place-items:center;text-align:center;font-size:var(--step-1);line-height:1.4;text-wrap:balance}
+:root{--floor-lo:#18211d;--floor-hi:#2c3b34;--snake-2:#8a6a22;--snake-hi:#f3dd92}
+body{position:relative;min-height:100svh;display:flex;flex-direction:column}
+.rig{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.cinema-main{flex:1;padding:0 var(--gutter) 6.5rem}
+.cinema{width:100%;max-width:max(18rem,calc((100svh - 21rem) * 16 / 9));margin:0 auto}
+.bill{margin:.2rem 0 .8rem;font:var(--step--1) var(--mono);color:var(--ink-3);text-align:center}.bill b{color:var(--ink);font-weight:600}
+.screen{position:relative;aspect-ratio:16/9;background:#000;cursor:pointer}
+.screen img,.screen iframe{display:block;width:100%;height:100%;border:0;object-fit:contain}
+.under{padding:.9rem 1rem 0;min-height:8rem;display:grid;grid-template-rows:1fr auto;gap:.4rem}
+.caption{margin:0 auto;width:100%;max-width:46rem;min-height:4.4rem;display:flex;align-items:center;justify-content:center;text-align:center;font-size:var(--step-1);line-height:1.4}
 .caption.empty{font:var(--step--1) var(--mono);color:var(--ink-3)}
-.reel{display:flex;justify-content:center;align-items:center;gap:1.1rem;padding-bottom:.5rem;font:var(--step--1) var(--mono);color:var(--ink-2)}
+@media (min-width:60rem){.cinema{max-width:max(18rem,min(calc((100svh - 21rem) * 16 / 9),calc(100vw - 20rem)))}}   /* always leave room for the trees */
+.reel{display:flex;justify-content:center;align-items:center;gap:1.1rem;font:var(--step--1) var(--mono);color:var(--ink-2)}
 .reel button{background:none;border:0;color:var(--ink);font:inherit;cursor:pointer;padding:.3rem .6rem}.reel button:disabled{color:var(--ink-3);cursor:default}
-.seats{display:block;width:100%;height:4.5rem;position:relative;z-index:1}
+.reel .hint{color:var(--ink-3)}@media (max-width:40rem){.reel .hint{display:none}}
 </style></head><body>
-<canvas class="forest" aria-hidden="true" data-rain="none" data-column=".cinema"></canvas>
+<canvas class="forest" aria-hidden="true" data-rain="sides" data-column=".cinema"></canvas>
+<canvas class="rig" aria-hidden="true"></canvas>
 ${nav("../", "keynotes")}<main class="cinema-main"><div class="cinema">
-<h1 class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Keynotes</h1>
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Keynotes</h1>
 <p class="bill">Now showing · <b>${DECK.title}</b> · ${DECK.where}</p>
-<div class="screen" tabindex="0" role="group" aria-label="${DECK.title}, slide deck. Click the right half or press the right arrow for the next step."><img alt="" src="${DECK.slug}/01.jpg"></div>
+<div class="screen">${LIVE
+  ? `<iframe src="${DECK.slug}/deck/index.html" title="${DECK.title}: slide deck with its animations. Click it or press the right arrow for the next step." allow="fullscreen"></iframe>`
+  : `<img alt="" src="${DECK.slug}/01.jpg">`}</div>
 <div class="under"><p class="caption" aria-live="polite"></p>
-<div class="reel"><button type="button" data-go="-1" aria-label="Previous step">←</button><span class="count"></span><button type="button" data-go="1" aria-label="Next step">→</button></div></div>
+<div class="reel"><button type="button" data-go="-1" aria-label="Previous step">←</button><span class="count"></span><button type="button" data-go="1" aria-label="Next step">→</button><span class="hint">click the screen, or press →</span></div></div>
 </div></main>
-<canvas class="seats" aria-hidden="true"></canvas>
 <script src="../forest.js"></script>
 <script>
 (() => {   // the deck
-  const N = ${DECK.slides}, CAP = ${JSON.stringify(CAPTIONS)}, src = (i) => "${DECK.slug}/" + String(i).padStart(2, "0") + ".jpg";
-  const screen = document.querySelector(".screen"), img = screen.querySelector("img"), cap = document.querySelector(".caption"), count = document.querySelector(".count"), [prev, next] = document.querySelectorAll(".reel button");
-  let at = Math.min(N, Math.max(1, parseInt(new URLSearchParams(location.search).get("step")) || 1));
+  const LIVE = ${LIVE}, CAP = ${JSON.stringify(CAPTIONS)}, slug = "${DECK.slug}";
+  const screen = document.querySelector(".screen"), cap = document.querySelector(".caption"), count = document.querySelector(".count"), [prev, next] = document.querySelectorAll(".reel button");
+  let at = 1, of = ${DECK_STEPS};
   function show() {
-    img.src = src(at); img.alt = "Slide " + at + " of " + N;
     const text = (CAP[at] || "").trim();
-    cap.textContent = text || "caption for step " + at;                 // captions are still to be written
+    cap.textContent = text || (LIVE ? "caption for step " + at : "");                 // captions are still to be written
     cap.classList.toggle("empty", !text);
-    count.textContent = at + " / " + N; prev.disabled = at === 1; next.disabled = at === N;
-    if (at < N) new Image().src = src(at + 1);
+    count.textContent = at + " / " + of; prev.disabled = at <= 1; next.disabled = at >= of;
   }
-  const go = (d) => { const to = Math.min(N, Math.max(1, at + d)); if (to !== at) { at = to; show(); } };
+  let go;
+  if (LIVE) {      // Keynote's own player runs in the frame. It says which step it is on, and moves when asked (see prepare-deck.mjs)
+    const frame = screen.querySelector("iframe");
+    addEventListener("message", (e) => { if (e.source === frame.contentWindow && e.data && e.data.keynote === "step") { at = e.data.step; of = e.data.of; show(); } });
+    go = (d) => frame.contentWindow.postMessage(d > 0 ? "keynote:next" : "keynote:prev", "*");
+  } else {         // stills: one image per slide
+    const img = screen.querySelector("img"), src = (i) => slug + "/" + String(i).padStart(2, "0") + ".jpg";
+    go = (d) => { at = Math.min(of, Math.max(1, at + d)); img.src = src(at); img.alt = "Slide " + at + " of " + of; show(); };
+    screen.addEventListener("click", (e) => { const b = screen.getBoundingClientRect(); go(e.clientX - b.left < b.width / 2 ? -1 : 1); });
+  }
   prev.onclick = () => go(-1); next.onclick = () => go(1);
-  screen.addEventListener("click", (e) => { const b = screen.getBoundingClientRect(); go(e.clientX - b.left < b.width / 2 ? -1 : 1); });
   addEventListener("keydown", (e) => { if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); go(1); } if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); } });
   show();
 })();
-(() => {   // the seats: a row of log benches seen from behind, on the forest floor, in the same dot grid
-  const cv = document.querySelector("canvas.seats"), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement);
+(() => {   // the rig, in the same dot grid as the forest: two posts holding the screen, the forest floor, a row of log seats, and one of the audience
+  const cv = document.querySelector("canvas.rig"), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement);
   const hex = (n) => { const h = css.getPropertyValue(n).trim().slice(1); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
-  const mix = (a, b, t) => "rgb(" + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",") + ")";
-  const bark = [hex("--bark-lo"), hex("--bark-hi")], floor = [hex("--floor-lo"), hex("--floor-hi")];
+  const mix = (a, b, t) => "rgb(" + a.map((v, i) => Math.round(v + (b[i] - v) * Math.max(0, Math.min(1, t)))).join(",") + ")";
+  const K = { bg: hex("--bg"), bark: [hex("--bark-lo"), hex("--bark-hi")], floor: [hex("--floor-lo"), hex("--floor-hi")], snake: hex("--snake"), band: hex("--snake-2"), hi: hex("--snake-hi") };
+  const noise = (c, r) => { let h = Math.imul(c | 0, 374761393) ^ Math.imul(r | 0, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
   function draw() {
-    const W = cv.clientWidth, H = cv.clientHeight, dpr = Math.min(2, devicePixelRatio || 1), s = W < 520 ? 6 : W < 1000 ? 7 : 8;
-    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    const cols = Math.ceil(W / s), rows = Math.ceil(H / s), ground = rows - 3, pitch = 11, off = (cols % pitch) / 2;
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      const dx = ((c + 0.5 - off) % pitch + pitch) % pitch - pitch / 2, top = ground - 3.4 * Math.sqrt(Math.max(0, 1 - (dx / 4.2) ** 2));
-      let colour = null, rad = 0;
-      if (r >= ground) { const l = 0.3 + 0.5 * ((r * 7 + c * 13) % 5) / 5; colour = mix(floor[0], floor[1], l); rad = 0.14 + 0.3 * l; }
-      else if (Math.abs(dx) < 4.2 && r + 0.5 >= top) { const l = 0.35 + 0.5 * (1 - (r + 0.5 - top) / 3.4) - 0.07 * dx; colour = mix(bark[0], bark[1], Math.max(0, Math.min(1, l))); rad = 0.2 + 0.26 * Math.max(0, Math.min(1, l)); }
-      if (colour) { ctx.fillStyle = colour; ctx.beginPath(); ctx.arc((c + 0.5) * s, (r + 0.5) * s, rad * s, 0, 6.2832); ctx.fill(); }
+    const W = document.documentElement.clientWidth, H = document.body.offsetHeight, dpr = Math.min(2, devicePixelRatio || 1), s = W < 520 ? 6 : W < 1000 ? 7 : 8;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const cols = Math.ceil(W / s), rows = Math.floor(H / s), ox = (W - cols * s) / 2, ground = rows - 3;
+    const dot = (c, r, rad, colour, cover) => { if (cover) { ctx.fillStyle = "rgb(" + K.bg.join(",") + ")"; ctx.fillRect(ox + c * s, r * s, s, s); } ctx.fillStyle = colour; ctx.beginPath(); ctx.arc(ox + (c + 0.5) * s, (r + 0.5) * s, rad * s, 0, 6.2832); ctx.fill(); };
+    // floor and seats: logs laid across, seen from behind
+    const pitch = 11, off = (cols % pitch) / 2, seatTop = (dx) => ground - 3.4 * Math.sqrt(Math.max(0, 1 - (dx / 4.2) ** 2));
+    for (let r = ground - 4; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const dx = ((c + 0.5 - off) % pitch + pitch) % pitch - pitch / 2;
+      if (r >= ground) { const l = 0.25 + 0.3 * (r - ground) / 3 + 0.4 * noise(c, r); dot(c, r, 0.08 + 0.4 * l, mix(K.floor[0], K.floor[1], l)); }
+      else if (Math.abs(dx) < 4.2 && r + 0.5 >= seatTop(dx)) { const l = 0.4 + 0.45 * (1 - (r + 0.5 - seatTop(dx)) / 3.4) - 0.07 * dx; dot(c, r, 0.2 + 0.26 * Math.max(0, Math.min(1, l)), mix(K.bark[0], K.bark[1], l), true); }
+    }
+    // the two posts, just outside the screen's edges, from above its top down to the ground
+    const b = document.querySelector(".screen").getBoundingClientRect(), top = Math.floor((b.top + scrollY) / s) - 1;
+    for (const c0 of [Math.floor((b.left - ox) / s) - 2, Math.ceil((b.right - ox) / s)]) for (let r = top; r < ground; r++) for (let i = 0; i < 2; i++) {
+      const l = (i ? 0.38 : 0.78) * (0.8 + 0.4 * noise(c0 + i, Math.floor(r / 3)));
+      dot(c0 + i, r, 0.16 + 0.3 * l, mix(K.bark[0], K.bark[1], l), true);
+    }
+    // someone in the audience: the snake, coiled on a log with its head up toward the screen
+    const seat = Math.max(1, Math.round(cols * 0.24 / pitch)), cx = Math.floor(off + pitch / 2 + seat * pitch), base = ground - 4;
+    const body = [[0, -3, 3], [1, -2, 2], [2, 1, 2], [3, 2, 2], [4, 2, 3], [5, 2, 3]];           // [rows up from the log, first column, last column]
+    for (const [up, from, to] of body) for (let d = from; d <= to; d++) {
+      const head = up >= 4, band = !head && (d + up * 2 + 12) % 4 === 0;
+      dot(cx + d, base - up, head ? 0.46 : 0.42, mix(band ? K.band : head && d === to && up === 5 ? K.hi : K.snake, K.hi, !band && up === 1 ? 0.35 : 0), true);
     }
   }
-  let timer = 0; addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(draw, 120); }); draw();
+  let timer = 0; addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(draw, 120); }); addEventListener("load", draw); draw();
 })();
 </script></body></html>`);
 

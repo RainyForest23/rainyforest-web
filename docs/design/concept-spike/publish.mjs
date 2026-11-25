@@ -40,7 +40,7 @@ for (const page of pages) {
 }
 for (const file of ["forest.js", "soon.js"]) cpSync(join(HERE, file), join(OUT, file));
 cpSync(join(REPO, "public", "cv", "woorim-shin-cv.pdf"), join(OUT, "woorim-shin-cv.pdf"));
-cpSync(join(HERE, "keynotes", "tesla-jr"), join(OUT, "keynotes", "tesla-jr"), { recursive: true, filter: (p) => !p.endsWith(".json") });   // the deck's slides
+cpSync(join(HERE, "keynotes", "tesla-jr"), join(OUT, "keynotes", "tesla-jr"), { recursive: true, filter: (p) => !/(captions|deck)\.json$/.test(p) });   // the deck: the prepared Keynote export if there is one, and the still images
 writeFileSync(join(OUT, ".nojekyll"), "");
 
 // Study is private. The site is static and public, so the only real lock is encryption: the Study page goes online
