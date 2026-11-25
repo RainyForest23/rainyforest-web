@@ -25,7 +25,8 @@ const pages = ["index.html", "about.html"];
     else if (name === "index.html") pages.push(rel);
   }
 })("work");
-for (const section of ["study", "principles", "keynotes", "blog"]) pages.push(join(section, "index.html"));   // the "under construction" pages, and the keynote cinema
+const DECKS = JSON.parse(readFileSync(join(HERE, "keynotes", "decks.json"), "utf8")).map((d) => d.slug);     // only approved decks are listed there, and only those go online
+for (const page of ["study", "principles", "keynotes", "blog", ...DECKS.map((slug) => join("keynotes", slug))]) pages.push(join(page, "index.html"));   // the "under construction" pages, and the keynote cinema
 
 for (const page of pages) {
   const up = "../".repeat(page.split("/").length - 1);
@@ -40,7 +41,7 @@ for (const page of pages) {
 }
 for (const file of ["forest.js", "soon.js"]) cpSync(join(HERE, file), join(OUT, file));
 cpSync(join(REPO, "public", "cv", "woorim-shin-cv.pdf"), join(OUT, "woorim-shin-cv.pdf"));
-cpSync(join(HERE, "keynotes", "tesla-jr"), join(OUT, "keynotes", "tesla-jr"), { recursive: true, filter: (p) => !/(captions|deck)\.json$/.test(p) });   // the deck: the prepared Keynote export if there is one, and the still images
+for (const slug of DECKS) cpSync(join(HERE, "keynotes", slug), join(OUT, "keynotes", slug), { recursive: true, filter: (p) => !/(captions|deck)\.json$/.test(p) && p !== join(HERE, "keynotes", slug, "index.html") });   // each deck: the prepared Keynote export if there is one, its poster and stills
 writeFileSync(join(OUT, ".nojekyll"), "");
 
 // Study is private. The site is static and public, so the only real lock is encryption: the Study page goes online

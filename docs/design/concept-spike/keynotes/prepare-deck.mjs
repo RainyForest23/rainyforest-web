@@ -8,18 +8,22 @@
 //      and to go forward or back when that page asks. That is what lets a caption follow each animation step
 //   5. makes sure captions.json has one entry per step, keeping what is already written
 //
-//   KEYNOTE_FILE=/path/to/deck.key node keynotes/prepare-deck.mjs --export     export, then prepare
-//   node keynotes/prepare-deck.mjs                                             prepare from the last export
+//   KEYNOTE_FILE=/path/to/deck.key node keynotes/prepare-deck.mjs <slug> --export     export, then prepare (also makes poster.jpg from the first slide)
+//   node keynotes/prepare-deck.mjs <slug>                                             prepare from the last export
+// A deck appears on the site only once it is listed in keynotes/decks.json.
 //
 // The export lives in .keynote-export/ at the top of the repo and the prepared deck in keynotes/<deck>/deck/.
 // Both are git-ignored: decks are tens of megabytes and belong in object storage, not in the repository.
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url)), REPO = join(HERE, "..", "..", "..", "..");
-const DECK = "tesla-jr", SRC = join(REPO, ".keynote-export", DECK), DST = join(HERE, DECK, "deck");
+const DECK = process.argv.slice(2).find((a) => !a.startsWith("--"));
+if (!DECK) throw new Error("say which deck: node keynotes/prepare-deck.mjs <slug> [--export]");
+const SRC = join(REPO, ".keynote-export", DECK), DST = join(HERE, DECK, "deck");
 
 if (process.argv.includes("--export")) {
   const file = process.env.KEYNOTE_FILE, app = process.env.KEYNOTE_APP || "Keynote";
@@ -34,6 +38,12 @@ if (process.argv.includes("--export")) {
       close doc saving no
       if not wasRunning then quit
     end tell`], { stdio: "inherit" });
+}
+if (process.env.KEYNOTE_FILE && existsSync(process.env.KEYNOTE_FILE)) {      // the poster: Quick Look's picture of the first slide
+  const tmp = mkdtempSync(join(tmpdir(), "poster-"));
+  execFileSync("qlmanage", ["-t", "-s", "1280", "-o", tmp, process.env.KEYNOTE_FILE], { stdio: "ignore" });
+  const png = readdirSync(tmp).find((n) => n.endsWith(".png"));
+  if (png) { mkdirSync(join(HERE, DECK), { recursive: true }); execFileSync("sips", ["-s", "format", "jpeg", "-s", "formatOptions", "82", "-Z", "960", join(tmp, png), "--out", join(HERE, DECK, "poster.jpg")], { stdio: "ignore" }); }
 }
 if (!existsSync(join(SRC, "index.html"))) throw new Error(`no export at ${SRC}: run with --export first`);
 

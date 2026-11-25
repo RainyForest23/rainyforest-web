@@ -4,7 +4,7 @@
 // The visual explanation of an experience lives at work/<slug>/story/index.html and is built by its own script.
 // Run: node build-pages.mjs
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -292,17 +292,19 @@ for (const section of SOON) out(`${section[0]}/index.html`, soonPage(section));
         the caption for each animation step sits under the screen, between the posts, never on it.
         If the deck has been prepared from Keynote's HTML export (keynotes/prepare-deck.mjs) it plays with its
         builds and transitions; otherwise the page falls back to one still image per slide ---- */
-const DECK = { slug: "tesla-jr", title: "Tesla Jr.", where: "Intelligent Robotics, Jun 2026", stills: 15 };
+const DECKS = JSON.parse(readFileSync(join(HERE, "keynotes", "decks.json"), "utf8"));   // only decks the author has approved for the site are listed there
+for (const DECK of DECKS) {
 const deckDir = join(HERE, "keynotes", DECK.slug), LIVE = existsSync(join(deckDir, "deck", "index.html"));
 const DECK_STEPS = LIVE ? JSON.parse(readFileSync(join(deckDir, "deck.json"), "utf8")).steps : DECK.stills;
+DECK.steps = DECK_STEPS;
 const CAPTIONS = LIVE ? JSON.parse(readFileSync(join(deckDir, "captions.json"), "utf8")) : {};   // one caption per animation step, keyed by step number; written by the author
-out("keynotes/index.html", `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Keynotes — Rainyforest</title><style>${CSS}
+out(`keynotes/${DECK.slug}/index.html`, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${DECK.title} — Keynotes — Rainyforest</title><style>${CSS}
 :root{--floor-lo:#18211d;--floor-hi:#2c3b34;--snake-2:#8a6a22;--snake-hi:#f3dd92}
 body{position:relative;min-height:100svh;display:flex;flex-direction:column}
 .rig{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .cinema-main{flex:1;padding:0 var(--gutter) 6.5rem}
 .cinema{width:100%;max-width:max(18rem,calc((100svh - 21rem) * 16 / 9));margin:0 auto}
-.bill{margin:.2rem 0 .8rem;font:var(--step--1) var(--mono);color:var(--ink-3);text-align:center}.bill b{color:var(--ink);font-weight:600}
+.bill{margin:.2rem 0 .8rem;font:var(--step--1) var(--mono);color:var(--ink-3);text-align:center}.bill b{color:var(--ink);font-weight:600}.bill a{color:var(--ink-2);text-decoration:none}.bill a:hover{color:var(--ink)}
 .screen{position:relative;aspect-ratio:16/9;background:#000;cursor:pointer}
 .screen img,.screen iframe{display:block;width:100%;height:100%;border:0;object-fit:contain}
 .under{padding:.9rem 1rem 0;min-height:8rem;display:grid;grid-template-rows:1fr auto;gap:.4rem}
@@ -313,18 +315,18 @@ body{position:relative;min-height:100svh;display:flex;flex-direction:column}
 .reel button{background:none;border:0;color:var(--ink);font:inherit;cursor:pointer;padding:.3rem .6rem}.reel button:disabled{color:var(--ink-3);cursor:default}
 .reel .hint{color:var(--ink-3)}@media (max-width:40rem){.reel .hint{display:none}}
 </style></head><body>
-<canvas class="forest" aria-hidden="true" data-rain="sides" data-column=".cinema"></canvas>
+<canvas class="forest" aria-hidden="true" data-rain="none" data-column=".cinema"></canvas>
 <canvas class="rig" aria-hidden="true"></canvas>
-${nav("../", "keynotes")}<main class="cinema-main"><div class="cinema">
-<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Keynotes</h1>
-<p class="bill">Now showing · <b>${DECK.title}</b> · ${DECK.where}</p>
+${nav("../../", "keynotes")}<main class="cinema-main"><div class="cinema">
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">${DECK.title}</h1>
+<p class="bill"><a href="../index.html">← Programme</a> · Now showing · <b>${DECK.title}</b> · ${DECK.where}, ${DECK.when}</p>
 <div class="screen">${LIVE
-  ? `<iframe src="${DECK.slug}/deck/index.html" title="${DECK.title}: slide deck with its animations. Click it or press the right arrow for the next step." allow="fullscreen"></iframe>`
-  : `<img alt="" src="${DECK.slug}/01.jpg">`}</div>
+  ? `<iframe src="deck/index.html" title="${DECK.title}: slide deck with its animations. Click it or press the right arrow for the next step." allow="fullscreen"></iframe>`
+  : `<img alt="" src="01.jpg">`}</div>
 <div class="under"><p class="caption" aria-live="polite"></p>
 <div class="reel"><button type="button" data-go="-1" aria-label="Previous step">←</button><span class="count"></span><button type="button" data-go="1" aria-label="Next step">→</button><span class="hint">click the screen, or press →</span></div></div>
 </div></main>
-<script src="../forest.js"></script>
+<script src="../../forest.js"></script>
 <script>
 (() => {   // the deck
   const LIVE = ${LIVE}, CAP = ${JSON.stringify(CAPTIONS)}, slug = "${DECK.slug}";
@@ -342,7 +344,7 @@ ${nav("../", "keynotes")}<main class="cinema-main"><div class="cinema">
     addEventListener("message", (e) => { if (e.source === frame.contentWindow && e.data && e.data.keynote === "step") { at = e.data.step; of = e.data.of; show(); } });
     go = (d) => frame.contentWindow.postMessage(d > 0 ? "keynote:next" : "keynote:prev", "*");
   } else {         // stills: one image per slide
-    const img = screen.querySelector("img"), src = (i) => slug + "/" + String(i).padStart(2, "0") + ".jpg";
+    const img = screen.querySelector("img"), src = (i) => String(i).padStart(2, "0") + ".jpg";
     go = (d) => { at = Math.min(of, Math.max(1, at + d)); img.src = src(at); img.alt = "Slide " + at + " of " + of; show(); };
     screen.addEventListener("click", (e) => { const b = screen.getBoundingClientRect(); go(e.clientX - b.left < b.width / 2 ? -1 : 1); });
   }
@@ -385,6 +387,46 @@ ${nav("../", "keynotes")}<main class="cinema-main"><div class="cinema">
   let timer = 0; addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(draw, 120); }); addEventListener("load", draw); draw();
 })();
 </script></body></html>`);
+}
+
+/* ---- the programme: one line strung between the trees for each year, newest first; on it, a poster per deck,
+        hanging by two strings. A poster opens that deck's cinema. Under prefers-reduced-motion the posters hang straight ---- */
+const yearOf = (d) => (String(d.when).match(/\d{4}/) || ["—"])[0];
+const MONTHS = "JanFebMarAprMayJunJulAugSepOctNovDec";
+const dateOf = (d) => Number(yearOf(d)) * 12 + Math.max(0, MONTHS.indexOf(String(d.when).slice(0, 3)) / 3);   // for newest-first order inside a year
+const programme = (decks, { root, poster, href, note = "" }) => {
+  const years = [...new Set(decks.map(yearOf))].sort().reverse();
+  return shell({ root, title: "Keynotes", rain: "none", body: `<style>
+.year{position:relative;margin-top:clamp(2.6rem,6vw,3.8rem)}
+.year::before{content:"";position:absolute;left:-1.5rem;right:-1.5rem;top:1.7rem;border-top:2px dotted var(--bark-hi)}      /* the line */
+.year h2{position:relative;display:inline-block;margin:0;padding:.15rem .55rem;font:600 var(--step--1) var(--mono);color:var(--bg);background:var(--bark-hi);transform:rotate(-2deg)}   /* the year, on a small board */
+.line{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13.5rem),1fr));gap:3.6rem 1.6rem;padding-top:1.9rem}
+.poster{display:block;text-decoration:none;transform-origin:50% -1.9rem;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.poster:nth-child(3n+1){transform:rotate(-.8deg)}.poster:nth-child(3n+2){transform:rotate(.5deg)}.poster:nth-child(3n){transform:rotate(-.3deg)}
+.poster:hover,.poster:focus-visible{transform:none}
+.poster .pic{position:relative;aspect-ratio:16/9;background:#000;outline:1px solid var(--ink-3)}
+.poster .pic::before,.poster .pic::after{content:"";position:absolute;bottom:100%;height:1.9rem;border-left:1px solid var(--ink-3)}   /* the two strings */
+.poster .pic::before{left:14%}.poster .pic::after{right:14%}
+.poster img{display:block;width:100%;height:100%;object-fit:cover}
+.poster h3{margin:.75rem 0 0;font-size:var(--step-0);font-weight:600;color:var(--ink)}
+.poster p{margin:.15rem 0 0;font:var(--step--1) var(--mono);color:var(--ink-3)}
+.poster .flag{color:#d2654e}
+@media (prefers-reduced-motion:reduce){.poster,.poster:nth-child(n){transform:none;transition:none}}
+</style><main><div class="wrap">
+<h1>Keynotes</h1><p class="lead">Talks and project presentations. Each one plays on the forest screen with its own animations, one step at a time.</p>${note}
+${years.map((y) => `<section class="year"><h2>${y}</h2><div class="line">${decks.filter((d) => yearOf(d) === y).sort((p, q) => dateOf(q) - dateOf(p)).map((d) => `<a class="poster" href="${href(d)}"><div class="pic"><img alt="" src="${poster(d)}" loading="lazy"></div><h3>${d.title}</h3><p>${d.when} · ${d.where}</p>${d.flag ? `<p class="flag">${d.flag}</p>` : ""}</a>`).join("")}</div></section>`).join("")}
+</div></main>` }).replace('aria-current="page">Experience', '>Experience').replace('keynotes/index.html">Keynotes', 'keynotes/index.html" aria-current="page">Keynotes');
+};
+out("keynotes/index.html", programme(DECKS, { root: "../", poster: (d) => `${d.slug}/poster.jpg`, href: (d) => `${d.slug}/index.html` }));
+
+// Local review only: KEYNOTE_REVIEW=<folder with review-decks.json, posters/ and the exports> lays out every candidate
+// deck the same way, so the author can choose before anything goes online. Nothing here is published.
+if (process.env.KEYNOTE_REVIEW) {
+  const dir = process.env.KEYNOTE_REVIEW, list = JSON.parse(readFileSync(join(dir, "review-decks.json"), "utf8"));
+  writeFileSync(join(dir, "programme.html"), programme(list, { root: relative(dir, HERE) + "/", poster: (d) => `posters/${d.slug}.jpg`, href: (d) => `${d.slug}/index.html`,
+    note: `<p class="lead" style="color:#d2654e">Local review: candidates only, not online. Red notes are what to check before choosing.</p>` }));
+  console.log("wrote", join(dir, "programme.html"));
+}
 
 /* ---- Study: the outline of the section. Private for now: publish.mjs puts it online only as an encrypted page
         (see there). This plain copy is for looking at locally. Notes themselves must not be written into this
