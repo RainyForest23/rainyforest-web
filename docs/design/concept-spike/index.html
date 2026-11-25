@@ -103,9 +103,10 @@
   .grid {
     --lab: 9rem;            /* lane names, then the trunk the branches grow from */
     --mode: wide;
-    --tcell: calc((100cqi - var(--lab)) / 51);
+    --squeeze: 0.34;       /* 2023 and 2024 hold one entry, so their months are drawn this much narrower */
+    --tcell: calc((100cqi - var(--lab)) / (24 * var(--squeeze) + 27));
     display: grid;
-    grid-template-columns: var(--lab) repeat(51, var(--tcell));
+    grid-template-columns: var(--lab) repeat(24, calc(var(--tcell) * var(--squeeze))) repeat(27, var(--tcell));
     grid-template-rows: 1.5rem repeat(4, 3.7rem) 4.4rem;   /* four lanes of bars, then the awards, which are single dates */
   }
   .yr { grid-column: var(--a) / span 12; grid-row: 1; font: var(--step--1) var(--mono); color: var(--ink-3); }
@@ -178,7 +179,7 @@
       --mode: narrow;
       --tcell: 1.1rem;
       grid-template-columns: 2.6rem repeat(5, 1.5rem) 1fr;
-      grid-template-rows: 1.5rem repeat(51, var(--tcell));
+      grid-template-rows: 1.5rem repeat(24, calc(var(--tcell) * var(--squeeze))) repeat(27, var(--tcell));
     }
     .yr { grid-column: 1; grid-row: var(--a) / span 12; }
     .guide { grid-column: 2 / 7; grid-row: var(--a); border-left: 0; border-top: 1px dotted var(--line); }
@@ -235,7 +236,7 @@
 <main id="experience">
   <div class="wrap timeline">
     <h2>Experience</h2>
-    <p class="sub">2023 to now. Yellow is the main work. <i class="vis"></i> opens a visual explanation; the others open a write-up. <a href="work/index.html">All experience →</a></p>
+    <p class="sub">2023 to now, with 2023–24 drawn shorter. Yellow is the main work. <i class="vis"></i> has a visual explanation. <a href="work/index.html">All experience →</a></p>
     <div class="grid" id="grid"></div>
     <p class="readout" id="readout" aria-live="polite">Point at a bar, or tap it.</p>
   </div>
