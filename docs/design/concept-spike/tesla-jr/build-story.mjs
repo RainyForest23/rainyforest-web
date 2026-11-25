@@ -1,8 +1,11 @@
 // Tesla Jr., told by scrolling: a car that steers like a car, sees only through cameras and has no map.
-// Six scenes: the course · see · the floor mistaken for a wall · a path a car can drive · command to wheels (the formula) · the run.
+// Seven scenes, one per stage of the stack, each named with the piece of software that does it:
+// the simulator · stereo depth to points · Nav2 costmap (voxel layer, inflation) · Smac Hybrid-A* · MPPI · the conversion node · the run.
 // Every number comes from the project's own records (github.com/RainyForest23/tesla-jr: README, docs/PROGRESS.md,
-// docs/TRIAL_AND_ERROR.md, isaac/scripts/ackermann_control.py). The sharp-cornered first path is a sketch of
-// "turned too sharply"; its exact shape was not recorded.
+// docs/TRIAL_AND_ERROR.md, isaac/scripts/ackermann_control.py, nav2/teslajr_nav2.yaml).
+// The search tree and the controller's rollouts are drawn by small re-implementations below, with the project's own
+// settings (turning radius 1.0 m, 72 headings, inflation 0.55 m; 40 steps of 0.05 s). They show how the methods work;
+// they are not Nav2's logs. The sharp-cornered first path is a sketch.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +24,47 @@ const OBST = [[5, 0.7], [9, -0.7]], GOAL = 11, STOP = 10.81;                    
 const pathY = (x) => -0.13 * Math.exp(-(((x - 5) / 1.6) ** 2)) + 0.12 * Math.exp(-(((x - 9) / 1.6) ** 2));   // 0.13 m right, then 0.12 m left
 const CMD = { v: 0.4, w: 0.2 };                                                      // the example command used in the project's run book
 const steer = Math.atan(CAR.wheelBase * CMD.w / CMD.v), spin = CMD.v / CAR.wheelRadius;
+
+/* ---- the methods, re-implemented small, with the project's settings ---- */
+const NAV = { cell: 0.25, inflation: 0.55, lethal: 0.25, minHeight: [0.15, 0.35], bins: 72, radius: 1.0, tolerance: 0.35, batch: 1000, steps: 40, dt: 0.05, vmax: 0.7 };
+const distTo = (x, y) => Math.min(...OBST.map(([ox, oy]) => Math.max(Math.abs(x - ox), Math.abs(y - oy)) - NAV.lethal));   // to the nearest obstacle's face
+const costAt = (x, y) => { const d = distTo(x, y); return d <= 0 ? 1 : d >= NAV.inflation ? 0 : Math.exp(-3.0 * d) * 0.9; };       // cost_scaling_factor 3.0
+// Hybrid-A*: states are (x, y, heading); from each, three short arcs a car can drive: left at the tightest turn, straight, right
+function hybridAStar() {
+  const step = 0.5, key = (n) => Math.round(n.x / 0.25) + "," + Math.round(n.y / 0.25) + "," + Math.round(n.th / (2 * Math.PI / NAV.bins));
+  const open = [{ x: 0.8, y: 0, th: 0, g: 0, f: 0, parent: null }], seen = new Set(), edges = [];
+  while (open.length && edges.length < 900) {
+    open.sort((a, b) => a.f - b.f); const n = open.shift();
+    if (seen.has(key(n))) continue; seen.add(key(n));
+    if (n.parent) edges.push(n);
+    if (Math.hypot(n.x - GOAL, n.y) < NAV.tolerance) { const path = []; for (let q = n; q; q = q.parent) path.unshift(q); return { edges, path }; }
+    for (const kappa of [1 / NAV.radius, 0, -1 / NAV.radius]) {
+      const th = n.th + kappa * step, x = n.x + step * Math.cos(n.th + kappa * step / 2), y = n.y + step * Math.sin(n.th + kappa * step / 2), c = costAt(x, y);
+      if (c >= 1 || Math.abs(y) > 1.7 || x < 0) continue;
+      const g = n.g + step * (1 + 6 * c) + (kappa ? 0.06 : 0);
+      open.push({ x, y, th, g, f: g + Math.hypot(GOAL - x, y) * 1.05, parent: n, kappa });
+    }
+  }
+  return { edges, path: [] };
+}
+const SEARCH = hybridAStar();
+// MPPI: many short futures, each a noisy sequence of speed and turn rate rolled forward through a car model; the cheapest wins
+function rollouts(count) {
+  let seed = 7; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 - 0.5; };
+  const from = { x: 3.2, y: pathY(3.2), th: 0 }, out = [];
+  for (let i = 0; i < count; i++) {
+    let { x, y, th } = from, w = rnd() * 1.4, cost = 0; const pts = [[x, y]];
+    for (let t = 0; t < NAV.steps; t++) {
+      w = Math.max(-NAV.vmax / NAV.radius, Math.min(NAV.vmax / NAV.radius, w + rnd() * 0.5));
+      th += w * NAV.dt; x += NAV.vmax * NAV.dt * Math.cos(th); y += NAV.vmax * NAV.dt * Math.sin(th);
+      cost += costAt(x, y) * 4 + Math.abs(y - pathY(x)) * 0.6;
+      if (t % 4 === 3) pts.push([x, y]);
+    }
+    out.push({ pts, cost });
+  }
+  return { from, list: out.sort((a, b) => b.cost - a.cost) };          // cheapest last, so it is drawn on top
+}
+const ROLL = rollouts(44);
 
 /* ---- drawing helpers ---- */
 const S = (paths, style) => k.solidSvg(paths, style);
@@ -42,55 +86,78 @@ function wheelSvg(P, cx, cy, r, w, yaw) {
 }
 const { iso, depthOf } = k;
 
-/* ---- figure A: the course, seen from above and to the side. 30 units to the metre ---- */
-const U = 30, FLOOR = { x: -1.3 * U, y: -2 * U, w: 13.6 * U, d: 4 * U, r: 6 };
+/* ---- figure A: the course, as the simulator shows it: a ground grid, world axes, the robot. 30 units to the metre ---- */
+const U = 30, FLOOR = { x: -1.3 * U, y: -2 * U, w: 13.6 * U, d: 4 * U, r: 4 };
 function course(P, id) {
-  const at = (x, y, z = 0) => iso([x * U, y * U, z * U], P), pt = (x, y, z) => at(x, y, z).map((v) => v.toFixed(1)).join(" ");
-  const circle = (q, r, cls) => `<circle class="${cls}" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r}"/>`;
-  const out = [`<g data-res="base">${S(k.slabOf(FLOOR, -5, 5, P, 6, 1.2), { tone: "mid" })}</g>`];
-  const ticks = k.topTicks(0, 11 * U, U, 5, FLOOR.y + 3, 0, [3, 6], P);                   // one tick a metre along the near edge
-  out.push(L(ticks.minor, { tone: "lo" }), L(ticks.major, { tone: "hi" }));
-  for (const m of [0, 5, 10]) out.push(k.faceTextSvg(k.topMatrix([m * U - 2, FLOOR.y + 18], 0, P, "x"), m + " m", { size: 8, tone: "hi" }));
-  // the goal
-  out.push(L(k.ring(GOAL * U, 0, 9, 0, P, 28) + k.ring(GOAL * U, 0, 4, 0, P, 16), { tone: "hi" }), k.faceTextSvg(k.topMatrix([GOAL * U - 9, 24], 0, P, "x"), "GOAL", { size: 7, tone: "hi" }));
+  const at = (x, y, z = 0) => iso([x * U, y * U, z * U], P), pt = (x, y, z = 0) => at(x, y, z).map((v) => v.toFixed(1)).join(" ");
+  const line = (cls, ...pts) => `<path class="${cls}" d="M${pts.map((q) => pt(...q)).join("L")}"/>`;
+  const circle = (q, r, cls, extra = "") => `<circle class="${cls}" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r}"${extra}/>`;
+  const label = (x, y, text, size = 7, tone = "hi") => k.faceTextSvg(k.topMatrix([x * U, y * U], 0, P, "x"), text, { size, tone });
+  const out = [`<g data-res="base">${S(k.slabOf(FLOOR, -4, 4, P, 5, 1), { tone: "mid" })}</g>`];
+  // ground grid: a line every half metre, a stronger one every metre
+  const grid = [[], []];
+  for (let i = -2; i <= 24; i++) grid[i % 2 ? 0 : 1].push(`M${pt(i * 0.5, -1.9)}L${pt(i * 0.5, 1.9)}`);
+  for (let j = -3; j <= 3; j++) grid[j % 2 ? 0 : 1].push(`M${pt(-1.2, j * 0.5)}L${pt(12.2, j * 0.5)}`);
+  out.push(`<path class="grid" d="${grid[0].join("")}"/><path class="grid strong" d="${grid[1].join("")}"/>`);
+  for (const m of [0, 5, 10]) out.push(label(m - 0.07, -1.55, m + " m", 7, "mid"));
+  // world axes, as in the simulator's corner
+  const o = [-0.9, -1.6];
+  out.push(line("axis x", [o[0], o[1]], [o[0] + 0.7, o[1]]), line("axis y", [o[0], o[1]], [o[0], o[1] + 0.7]), line("axis z", [o[0], o[1]], [o[0], o[1], 0.7]));
+  out.push(L(k.ring(GOAL * U, 0, NAV.tolerance * U, 0, P, 32), { tone: "hi", dashed: true }) + L(k.ring(GOAL * U, 0, 3, 0, P, 14), { tone: "hi" }), label(GOAL - 0.28, 0.85, "GOAL", 7));
 
-  // costmap cells are dots on a quarter-metre grid
+  // SEE. Three stereo cameras; the front one's view volume; a point wherever it sees something
+  const eye = [0.75, 0, 0.32], far = 6.4, hw = 1.75, top = 1.15;
+  const corners = [[far, -hw, 0.02], [far, hw, 0.02], [far, hw, top], [far, -hw, top]];
+  out.push(part("frustum", corners.map((c) => line("frustum", eye, c)).join("") + line("frustum", ...corners, corners[0])
+    + line("frustum side", [0.6, 0.25, 0.3], [2.4, 3.2 * 0.55, 0.02]) + line("frustum side", [0.6, -0.25, 0.3], [2.4, -3.2 * 0.55, 0.02])));
+  const cloud = [], floorPts = [];
   const rnd = (i, j) => { let h = Math.imul(i * 7 + 3, 374761393) ^ Math.imul(j * 13 + 5, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
-  const wrong = [], right = [];
-  for (let i = 4; i <= 44; i++) for (let j = -7; j <= 7; j++) {
-    const x = i * 0.25, y = j * 0.25, real = OBST.some(([ox, oy]) => Math.hypot(x - ox, y - oy) <= 0.52);
-    if (real) right.push(circle(at(x, y), 2.1, "cell"));
-    else if (x >= 1.5 && x <= 7 && Math.abs(y) <= 0.25 + (x - 1) * 0.3 && rnd(i, j) < 0.35) wrong.push(circle(at(x, y), 2.1, "cell"));   // 35 %: 2,243 of 6,400
+  for (const [ox, oy] of OBST) for (let a = 0; a <= 5; a++) for (let b = 0; b <= 5; b++) {
+    cloud.push(circle(at(ox - 0.26, oy - 0.25 + a * 0.1, 0.03 + b * 0.09), 1.15, "pt"));
+    if (b === 5) cloud.push(circle(at(ox - 0.25 + a * 0.1, oy - 0.25 + (a * 3 % 6) * 0.1, 0.5), 1.0, "pt"));
   }
-  out.push(part("cells-wrong", wrong.join("")), part("cells-right", right.join("")));
+  for (let i = 0; i < 130; i++) { const x = 1.5 + rnd(i, 91) * 4.9, y = (rnd(i, 92) - 0.5) * 2 * (0.25 + (x - 0.75) * 0.28); floorPts.push(circle(at(x, y, 0.02 + (x - 1.5) * 0.045), 0.85, "pt floor")); }
+  out.push(part("cloud-floor", floorPts.join("")), part("cloud", cloud.join("")));
 
-  // what the camera sees: a fan, and points where something is
-  const eye = [0.75, 0], fan = [[7.2, -1.75], [7.2, 1.75]];
-  out.push(part("fan", fan.map((q) => k.wireSvg(at(eye[0], eye[1], 0.02), at(q[0], q[1]), { tone: "mid", ends: "to", size: 1.2 })).join("")));
-  const cloud = [];
-  for (const [ox, oy] of OBST) for (let a = 0; a <= 4; a++) for (let b = 0; b <= 4; b++) cloud.push(circle(at(ox - 0.26, oy - 0.2 + a * 0.1, 0.06 + b * 0.1), 1.2, "pt"));
-  for (let i = 0; i < 60; i++) { const x = 1.6 + rnd(i, 91) * 5.2, y = (rnd(i, 92) - 0.5) * (0.5 + (x - 1) * 0.55); cloud.push(circle(at(x, y), 0.9, "pt floor")); }
-  out.push(part("cloud", cloud.join("")));
+  // MARK. The costmap. First everything the camera saw on the floor counts; then only what stands above the height cut;
+  // then every obstacle is given a margin (inflation): the bigger the dot, the higher the cost
+  const wrong = [], lethal = [], inflated = [];
+  for (let i = 4; i <= 46; i++) for (let j = -7; j <= 7; j++) {
+    const x = i * NAV.cell, y = j * NAV.cell, c = costAt(x, y);
+    if (c >= 1) lethal.push(circle(at(x, y), 2.5, "cell"));
+    else if (c > 0.12) inflated.push(circle(at(x, y), 0.7 + 1.9 * c, "cell soft"));
+    else if (x >= 1.5 && x <= 6.4 && Math.abs(y) <= 0.25 + (x - 0.75) * 0.28 && rnd(i, j) < 0.35) wrong.push(circle(at(x, y), 2.5, "cell"));   // 35 %: 2,243 of 6,400
+  }
+  out.push(part("cells-wrong", wrong.join("")), part("cells-inflated", inflated.join("")), part("cells-lethal", lethal.join("")));
+  const cutAt = (h) => line("cut", [1.5, -1.6, h], [6.4, -1.6, h], [6.4, 1.6, h], [1.5, 1.6, h], [1.5, -1.6, h]);
+  out.push(part("cut-low", cutAt(NAV.minHeight[0])), part("cut-high", cutAt(NAV.minHeight[1])));
 
-  // two paths: one that turns too sharply for a car, and the one it drove
+  // PLAN. The search tree in the order it grew, the path it found, and the sharp one the first planner gave
+  const arc = (n) => { const q = n.parent, m = [(q.x + n.x) / 2 + (n.kappa || 0) * 0.02 * Math.sin(q.th), (q.y + n.y) / 2 - (n.kappa || 0) * 0.02 * Math.cos(q.th)]; return `M${pt(q.x, q.y, 0.01)}Q${pt(m[0], m[1], 0.01)} ${pt(n.x, n.y, 0.01)}`; };
+  out.push(part("tree", `<path class="tree" pathLength="1" d="${SEARCH.edges.map(arc).join("")}"/>`));
   const sharp = [[0.8, 0], [4.1, 0], [4.5, -0.95], [5.7, -0.95], [6.2, 0], [8.2, 0], [8.6, 0.95], [9.5, 0.95], [10, 0], [GOAL, 0]];
-  out.push(part("path-sharp", `<path class="route sharp" d="M${sharp.map((q) => pt(q[0], q[1], 0.01)).join("L")}"/>`));
-  const smooth = Array.from({ length: 60 }, (_, i) => 0.8 + (STOP - 0.8) * i / 59).map((x) => pt(x, pathY(x), 0.01));
-  out.push(part("path", `<path class="route" pathLength="1" d="M${smooth.join("L")}"/>`));
+  out.push(part("path-sharp", line("route sharp", ...sharp.map((q) => [q[0], q[1], 0.01]))));
+  const smooth = Array.from({ length: 60 }, (_, i) => 0.8 + (STOP - 0.8) * i / 59).map((x) => [x, pathY(x), 0.012]);
+  out.push(part("path", `<path class="route" pathLength="1" d="M${smooth.map((q) => pt(...q)).join("L")}"/>`));
+
+  // FOLLOW. The controller's rollouts from where the car is, cheapest on top
+  const best = ROLL.list.length - 1;
+  out.push(part("rollouts", ROLL.list.map((r, i) => line(i === best ? "roll best" : "roll", ...r.pts.map((q) => [q[0], q[1], 0.014]))).join("")
+    + line("footprint", ...[[0.55, 0.33], [0.55, -0.33], [-0.55, -0.33], [-0.55, 0.33], [0.55, 0.33]].map(([dx, dy]) => [ROLL.from.x - 0.3 + dx, ROLL.from.y + dy, 0.014]))));
 
   // things that stand up, back to front: the two obstacles and the car
-  const box = (x, y) => S(k.slabOf({ x: x * U - 7.5, y: y * U - 7.5, w: 15, d: 15, r: 1 }, 0, 15, P, 3, 0.6), { tone: "hi", crease: "lo" });
+  const box = (x, y) => S(k.slabOf({ x: x * U - 7.5, y: y * U - 7.5, w: 15, d: 15, r: 0.6 }, 0, 15, P, 3, 0.5), { tone: "hi", crease: "lo" });
   const car = () => {
-    const b = { x: -0.18 * U, y: -0.3 * U, w: 1.0 * U, d: 0.6 * U, r: 3 };
-    return `<g data-part="car"><g data-res="car">${S(k.slabOf(b, 3, 6, P, 4, 0.8), { tone: "hi" })}${S(k.slabOf({ x: b.x + 2, y: b.y + 3, w: 13, d: b.d - 6, r: 1.5 }, 9, 5, P, 3, 0.5), { tone: "hi" })}${S(k.slabOf({ x: b.x + 23, y: b.y + 4, w: 5, d: b.d - 8, r: 1 }, 9, 3, P, 3, 0.4), { tone: "hi" })}</g></g>`;
+    const b = { x: -0.18 * U, y: -0.3 * U, w: 1.0 * U, d: 0.6 * U, r: 3 }, ax = (dx, dy, dz, cls) => `<path class="axis ${cls}" d="M${iso([8, 0, 14], P).map((v) => v.toFixed(1)).join(" ")}L${iso([8 + dx, dy, 14 + dz], P).map((v) => v.toFixed(1)).join(" ")}"/>`;
+    return `<g data-part="car"><g data-res="car">${S(k.slabOf(b, 3, 6, P, 4, 0.8), { tone: "hi" })}${S(k.slabOf({ x: b.x + 2, y: b.y + 3, w: 13, d: b.d - 6, r: 1.5 }, 9, 5, P, 3, 0.5), { tone: "hi" })}${S(k.slabOf({ x: b.x + 23, y: b.y + 4, w: 5, d: b.d - 8, r: 1 }, 9, 3, P, 3, 0.4), { tone: "hi" })}</g>${ax(11, 0, 0, "x")}${ax(0, 11, 0, "y")}${ax(0, 0, 11, "z")}</g>`;
   };
   const standing = [[5 * U, () => box(...OBST[0])], [9 * U, () => box(...OBST[1])], [0, car]].sort((a, b) => depthOf([a[0], 0, 0], P) - depthOf([b[0], 0, 0], P));
   out.push(...standing.map(([, draw]) => draw()));
-  return k.figureSvg({ width: P.width, height: P.height, className: `view ${id}`, label: "A course 11 metres long with two obstacles and a goal. A small car drives it using only a camera.", body: out })
+  return k.figureSvg({ width: P.width, height: P.height, className: `view ${id}`, label: "A simulated course 11 metres long with two obstacles and a goal. A small car drives it using only cameras.", body: out })
     .replace("<svg", `<svg data-view="${id}" data-p='${JSON.stringify(P)}'`);
 }
-const fit = (w, h, azimuth) => Object.assign(k.fitProjection(k.boxCorners(FLOOR, -5, 20), w, h, { pad: 20, azimuth }), { width: w, height: h });
-const P_WIDE = fit(820, 380, 64), P_TALL = fit(440, 520, 22);
+const fit = (w, h, azimuth) => Object.assign(k.fitProjection(k.boxCorners(FLOOR, -4, 36), w, h, { pad: 14, azimuth }), { width: w, height: h });
+const P_WIDE = fit(860, 330, 66), P_TALL = fit(440, 540, 22);
 
 /* ---- figure B: the car close up. 110 units to the metre ---- */
 const V = 110, PAD = { x: -62, y: -80, w: 206, d: 160, r: 6 };
@@ -134,23 +201,33 @@ const fills = (sel, id) => [0, 1, 2, 3].map((i) => `${sel} .iso-shade[data-shade
 /* ---- the formula ---- */
 const tex = (s) => katex.renderToString("\\displaystyle " + s, { throwOnError: true }), T = (s) => `\\text{${s}}`;
 const formula = `<div class="formula" aria-label="The conversion from a speed and a turn rate to a steering angle and a wheel speed">
-  <span class="term" data-term="in">${tex(`\\underbrace{(v,\\ \\omega)}_{${T("what the planner asks for")}}`)}</span>
+  <span class="term" data-term="in">${tex(`\\underbrace{(v,\\ \\omega)}_{${T("the command")}}`)}</span>
   <span class="term arrow" data-term="steer">${tex("\\longrightarrow")}</span>
   <span class="term hot" data-term="steer">${tex(`\\underbrace{\\delta = \\arctan\\!\\left(\\frac{L\\,\\omega}{v}\\right)}_{${T("steering angle")}}`)}</span>
   <span class="term hot" data-term="spin">${tex(`\\underbrace{\\omega_{${T("wheel")}} = \\frac{v}{r}}_{${T("wheel speed")}}`)}</span>
   <span class="check" data-term="num">${tex(`v = ${CMD.v}\\ ${T("m/s")},\\ \\omega = ${CMD.w}\\ ${T("rad/s")}`)}<span class="arrowword">gives</span>${tex(`\\delta = ${(steer * 180 / Math.PI).toFixed(0)}^\\circ,\\ \\omega_{${T("wheel")}} = ${spin.toFixed(1)}\\ ${T("rad/s")}`)}</span>
 </div>`;
 
+// each scene: heading, lines, and the tag under the picture: the piece of software and its key numbers
 const steps = [
-  ["A car, a camera, no map.", ["Course robots usually turn on the spot, carry a LiDAR and drive on a map made beforehand.", "This one steers like a car, sees only through cameras, and has no map.", "Built and tested in a simulator, as a one-person course project."]],
-  ["See.", ["A stereo camera on the nose gives depth: 307,200 points, about 27 times a second.", "Each point is a place where something is."]],
-  ["The floor looked like a wall.", ["At first the floor itself was marked as an obstacle: 2,243 of 6,400 cells.", "A goal 2 m away came back as a 14 m path, and the car did not move.", "Raising the height that counts as an obstacle from 0.15 m to 0.35 m left only the real ones."]],
-  ["Think: a path a car can drive.", ["The first planner turned too sharply for a car that cannot turn on the spot.", "A planner that knows the car's turning circle, 1.0 m, draws a gentle S instead."]],
-  ["Drive: from a command to the wheels.", ["The planner asks for a speed and a turn rate.", "A car has neither. It has a steering angle, and wheels that spin.", "The node written for this project turns one into the other."]],
-  ["And round again.", ["It swerves 0.13 m right for the first obstacle and 0.12 m left for the second, and stops at 10.81 m, inside the 0.35 m tolerance.", "See, think, drive: about 20 times a second."]],
+  ["A car, a camera, no map.", ["Course robots usually turn on the spot, carry a LiDAR and drive on a map made beforehand.", "This one steers like a car, sees only through cameras, and has no map.", "Built and tested in a simulator, as a one-person course project."],
+    "Isaac Sim 4.2 · ROS 2 Humble · T870, my own model"],
+  ["See: depth becomes points.", ["Three stereo cameras cover about 180° ahead.", "Each depth image becomes a cloud of points: 307,200 from the front camera, about 27 times a second.", "A point is a place where something is."],
+    "/stereo/left/points · PointCloud2 · 640 × 480 · ~27 Hz"],
+  ["Mark: points become a costmap.", ["Nav2 drops the points into a grid. At first the floor itself counted: 2,243 of 6,400 cells, and the car stood still.", "Only points above a height now count. Raising that cut from 0.15 m to 0.35 m left the real obstacles.", "Then each obstacle is given a margin, 0.55 m wide. The closer to it, the higher the cost."],
+    "nav2_costmap_2d · VoxelLayer + InflationLayer · min_obstacle_height 0.35 · inflation_radius 0.55"],
+  ["Plan: search only what a car can drive.", ["The first planner drew corners a car cannot take.", "Hybrid-A* searches differently. From each position it tries three short arcs: left at the tightest turn, 1.0 m, straight, and right.", "Arcs that run into cost are dropped. What is left is a path the car can follow."],
+    "nav2_smac_planner · SmacPlannerHybrid · minimum_turning_radius 1.0 · 72 headings"],
+  ["Follow: imagine many futures, take the cheapest.", ["Twenty times a second the controller rolls 1,000 possible next two seconds through a model of the car.", "Each is scored: stay near the path, stay out of cost, do not hit anything with the car's real outline.", "The cheapest one gives the next command: a speed and a turn rate."],
+    "nav2_mppi_controller · MPPIController · batch 1000 × 40 steps · Ackermann model · 20 Hz"],
+  ["Drive: from a command to the wheels.", ["A car has no turn rate. It has a steering angle, and wheels that spin.", "The node written for this project turns one into the other.", "It also reports where the car now is, which starts the loop again."],
+    "/cmd_vel → ackermann_control (my node) → joints · /odom · /tf"],
+  ["And round again.", ["It swerves 0.13 m right for the first obstacle and 0.12 m left for the second, and stops at 10.81 m, inside the 0.35 m tolerance.", "A second node runs YOLOv8 on the same camera image and finds people, so the car can stop for one and go on.", "See, mark, plan, follow, drive: about 20 times a second."],
+    "goal (11, 0) · stopped at 10.81 m · xy_goal_tolerance 0.35 · yolo_node: person 0.82, ~18 Hz"],
 ];
 const MORE = `<p class="more fade"><a href="../index.html">More detail →</a><a href="../../index.html">All work</a></p>`;
 const words = steps.map(([h, lines], i) => `<section class="step"><${i ? "h2" : "h1"}>${h}</${i ? "h2" : "h1"}><p class="body">${lines.map((l) => `<span class="ln">${l}</span>`).join("")}</p>${i === steps.length - 1 ? MORE : ""}</section>`).join("");
+const tags = steps.map(([, , tag]) => `<span class="tag">${tag}</span>`).join("");
 const crumb = `<p class="crumb"><span><a href="../../../index.html">Rainyforest</a> / <a href="../../index.html">Work</a> / Tesla Jr.</span><a href="../index.html">Write-up →</a></p>`;
 const TALL_Q = "(max-width: 44rem), (max-aspect-ratio: 4/5)";
 
@@ -162,7 +239,18 @@ body{margin:0;background:#0a0f0d;color:#e6ebe4;font:400 clamp(.94rem,.9rem + .2v
 ${fills(".iso-svg", "n")}${fills('.iso-svg [data-res="base"]', "d")}${fills('.iso-svg [data-res="car"]', "w")}
 [data-res="car"] .iso-edge{stroke:#e6ebe4}.cam .iso-top,.cam .iso-shade{fill:#e0b84c}.cam .iso-edge{stroke:#e0b84c}
 .iso-face-text{font-weight:600;letter-spacing:.05em}.iso-face-text[data-tone="hi"]{fill:#e6ebe4}
-.cell{fill:#d2654e}.pt{fill:#a9c4b8}.pt.floor{opacity:.55}
+.cell{fill:#d2654e}.cell.soft{opacity:.8}.pt{fill:#a9c4b8}.pt.floor{opacity:.6}
+.view path{vector-effect:non-scaling-stroke}
+.grid{fill:none;stroke:#1f2a25;stroke-width:1px}.grid.strong{stroke:#2e3a34}
+.axis{fill:none;stroke-width:1.8px;stroke-linecap:round}.axis.x{stroke:#d2654e}.axis.y{stroke:#72b98e}.axis.z{stroke:#6aa9cf}
+.frustum{fill:none;stroke:#93a199;stroke-width:1px;stroke-dasharray:1 3;stroke-linecap:round}.frustum.side{opacity:.55}
+.cut{fill:none;stroke:#e6ebe4;stroke-width:1.2px;stroke-dasharray:5 3}
+.tree{fill:none;stroke:#93a199;stroke-width:1px;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:var(--left,0)}
+.roll{fill:none;stroke:#7d8c84;stroke-width:.9px;opacity:.55}.roll.best{stroke:#e0b84c;stroke-width:2.2px;opacity:1}
+.footprint{fill:none;stroke:#e6ebe4;stroke-width:1.1px}
+.tags{position:absolute;left:0;right:0;bottom:0;margin:0;min-height:2.6em;font:500 clamp(.66rem,.6rem + .2vw,.78rem)/1.35 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#93a199;letter-spacing:.02em}
+.tags .tag{position:absolute;left:0;bottom:0;opacity:0;transition:opacity .5s}.tags .tag.on{opacity:1}
+.sim{position:absolute;left:0;top:0;margin:0;font:500 clamp(.62rem,.58rem + .15vw,.72rem)/1.3 ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5d6b64}
 .route{fill:none;stroke:#e0b84c;stroke-width:2.2px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:var(--left,0)}
 .route.sharp{stroke:#93a199;stroke-width:1.6px;stroke-dasharray:1.5 4}
 .story{position:relative;height:calc(var(--n) * 100svh)}
@@ -190,7 +278,7 @@ ${fills(".iso-svg", "n")}${fills('.iso-svg [data-res="base"]', "d")}${fills('.is
 footer{padding:2rem clamp(16px,4vw,48px) 3rem;color:#5d6b64;font-size:.8rem}
 @media ${TALL_Q}{
   .stage{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;gap:.4rem;padding:.7rem 16px .9rem}
-  .words{grid-column:1;grid-row:2;align-self:start;min-height:12.6rem}.fig{grid-column:1;grid-row:3}
+  .words{grid-column:1;grid-row:2;align-self:start;min-height:17.2rem}.fig{grid-column:1;grid-row:3}
   .step h1,.step h2{font-size:clamp(1.45rem,1.1rem + 1.8vw,2rem)}.step p.body{margin-top:.5rem}
   .view.wide{display:none}.view.tall{display:block}
   .formula{grid-column:1;justify-content:flex-start;min-height:9.6rem;gap:.3rem .8em;padding-top:.6rem;font-size:.8rem}.formula .arrow{display:none}.formula .check{justify-content:flex-start}
@@ -205,6 +293,7 @@ const U = ${U}, V = ${V}, CAR = ${JSON.stringify(CAR)}, STOP = ${STOP}, STEER = 
 const hullOf = ${hullOf.toString()};
 const wheelSvg = ${wheelSvg.toString()};
 const pathY = ${pathY.toString()};
+const ROLL_X = ${ROLL.from.x};
 const story = document.querySelector(".story"), stage = story.querySelector(".stage"), N = ${steps.length};
 const stepEls = [...stage.querySelectorAll(".step")], ticks = [...stage.querySelectorAll(".ticks span")], formula = stage.querySelector(".formula");
 for (const st of stepEls) [...st.querySelectorAll(".ln, .more")].forEach((e, i) => e.style.setProperty("--i", i + 1));
@@ -215,23 +304,33 @@ const still = matchMedia("(prefers-reduced-motion: reduce)"), forced = new URLSe
 if (forced !== null) document.documentElement.classList.add("nofx");
 let p = 0, raf = 0, last = 0, lastYaw = -1;
 const target = () => { if (forced !== null) return clamp(parseFloat(forced), 0, N - 1); const b = story.getBoundingClientRect(); return clamp(-b.top / Math.max(1, b.height - innerHeight)) * (N - 1); };
+const tagEls = [...stage.querySelectorAll(".tags .tag")];
 function draw() {
-  const close = ease(ramp(p, 3.55, 3.9)) * (1 - ease(ramp(p, 4.45, 4.8)));           // the close-up of the car takes over for the formula
-  const go = ease(ramp(p, 4.75, 5.0));                                              // the run: how far along the path
+  const close = ease(ramp(p, 4.55, 4.9)) * (1 - ease(ramp(p, 5.45, 5.8)));           // the close-up of the car takes over for the formula
+  const go = ease(ramp(p, 5.75, 6.0));                                              // the run: how far along the path
   for (const v of views) {
+    const show = (name, value) => { v.part(name).style.opacity = value; };
     v.svg.style.opacity = 1 - close;
-    v.part("fan").style.opacity = ease(ramp(p, 0.55, 0.9)) * (1 - ease(ramp(p, 2.5, 2.9)));
-    v.part("cloud").style.opacity = ease(ramp(p, 0.7, 1.0)) * (1 - ease(ramp(p, 2.5, 2.9)));
-    v.part("cells-wrong").style.opacity = ease(ramp(p, 1.55, 1.85)) * (1 - ease(ramp(p, 2.15, 2.5)));
-    v.part("cells-right").style.opacity = ease(ramp(p, 1.55, 1.85));
-    v.part("path-sharp").style.opacity = ease(ramp(p, 2.55, 2.8)) * (1 - ease(ramp(p, 3.0, 3.3)));
-    const drawn = ease(ramp(p, 3.0, 3.45));
+    show("frustum", ease(ramp(p, 0.55, 0.9)) * (1 - ease(ramp(p, 2.55, 2.9))));
+    show("cloud", ease(ramp(p, 0.7, 1.0)) * (1 - ease(ramp(p, 2.55, 2.9))));
+    show("cloud-floor", ease(ramp(p, 0.7, 1.0)) * (1 - 0.75 * ease(ramp(p, 1.95, 2.2))) * (1 - ease(ramp(p, 2.55, 2.9))));   // dims once it is below the cut
+    show("cells-wrong", ease(ramp(p, 1.5, 1.75)) * (1 - ease(ramp(p, 1.95, 2.2))));
+    show("cut-low", ease(ramp(p, 1.5, 1.75)) * (1 - ease(ramp(p, 1.9, 2.05))));
+    show("cut-high", ease(ramp(p, 1.9, 2.05)) * (1 - ease(ramp(p, 2.55, 2.9))));
+    show("cells-lethal", ease(ramp(p, 1.5, 1.75)));
+    show("cells-inflated", ease(ramp(p, 2.2, 2.45)));
+    show("path-sharp", ease(ramp(p, 2.55, 2.75)) * (1 - ease(ramp(p, 2.85, 3.05))));
+    const grown = ramp(p, 2.9, 3.35);
+    v.part("tree").style.opacity = (grown > 0 ? 1 : 0) * (1 - 0.8 * ease(ramp(p, 3.5, 3.9)));
+    v.part("tree").firstElementChild.style.setProperty("--left", String(1 - grown));
+    const drawn = ease(ramp(p, 3.3, 3.5));
     v.part("path").style.opacity = drawn > 0 ? 1 : 0; v.part("path").firstElementChild.style.setProperty("--left", String(1 - drawn));
-    const x = (STOP - 0.8) * go;
-    v.part("car").setAttribute("transform", translateAlong(v.P, [x * U, pathY(0.8 + x) * U * (go > 0 ? 1 : 0), 0]));
+    show("rollouts", ease(ramp(p, 3.6, 3.9)) * (1 - ease(ramp(p, 4.5, 4.8))));
+    const x = p < 5.5 ? (ROLL_X - 0.5) * ease(ramp(p, 3.5, 3.85)) : ROLL_X - 0.5 + (STOP - 0.8 - (ROLL_X - 0.5)) * go;   // it has driven a little by the time the controller is shown
+    v.part("car").setAttribute("transform", translateAlong(v.P, [x * U, pathY(0.8 + x) * U, 0]));
   }
   carView.style.opacity = close;
-  const yaw = STEER * ease(ramp(p, 3.95, 4.3));
+  const yaw = STEER * ease(ramp(p, 4.95, 5.3));
   if (Math.abs(yaw - lastYaw) > 0.002) {
     lastYaw = yaw;
     for (const g of fronts) g.innerHTML = wheelSvg(P_CAR, FRONT, g.dataset.wheel === "fl" ? HALF : -HALF, WR, WW, yaw);
@@ -239,8 +338,9 @@ function draw() {
     heading.innerHTML = yaw < 0.01 ? "" : '<path class="route" style="stroke-dasharray:none;stroke-width:1.6px" d="M' + a[0].toFixed(1) + " " + a[1].toFixed(1) + "L" + b[0].toFixed(1) + " " + b[1].toFixed(1) + '"/><circle cx="' + b[0].toFixed(1) + '" cy="' + b[1].toFixed(1) + '" r="1.6" fill="#e0b84c"/><text x="' + (t[0] + 4).toFixed(1) + '" y="' + (t[1] + 3).toFixed(1) + '" fill="#e0b84c" font-size="11" font-weight="600" font-family="ui-monospace,Menlo,monospace">δ = ' + Math.round(yaw * 180 / Math.PI) + "°</text>";
   }
   stepEls.forEach((st, i) => st.classList.toggle("on", Math.abs(p - i) < 0.42));
+  tagEls.forEach((t, i) => t.classList.toggle("on", Math.abs(p - i) < 0.5));
   ticks.forEach((tk, i) => tk.classList.toggle("on", Math.round(p) === i));
-  for (const e of formula.querySelectorAll("[data-term]")) e.classList.toggle("on", p > ({ in: 3.6, steer: 3.9, spin: 4.15, num: 4.3 })[e.dataset.term]);
+  for (const e of formula.querySelectorAll("[data-term]")) e.classList.toggle("on", p > ({ in: 3.7, steer: 4.9, spin: 5.15, num: 5.3 })[e.dataset.term]);
 }
 function frame(ms) {
   raf = 0;
@@ -256,18 +356,18 @@ addEventListener("scroll", kick, { passive: true }); addEventListener("resize", 
 kick();
 `;
 
-const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tesla Jr., in six scenes — Rainyforest</title>
+const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tesla Jr., in seven scenes — Rainyforest</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@${KATEX_VERSION}/dist/katex.min.css">
 <style>${k.ISO_CSS}${CSS}</style></head><body class="iso" data-theme="dark">${defs}
 <main class="story" style="--n:${steps.length}"><div class="stage">
 ${crumb}
 <div class="words">${words}</div>
-<div class="fig">${course(P_WIDE, "wide")}${course(P_TALL, "tall")}${closeUp().replace('class="iso-svg view car"', 'class="iso-svg view car" style="opacity:0"')}</div>
+<div class="fig"><p class="sim" aria-hidden="true">Perspective · /World/t870</p>${course(P_WIDE, "wide")}${course(P_TALL, "tall")}${closeUp().replace('class="iso-svg view car"', 'class="iso-svg view car" style="opacity:0"')}<p class="tags">${tags}</p></div>
 ${formula}
 <div class="ticks" aria-hidden="true">${steps.map(() => "<span></span>").join("")}</div>
 </div></main>
 <section class="after"><h2>The picture is the short version.</h2><p>The write-up has the rest: why a car and not a robot base, what the node does, what broke on the way, and what the camera alone could not do.</p><p class="links"><a href="../index.html">More detail →</a><a href="../../index.html">All work</a><a href="../../../index.html">Home</a></p></section>
-<footer>A preview. Everything here ran in a simulator; the sharp-cornered path is a sketch.</footer>
+<footer>A preview. Everything here ran in a simulator. The search tree and the rollouts are drawn by small re-implementations with the project's settings, to show how the methods work; they are not Nav2's own output. The sharp-cornered path is a sketch.</footer>
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script></body></html>`;
 const OUT = join(HERE, "..", "work", "tesla-jr", "story");
 mkdirSync(OUT, { recursive: true });

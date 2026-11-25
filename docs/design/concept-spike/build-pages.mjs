@@ -309,7 +309,7 @@ paged.forEach((e, i) => {
 <h1>${c ? c.title : e.title}</h1>
 <p class="lead">${c ? c.outcome : e.summary}${c && c.draft && c.draft.lead ? " " + DRAFT : ""}</p>
 <dl class="meta">${meta.map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join("")}</dl>
-<p class="see">${e.story ? `<a class="visual" href="story/index.html">Visual explanation, six scenes →</a>` : `<span class="soon">Visual explanation: ${e.tier === "deep" ? "planned" : "none"}</span>`}</p>
+<p class="see">${e.story ? `<a class="visual" href="story/index.html">Visual explanation →</a>` : `<span class="soon">Visual explanation: ${e.tier === "deep" ? "planned" : "none"}</span>`}</p>
 ${c && c.draft ? `<p class="draft-note">${DRAFT} marks text written with AI from ${c.draft.from}. The author has not reviewed it yet; the tag comes off a section once they have.</p>` : ""}
 ${c ? "" : `<div class="writeup"><div><p class="empty">This write-up is in progress. It will answer the same eight questions as the others: ${STEPS.map(([name]) => name).join(", ")}.</p>
 <p class="next"><a href="../index.html">← All work</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p></div></div>`}
