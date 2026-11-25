@@ -1,0 +1,81 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Study — Rainyforest</title><style>
+:root{--bg:#0a0f0d;--ink:#e6ebe4;--ink-2:#93a199;--ink-3:#5d6b64;--line:#1f2a25;--now:#72b98e;--snake:#e0b84c;
+  --dot:#1a231f;--leaf-lo:#1d2f26;--leaf:#37604b;--leaf-hi:#5f9478;--bark-lo:#1f1c19;--bark-hi:#74695b;--rain:#a9c4b8;
+  --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --step--1:clamp(.75rem,.72rem + .15vw,.84rem);--step-0:clamp(.97rem,.92rem + .22vw,1.08rem);--step-1:clamp(1.1rem,1rem + .5vw,1.4rem);--gutter:clamp(16px,4vw,48px)}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--step-0)/1.65 var(--font)}
+a{color:inherit;text-underline-offset:.25em;text-decoration-style:dotted}
+/* the forest stays behind the page: trees beside the text on wide screens, a band of canopy under the nav on narrow ones */
+.forest{position:fixed;top:0;left:0;width:100%;pointer-events:none;z-index:0}.nav,main,footer{position:relative;z-index:1}
+.nav{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem 1.25rem;padding:1rem var(--gutter);font-size:var(--step--1)}
+.nav .me{font-weight:600;text-decoration:none;margin-right:auto}.nav ul{display:flex;flex-wrap:wrap;gap:.25rem 1.1rem;list-style:none;margin:0;padding:0}
+.nav ul a,.nav .lang{color:var(--ink-2);text-decoration:none}.nav ul a:hover,.nav ul a[aria-current],.nav .lang:hover{color:var(--ink)}
+@media (max-width:40rem){.nav ul{order:3;flex-basis:100%;gap:.25rem .85rem}}
+@media (max-width:69rem){.nav{padding-bottom:4.5rem}}   /* room for the band of canopy when there is no space for trees beside the text */
+main{padding:clamp(1.5rem,4vw,3rem) var(--gutter) 4rem}.wrap{max-width:60rem;margin:0 auto}
+.crumb{font:var(--step--1) var(--mono);color:var(--ink-3);margin:0 0 1.2rem}.crumb a{color:var(--ink-2);text-decoration:none}.crumb a:hover{color:var(--ink)}
+h1{margin:0;font-size:clamp(1.8rem,1.2rem + 3vw,3.1rem);line-height:1.08;letter-spacing:-.03em;text-wrap:balance}
+.lead{margin:1rem 0 0;max-width:44rem;color:var(--ink-2);font-size:var(--step-1);line-height:1.5}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.9rem 1.5rem;margin:1.8rem 0 0;padding:1rem 0;border-block:1px dotted var(--line)}
+.meta dt{font:var(--step--1) var(--mono);color:var(--ink-3)}.meta dd{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink)}
+.see{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin:1.2rem 0 0;font-size:var(--step--1)}
+.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.6em;background:var(--now);clip-path:polygon(0 0,100% 50%,0 100%);margin-right:.5em}
+.soon{color:var(--ink-3)}
+.draft{font:500 .72em/1 var(--mono);letter-spacing:.02em;color:var(--snake);white-space:nowrap;vertical-align:.12em;cursor:help}
+.draft-note{margin:1rem 0 0;max-width:44rem;font-size:var(--step--1);color:var(--ink-3)}
+
+/* write-up: a rail of the eight steps beside the text on wide screens */
+.writeup{display:grid;grid-template-columns:minmax(0,1fr);gap:2rem;margin-top:clamp(2rem,5vw,3.5rem)}
+.rail{display:none}
+@media (min-width:62rem){.writeup{grid-template-columns:11rem minmax(0,44rem);gap:3rem}.rail{display:block;position:sticky;top:1.5rem;align-self:start}}
+.rail ol{list-style:none;margin:0;padding:0;display:grid;gap:.55rem;font-size:var(--step--1)}
+.rail a{display:flex;align-items:center;gap:.7rem;color:var(--ink-3);text-decoration:none}
+.rail a::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;flex:none;transition:transform .2s}
+.rail a:hover{color:var(--ink-2)}.rail a.on{color:var(--ink)}.rail a.on::before{background:var(--snake);transform:scale(1.7)}
+.step{padding:0 0 clamp(2rem,4vw,3rem);margin:0 0 clamp(2rem,4vw,3rem);border-bottom:1px dotted var(--line);scroll-margin-top:1.5rem}
+.step:last-of-type{border-bottom:0}
+.step header{display:grid;grid-template-columns:auto 1fr;column-gap:.9rem;align-items:baseline;margin-bottom:1rem}
+.step .no{font:var(--step--1) var(--mono);color:var(--snake)}
+.step h2{margin:0;font-size:var(--step-1);font-weight:600;letter-spacing:-.01em}
+.step .ask{grid-column:2;margin:.15rem 0 0;font-size:var(--step--1);color:var(--ink-3)}
+.step p{margin:0 0 .8em;max-width:42rem}.step p:last-child{margin-bottom:0}.step b{font-weight:600}
+.step ul{margin:0 0 .9em;padding-left:1.1rem;max-width:42rem}.step li{margin:.3em 0}.step li::marker{color:var(--ink-3)}
+.empty{color:var(--ink-2);max-width:42rem}
+.objects{margin:0 0 1rem;display:grid;gap:.75rem}.objects div{display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem}
+@media (min-width:44rem){.objects div{grid-template-columns:11.5rem minmax(0,1fr);gap:1rem}}
+.objects dt{font-weight:600}.objects dd{margin:0;color:var(--ink-2)}
+.map{margin:1.4rem 0;display:none}@media (min-width:44rem){.map{display:block}}
+.map svg{width:100%;height:auto;display:block}
+.map rect{fill:var(--bg);stroke:var(--ink-3);stroke-dasharray:1.5 3;stroke-linecap:round}
+.map line{stroke:var(--ink-3);stroke-dasharray:1.5 4;stroke-linecap:round}.map circle{fill:var(--ink-2)}
+.map text{font-family:var(--font);fill:var(--ink)}.map .n{font-size:14px;font-weight:600}.map .s{font-size:11px;fill:var(--ink-2)}.map .e{font:11px var(--mono);fill:var(--ink-3)}
+.map figcaption{margin-top:.6rem;font-size:var(--step--1);color:var(--ink-3);max-width:42rem}
+.tree,.tree ul{list-style:none;margin:0;padding:0}.tree{margin:1rem 0 1.1rem}
+.tree ul{margin-left:.45rem;padding-left:1.1rem;border-left:1px dotted var(--ink-3)}
+.tree li{margin:.35rem 0;position:relative}.tree ul>li::before{content:"";position:absolute;left:-1.1rem;top:.85em;width:.8rem;border-top:1px dotted var(--ink-3)}
+.tree>li{font-weight:600}.tree>li>ul>li{font-weight:400}.tree ul ul li{color:var(--ink-2);font-size:var(--step--1)}
+table{border-collapse:collapse;margin:.4rem 0 1rem;width:100%;max-width:42rem;font-size:var(--step--1)}
+th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px dotted var(--line);vertical-align:top}th{color:var(--ink-3);font-weight:500}
+.now{margin:1.2rem 0 0;padding:.9rem 1rem;border-left:2px dotted var(--now);background:#0e1512;font-size:var(--step--1);color:var(--ink-2)}
+.now strong{display:block;font:var(--step--1) var(--mono);color:var(--now);margin-bottom:.3rem;font-weight:500}
+.next{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 2rem;margin-top:2.5rem;padding-top:1.2rem;border-top:1px dotted var(--line);font-size:var(--step--1)}
+
+/* work index */
+.lane{margin-top:clamp(2rem,5vw,3rem)}.lane h2{margin:0 0 .4rem;font:var(--step--1) var(--mono);color:var(--ink-3);font-weight:500}
+.row{display:grid;grid-template-columns:minmax(0,1fr);gap:.2rem;padding:1rem 0;border-top:1px dotted var(--line)}
+@media (min-width:48rem){.row{grid-template-columns:9rem minmax(0,1fr) auto;gap:1.5rem;align-items:baseline}}
+.row .when{font:var(--step--1) var(--mono);color:var(--ink-3)}
+.row h3{margin:0;font-size:var(--step-1);font-weight:600;letter-spacing:-.01em}.row h3 a{text-decoration:none}.row h3 a:hover{text-decoration:underline dotted}
+.row .who{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink-2)}.row .sum{margin:.4rem 0 0;color:var(--ink-2);max-width:40rem}
+.row .see{margin:.5rem 0 0}@media (min-width:48rem){.row .see{margin:0;flex-direction:column;align-items:flex-end;gap:.3rem}}
+footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step--1)}
+</style></head><body>
+<canvas class="forest" aria-hidden="true" data-rain="none"></canvas>
+<nav class="nav" aria-label="Site"><a class="me" href="../index.html">Rainyforest</a><ul>
+<li><a href="../work/index.html" >Experience</a></li><li><a href="../study/index.html" aria-current="page">Study</a></li><li><a href="../principles/index.html">Principles</a></li><li><a href="../keynotes/index.html">Keynotes</a></li><li><a href="../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
+</ul><a class="lang" href="#" lang="ko">한국어</a></nav><main><div class="wrap">
+<p class="crumb">Study</p><h1>Study</h1>
+<p class="lead">Notes from studying Palantir Foundry, in three tracks. Nothing from interviews goes here.</p>
+<section class="lane"><h2>Track 1</h2><article class="row"><span class="when">Starts here.</span><div><h3>Foundry deep dive</h3><p class="sum">How Palantir Foundry works, taken apart piece by piece from the public documentation: the ontology, pipelines, lineage, actions.</p></div><p class="see soon">No notes yet</p></article></section><section class="lane"><h2>Track 2</h2><article class="row"><span class="when">Not started</span><div><h3>Hands-on</h3><p class="sum">What I did in Palantir Learning courses and in AIP exercises, written up as a log: what the task was, what I built, what I got wrong.</p></div><p class="see soon">No notes yet</p></article></section><section class="lane"><h2>Track 3</h2><article class="row"><span class="when">Not started</span><div><h3>Foundry in Python</h3><p class="sum">Building a small Foundry of my own in Python, one part at a time, to find out what each part is actually for.</p></div><p class="see soon">No notes yet</p></article></section>
+</div></main><footer>A preview. The site is still being built.</footer><script src="../forest.js"></script></body></html>

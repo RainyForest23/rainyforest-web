@@ -134,7 +134,7 @@ Vercel(참고 사이트의 호스팅)도 검토했으나 덱 파일을 둘 곳�
 
 **경험을 누르면 가는 곳 (2026-11-22):** 시각화가 있으면 `/work/[slug]/story`로, 없으면 `/work/[slug]`로 간다. 타임라인의 점과 이름, `/work` 목록의 제목이 모두 이 규칙을 따른다. 시각화의 마지막 장면과 그 아래에는 설명글로 가는 "More detail →"가 있고, 설명글 맨 위에는 시각화로 가는 링크가 있다. 그래서 어느 쪽으로 들어와도 다른 쪽에 닿는다.
 
-상단 메뉴: Work · Principles · Study · Keynotes · CV, 오른쪽에 EN/KO. Work는 `/work`로 간다. About은 메뉴에 넣지 않고 첫 화면의 "Why Rainyforest?" 링크로 간다. *(Claude 결정)*
+상단 메뉴: Experience · Study · Principles · Keynotes · Blog · CV, 오른쪽에 EN/KO. 메뉴의 Experience는 `/work`로 간다(2026-11-26: 타임라인의 갈래 이름 Work와 겹쳐 보여서 메뉴 이름을 Experience로 바꿨다. 주소는 아직 `/work`이고, 주소도 맞출지는 정하지 않았다). About은 메뉴에 넣지 않고 첫 화면의 "Why Rainyforest?" 링크로 간다. *(Claude 결정)*
 
 ## 6. 온톨로지 (콘텐츠 모델)
 
@@ -151,7 +151,7 @@ Source ◀─cites── StudyLog ──develops──▶ Principle ◀──app
 
 | 객체 | 파일 | 주요 필드 |
 |---|---|---|
-| Experience | `content/experiences/[slug].mdx` | `title`, `org`, `lane`(work/research/club/study/award), `period{start,end?,approximate?}` 또는 `date`, `tier`(deep/standard/brief), `hero`(anatomy/pipeline/none), `story`(시각화 페이지가 있는가), `summary`, `role`, `stack[]`, `outcome?`, `resumeRef?` |
+| Experience | `content/experiences/[slug].mdx` | `title`, `org`, `lane`(work/research/project/club/award), `period{start,end?,approximate?}` 또는 `date`, `tier`(deep/standard/brief), `hero`(anatomy/pipeline/none), `story`(시각화 페이지가 있는가), `summary`, `role`, `stack[]`, `outcome?`, `resumeRef?` |
 | Step | Experience MDX 안의 `<Step>` 컴포넌트 | `n`(1–8), `applies[]`(principle slug), `draft?`(AI가 쓴 초안이고 아직 검토하지 않음) |
 | Principle | `content/principles/[slug].mdx` | `title`, `summary`, `status`(draft/stable) |
 | StudyLog | `content/study/[YYYY-MM-DD]-[slug].mdx` | `title`, `date`, `kind`(log/python/notes/build), `develops[]`(principle slug), `cites[]`(source id), `lang` |
@@ -176,8 +176,8 @@ Source ◀─cites── StudyLog ──develops──▶ Principle ◀──app
 
 ### 6.3 타임라인
 
-- 데이터: `lane`과 기간이 있는 모든 Experience. 갈래는 Work / Research / Club / Study / Awards.
-- 그리는 방식: **점 하나가 한 달이다.** 핵심 경험(`tier: deep`)은 뱀과 같은 노란 큰 점, standard는 흰 점, brief는 작은 회색 점, 수상은 고리 하나. 진행 중인 경험은 끝이 옅어지며 이어지고, `approximate: true`인 경험은 양 끝이 흐리다 (§13).
+- 데이터: `lane`과 기간이 있는 모든 Experience. 갈래는 Work(일한 곳) / Research / Project / Club / Award (2026-11-26 변경: 수업 프로젝트인 Tesla Jr.가 들어갈 Project를 넣고 Study 갈래는 뺐다. Study는 자기 섹션이 따로 있다).
+- 그리는 방식 (2026-11-26 변경, 점을 이어 찍는 방식은 항목 구분이 안 돼 버렸다): 항목 하나가 시작 달부터 끝 달까지의 **막대**다. 굵은 노랑 = 핵심 경험(`tier: deep`), 흰색 = 페이지가 있는 경험, 가는 회색 = 한 줄짜리. 막대 위에 이름과 **기간**을 적는다. 수상은 하루짜리라 마름모 하나이고 옆에 날짜와 이름을 적는다. 진행 중이면 막대가 지금 선을 넘어 옅어진다. 같은 갈래에서 한 달이 겹치면 앞 막대를 뒤 막대 시작에서 끊는다. 시각화가 있는 경험은 이름 옆에 **초록 삼각형**(노랑은 핵심 경험의 색이라 쓰지 않는다).
 - 넓은 화면 (타임라인 폭 640px 이상): 가로축이 연도다. 배경 숲의 나무 한 그루가 타임라인 왼쪽에 줄기로 서고, 갈래마다 그 줄기에서 수평 가지 하나가 오른쪽으로 뻗는다. 갈래 이름은 줄기 왼쪽에 둔다.
 - 넓은 화면의 움직임: 타임라인이 화면에 올라오는 동안 가지가 위 갈래부터 차례로 자라고, 가지 끝이 닿으면 그 자리의 경험이 펼쳐진다. 위로 스크롤하면 되돌아간다.
 - 좁은 화면: 세로 방향. 연도가 위에서 아래로 흐르고 갈래가 세로 줄로 선다. 줄기와 가지는 없다. 가로 스크롤 없음.
@@ -294,6 +294,23 @@ History
 - PR은 squash가 아닌 merge commit으로 합친다 (지금 레포의 방식). squash는 원칙 수정 커밋을 하나로 뭉쳐 버전 수와 `Because:` 줄을 잃는다. *(Claude 결정)*
 - 원칙 커밋 메시지는 독자가 읽는 문장이 되므로, 원칙 파일만 바꾸는 커밋에서는 바뀐 내용을 사람 말로 쓴다. 이 규칙은 `CONTRIBUTING.md`에 적는다.
 
+### 8.2.1 Study의 세 갈래와 비공개 (2026-11-26 본인 요청)
+
+Study는 Palantir Foundry 공부로 시작한다.
+
+1. **Foundry deep dive**: 공개 문서로 Foundry를 부분별로 뜯어본다. 여기서 시작한다.
+2. **Hands-on**: Palantir Learning 강의와 AIP 실습에서 한 것의 기록.
+3. **Foundry in Python**: Python으로 작은 Foundry를 직접 만들어 보는 과정.
+
+**당분간 비공개다.** 비밀번호를 넣어야 열린다.
+
+- 사이트가 정적이고 공개라서, 화면만 가리는 비밀번호는 잠금이 아니다. 지금 쓸 수 있는 진짜 잠금은 **암호화**다: Study 페이지를 암호문으로 올리고, 읽는 사람의 브라우저에서 비밀번호로 푼다(PBKDF2 60만 회 + AES-GCM). 비밀번호는 12자 이상이어야 한다. 암호문이 공개되므로 짧으면 맞춰 볼 수 있다.
+- 비밀번호는 사이트 주인만 안다. 배포 스크립트가 환경 변수나 macOS 키체인에서 읽고, 어디에도 적지 않는다. 비밀번호가 없으면 Study는 올라가지 않는다.
+- **이 레포는 공개다.** Study 글을 이 레포에 평문으로 넣으면 잠금이 의미가 없다. 글을 어디에 둘지(비공개 레포, 또는 이 레포를 비공개로)는 아직 정하지 않았다. 지금 레포에 있는 것은 세 갈래의 제목과 한 줄 설명뿐이다.
+- Cloudflare로 옮긴 뒤에는 서버에서 막는 방식(Cloudflare Access)으로 바꿀 수 있다.
+- Study가 비공개인 동안은 원칙 페이지의 출처 링크(§8.1)가 Study 글을 가리킬 수 없다. 공개로 바꿀 때 잇는다.
+- §8.4(면접 내용 금지)는 비공개여도 그대로다.
+
 ### 8.3 Study 기록 종류
 
 | kind | 내용 |
@@ -319,10 +336,14 @@ Pyodide: `PyCell`이 화면에 들어올 때만 jsDelivr에서 불러온다. 버
 
 ### 9.1 화면
 
-- 덱 표지를 벽에 걸린 액자처럼 배치. 마우스를 올리면 처음 몇 장이 8초 무음 영상으로 움직인다 (2026-11-21 시험: 표지 12KB, 영상 49KB).
-- 클릭하면 화면이 어두워지고 Keynote HTML 내보내기 결과가 `iframe`으로 재생된다. 클릭/→로 넘김, Esc로 닫음.
+숲속 야외 영화관 (2026-11-26 본인 요청. 액자 벽 방식에서 바꿈).
+
+- 양옆에 숲, 가운데에 두 기둥 위에 선 스크린, 아래에 뒤에서 본 통나무 의자 한 줄. 스크린에서 덱이 재생된다. 클릭이나 →로 다음 단계, ←로 이전.
+- **자막:** 애니메이션 단위(빌드 한 단계)마다 자막 하나. 스크린 아래, 두 기둥 사이에 띄운다. 스크린 영역은 절대 가리지 않는다. 자막은 사이트 주인이 쓴다 (`captions.json`, 단계 번호 → 문장). 비어 있는 단계는 자리만 남긴다.
+- 스크린 크기는 창 높이에 맞춰 줄어서 스크린, 자막, 의자가 한 화면에 들어온다.
 - 덱마다 영어 요약 몇 줄. HTML 내보내기는 글자를 이미지로 그려서 검색·복사가 안 되기 때문이다.
 - `presentedAt`가 있으면 경험 페이지와 타임라인에서도 링크된다.
+- 시안(`docs/design/concept-spike/keynotes/`)은 Tesla Jr. 덱의 PDF를 장마다 그림으로 바꿔 쓴다(데모 영상 화면 두 장은 뺌). 그래서 지금은 한 장이 한 단계다. Keynote HTML 내보내기로 바꾸면 빌드 단계마다 자막이 바뀐다.
 
 ### 9.2 변환 파이프라인 (macOS 로컬 스크립트)
 

@@ -34,6 +34,7 @@
     --rain: #a9c4b8;
     /* the one accent: the snake, and the experiences that matter most */
     --snake: #e0b84c;
+    --visual: #72b98e;      /* the mark for "has a visual explanation": a green triangle, so it is never confused with the yellow of the main work */
     --snake-2: #8a6a22;
     --snake-hi: #f3dd92;
     --tongue: #d2654e;
@@ -95,7 +96,7 @@
   .wrap { width: 100%; max-width: 62rem; margin: 0 auto; }
   h2 { margin: 0; font-size: var(--step-1); font-weight: 600; }
   .sub { margin: 0.2rem 0 1.75rem; color: var(--ink-2); font-size: var(--step--1); }
-  .sub .vis { margin: 0 0.15em 0 0.3em; }
+  .sub .vis { margin: 0 0.25em 0 0.3em; }
   .sub a { color: var(--ink); text-underline-offset: 0.25em; text-decoration-style: dotted; }
 
   .timeline { container-type: inline-size; }
@@ -105,53 +106,57 @@
     --tcell: calc((100cqi - var(--lab)) / 51);
     display: grid;
     grid-template-columns: var(--lab) repeat(51, var(--tcell));
-    grid-template-rows: 1.5rem repeat(5, 2.9rem);
+    grid-template-rows: 1.5rem repeat(4, 3.7rem) 4.4rem;   /* four lanes of bars, then the awards, which are single dates */
   }
   .yr { grid-column: var(--a) / span 12; grid-row: 1; font: var(--step--1) var(--mono); color: var(--ink-3); }
   .guide { grid-column: var(--a); grid-row: 2 / -1; border-left: 1px dotted var(--line); }
   .lane { grid-column: 1; grid-row: var(--lane); align-self: end; padding: 0 5.1rem 0.3rem 0; text-align: right; font-size: var(--step--1); color: var(--ink-2); }
   .trunk-slot { grid-column: 1; grid-row: 1 / -1; justify-self: end; width: 4.5rem; }   /* the canvas draws a tree exactly here */
-  .branch {
-    --r: calc(var(--tcell) * 0.13);
-    grid-column: 1 / var(--b); grid-row: var(--lane); align-self: end; height: var(--tcell); margin: 0 0 0.4rem calc(var(--lab) - 2.25rem);
-    color: var(--bark-hi);
-    background: radial-gradient(circle at center, currentColor calc(var(--r) - 0.5px), transparent var(--r)) right center / var(--tcell) var(--tcell) repeat-x;
-    clip-path: inset(-50% calc((1 - var(--g, 1)) * 100%) -50% 0);
+  .branch {                                   /* a thin dotted line from the trunk to the end of the lane's last entry */
+    grid-column: 1 / var(--b); grid-row: var(--lane); align-self: end; height: 0; border-top: 1px dotted var(--bark-hi);
+    margin: 0 0 0.8rem calc(var(--lab) - 2.25rem);
+    clip-path: inset(-2px calc((1 - var(--g, 1)) * 100%) -2px 0);
   }
+  .branch.lane-award { align-self: center; margin-bottom: 0; }
+  .lane.lane-award { align-self: center; padding-bottom: 0; }
   .lane .short { display: none; }
   .now { grid-column: var(--a); grid-row: 1 / -1; border-left: 1px dotted var(--ink-3); font: 0.68rem var(--mono); color: var(--ink-2); padding-left: 0.3rem; white-space: nowrap; }
 
+  /* an entry is a solid bar from its first month to its last. Thickness and colour say how much there is behind it:
+     thick yellow = main work, white = has a page, thin grey = one line. An award is a single date: a diamond */
   .bar {
-    --r: calc(var(--tcell) * 0.26);
     grid-column: var(--a) / var(--b); grid-row: var(--lane);
-    position: relative; align-self: end; height: var(--tcell); margin-bottom: 0.4rem;
-    padding: 0; border: 0; cursor: pointer; color: var(--ink);
-    background: radial-gradient(circle at center, currentColor calc(var(--r) - 0.5px), transparent var(--r)) left center / var(--tcell) var(--tcell) repeat-x;
+    position: relative; align-self: end; height: 0.5rem; margin: 0 2px 0.55rem;
+    padding: 0; border: 0; cursor: pointer; color: var(--ink); background: currentColor;
   }
-  .bar.deep { color: var(--snake); --r: calc(var(--tcell) * 0.36); }
-  .bar.brief { color: var(--ink-3); --r: calc(var(--tcell) * 0.2); }
-  .bar.award {
-    color: var(--ink-2); --r: calc(var(--tcell) * 0.4);
-    background-image: radial-gradient(circle at center, transparent calc(var(--r) - 2px), currentColor calc(var(--r) - 1.5px), currentColor calc(var(--r) - 0.5px), transparent var(--r));
-  }
+  a.bar { display: block; text-decoration: none; }
+  .bar::before { content: ""; position: absolute; left: 0; bottom: 100%; width: 1px; height: 0.4rem; background: currentColor; }   /* ties the bar to its label */
+  .bar.deep { color: var(--snake); height: 0.72rem; margin-bottom: 0.44rem; }
+  .bar.brief { color: var(--ink-3); height: 0.28rem; margin-bottom: 0.66rem; }
+  .bar.award { align-self: center; justify-self: center; width: 0.62rem; height: 0.62rem; margin: 0; background: var(--bg); border: 1.5px solid var(--ink); transform: rotate(45deg); }
+  .bar.award::before { display: none; }
   .bar:focus-visible { outline: 1px dotted var(--ink); outline-offset: 4px; }
   .bar.approx { -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); mask-image: linear-gradient(to right, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); }
-  .bar.approx-end { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); mask-image: linear-gradient(to right, #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); }
-  .bar.ongoing::after {
+  .bar.ongoing::after {                       /* still going: the bar runs on past "now" and fades */
     content: ""; position: absolute; left: 100%; top: 0; width: calc(var(--tcell) * 4); height: 100%;
-    background: inherit;
+    background: currentColor;
     -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.6), transparent); mask-image: linear-gradient(to right, rgb(0 0 0 / 0.6), transparent);
   }
 
-  .lbl { grid-column: var(--a) / -1; grid-row: var(--lane); align-self: start; padding-top: 0.25rem; font-size: var(--step--1); line-height: 1.3; white-space: nowrap; pointer-events: none; }
-  .lbl.end { grid-column: 2 / var(--b); justify-self: end; text-align: right; }
+  /* the label sits above its bar: name, then the dates */
+  .lbl { grid-column: var(--a) / -1; grid-row: var(--lane); align-self: start; padding: 0.3rem 0 0 2px; font-size: var(--step--1); line-height: 1.3; white-space: nowrap; pointer-events: none; }
+  .lbl.end { grid-column: 2 / var(--b); justify-self: end; text-align: right; padding: 0.3rem 2px 0 0; }
   .lbl b { font-weight: 600; }
+  .lbl.brief b { font-weight: 500; color: var(--ink-2); }
   .lbl a { pointer-events: auto; color: inherit; text-decoration: none; }
   .lbl a:hover, .lbl a:focus-visible { text-decoration: underline dotted; text-underline-offset: 0.25em; }
-  .vis { display: inline-block; width: 0.45em; height: 0.45em; border-radius: 50%; background: var(--snake); margin-left: 0.5em; vertical-align: 0.12em; }
-  a.bar { display: block; text-decoration: none; }
-  .lbl span { color: var(--ink-2); margin-left: 0.5em; }
-  .lbl .when { display: none; }
+  .lbl .role { color: var(--ink-2); margin-left: 0.5em; }
+  .lbl .when { display: block; margin-top: 0.1rem; font: 0.7rem var(--mono); color: var(--ink-3); }
+  .lbl .kick { display: none; }
+  .lbl.award { padding-top: 0.55rem; }                                   /* awards: date and name on one line, the first above its diamond, the next below */
+  .lbl.award.below { align-self: end; padding: 0 2px 0.55rem 0; }
+  .lbl.award .when { display: inline; margin: 0 0.6em 0 0; }
+  .vis { display: inline-block; width: 0.5em; height: 0.6em; margin-left: 0.45em; background: var(--visual); clip-path: polygon(0 0, 100% 50%, 0 100%); }
 
   .readout { margin: 1.25rem 0 0; min-height: 1.6em; font-size: var(--step--1); color: var(--ink-2); }
   .readout b { color: var(--ink); font-weight: 600; }
@@ -171,28 +176,28 @@
   @container (max-width: 40rem) {
     .grid {
       --mode: narrow;
-      --tcell: 0.75rem;
-      grid-template-columns: 2.75rem repeat(5, 2rem) 1fr;
+      --tcell: 1.1rem;
+      grid-template-columns: 2.6rem repeat(5, 1.5rem) 1fr;
       grid-template-rows: 1.5rem repeat(51, var(--tcell));
     }
     .yr { grid-column: 1; grid-row: var(--a) / span 12; }
     .guide { grid-column: 2 / 7; grid-row: var(--a); border-left: 0; border-top: 1px dotted var(--line); }
-    .lane { grid-column: var(--lane); grid-row: 1; align-self: start; padding: 0; text-align: center; font-size: 0.68rem; }
+    .lane, .lane.lane-award { grid-column: var(--lane); grid-row: 1; align-self: start; padding: 0; text-align: center; font-size: 0.62rem; }
     .branch, .trunk-slot { display: none; }
     .lane .full { display: none; }
     .lane .short { display: inline; }
-    .now { grid-column: 1 / -1; grid-row: var(--a); border-left: 0; border-top: 1px dotted var(--ink-3); padding: 0; text-align: right; line-height: 1.6; }
-    .bar {
-      grid-column: var(--lane); grid-row: var(--a) / var(--b);
-      align-self: stretch; justify-self: center; width: var(--tcell); height: auto; margin: 0;
-      background-position: center top; background-repeat: repeat-y;
-    }
+    .now { grid-column: 1 / -1; grid-row: var(--a); border-left: 0; border-top: 1px dotted var(--ink-3); padding: 0; text-align: left; line-height: 1.6; }
+    .bar, .bar.deep, .bar.brief { grid-column: var(--lane); grid-row: var(--a) / var(--b); align-self: stretch; justify-self: center; width: 0.5rem; height: auto; margin: 1.5px 0; }
+    .bar.deep { width: 0.72rem; } .bar.brief { width: 0.28rem; }
+    .bar.award { grid-column: var(--lane); grid-row: var(--a) / var(--b); align-self: center; justify-self: center; width: 0.62rem; height: 0.62rem; margin: 0; }
+    .bar::before { display: none; }
     .bar.approx { -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); }
-    .bar.approx-end { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); mask-image: linear-gradient(to bottom, #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); }
     .bar.ongoing::after { left: 0; top: 100%; width: 100%; height: calc(var(--tcell) * 4); -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.6), transparent); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.6), transparent); }
-    .lbl, .lbl.end { grid-column: 7; grid-row: var(--la) / span 4; justify-self: start; text-align: left; padding: 0 0 0 0.75rem; white-space: normal; }
-    .lbl span { display: none; }
-    .lbl .when { display: block; margin: 0; color: var(--ink-2); }
+    /* labels go in a column on the right, in date order; each says which lane it belongs to */
+    .lbl, .lbl.end, .lbl.award, .lbl.award.below { grid-column: 7; grid-row: var(--la) / span 2; align-self: start; justify-self: start; text-align: left; padding: 0 0 0 0.75rem; white-space: normal; display: flex; flex-direction: column; }
+    .lbl b { order: 1; } .lbl .role { display: none; }
+    .lbl .when, .lbl.award .when { order: 2; display: block; margin: 0.1rem 0 0; white-space: nowrap; font-size: 0.66rem; }
+    .lbl .kick { display: inline; text-transform: uppercase; letter-spacing: 0.08em; }
   }
 
   footer { padding: 1rem var(--gutter) 1.5rem; color: var(--ink-3); font-size: var(--step--1); }
@@ -208,7 +213,7 @@
   <nav class="nav" aria-label="Site">
     <a class="me" href="#">Rainyforest</a>
     <ul>
-      <li><a href="work/index.html">Work</a></li>
+      <li><a href="work/index.html">Experience</a></li>
       <li><a href="study/index.html">Study</a></li>
       <li><a href="principles/index.html">Principles</a></li>
       <li><a href="keynotes/index.html">Keynotes</a></li>
@@ -230,9 +235,9 @@
 <main id="experience">
   <div class="wrap timeline">
     <h2>Experience</h2>
-    <p class="sub">One dot is one month. 2023 to now. <i class="vis"></i> opens a visual explanation; the others open a write-up. <a href="work/index.html">All work →</a></p>
+    <p class="sub">2023 to now. Yellow is the main work. <i class="vis"></i> opens a visual explanation; the others open a write-up. <a href="work/index.html">All experience →</a></p>
     <div class="grid" id="grid"></div>
-    <p class="readout" id="readout" aria-live="polite">Point at a row of dots, or tap it.</p>
+    <p class="readout" id="readout" aria-live="polite">Point at a bar, or tap it.</p>
   </div>
 </main>
 
@@ -244,17 +249,19 @@
   const N = 51, Y0 = 2023;                       // 2023-01 … 2027-03
   const idx = ym => { const [y, m] = ym.split('-').map(Number); return (y - Y0) * 12 + m; };  // 1-based
   const NOW = idx('2026-11');
-  const lanes = [['work', 'Work', 'Work'], ['research', 'Research', 'Res.'], ['club', 'Club', 'Club'], ['study', 'Study', 'Study'], ['award', 'Award', 'Awd']];
+  // lanes: paid work, research, projects, clubs, awards. Study has its own section and is not on the timeline
+  const lanes = [['work', 'Work', 'Work'], ['research', 'Research', 'Res.'], ['project', 'Project', 'Proj.'], ['club', 'Club', 'Club'], ['award', 'Award', 'Awd']];
   const items = [
     { lane: 'work', title: 'SDIJ Forest Team', role: 'Project Lead', when: 'Feb 2023 – Jun 2025', href: 'work/sdij-forest/index.html', s: '2023-02', e: '2025-06', tier: 'deep', cls: '' },
     { lane: 'work', title: 'Hiconsy', role: 'AI R&D Intern', when: 'Jun 2025 – Jul 2026', href: 'work/hiconsy-lecture-asr/index.html', s: '2025-06', e: '2026-07', tier: 'deep', cls: '' },
-    { lane: 'research', title: 'Energy cost model for AI workloads', role: '', when: 'Sep 2025 – Jun 2026', href: 'work/energy-cost-model/story/index.html', visual: true, s: '2025-09', e: '2026-06', tier: 'standard', cls: '' },
-    { lane: 'club', title: 'GDGoC Ewha', role: 'General Member, AI', when: '2025', s: '2025-03', e: '2025-12', tier: 'brief', cls: 'approx' },
-    { lane: 'study', title: 'Tesla Jr.', role: 'Course project', when: 'May – Jun 2026', href: 'work/tesla-jr/story/index.html', visual: true, s: '2026-05', e: '2026-06', tier: 'standard', cls: '' },
-    { lane: 'study', title: 'Study log', role: '', when: 'Nov 2026 – now', s: '2026-11', e: '2026-11', tier: 'standard', cls: 'ongoing' },
-    { lane: 'award', title: 'Ewha Startup Exploration Competition, Encouragement Award', role: '', when: 'Nov 2025', s: '2025-11', e: '2025-11', tier: 'brief', cls: 'award' },
-    { lane: 'award', title: 'Boeing Capstone Innovation Award, Grand Prize', role: '', when: 'Jun 2026', s: '2026-06', e: '2026-06', tier: 'brief', cls: 'award' },
-  ];
+    { lane: 'research', title: 'Energy cost model', long: 'Energy cost model for AI workloads', role: '', when: 'Sep 2025 – Jun 2026', href: 'work/energy-cost-model/story/index.html', visual: true, s: '2025-09', e: '2026-06', tier: 'standard', cls: '' },
+    { lane: 'project', title: 'Tesla Jr.', role: 'Course project', when: 'May – Jun 2026', href: 'work/tesla-jr/story/index.html', visual: true, s: '2026-05', e: '2026-06', tier: 'standard', cls: '' },
+    { lane: 'club', title: 'GDGoC Ewha', role: 'General Member, AI', when: 'Sep 2025 – now', s: '2025-09', e: '2026-11', tier: 'brief', cls: 'ongoing' },
+    { lane: 'award', title: 'Startup Exploration Competition · Encouragement Award', long: 'Ewha Startup Exploration Competition, Encouragement Award (4th of 20)', role: '', when: 'Nov 2025', s: '2025-11', e: '2025-11', tier: 'brief', cls: 'award' },
+    { lane: 'award', title: 'Boeing Capstone Innovation Award · Grand Prize', long: 'Boeing Capstone Innovation Award, Grand Prize (1st of 41)', role: '', when: 'Jun 2026', s: '2026-06', e: '2026-06', tier: 'brief', cls: 'award below' },
+  ].sort((p, q) => idx(p.s) - idx(q.s));
+  for (const it of items) { it.a = idx(it.s) + 1; it.b = idx(it.e) + 2; }
+  for (const it of items) for (const next of items) if (next !== it && next.lane === it.lane && next.a > it.a && next.a < it.b) it.b = next.a;
   const grid = document.getElementById('grid'), readout = document.getElementById('readout');
   const el = (tag, cls, vars = {}, html = '') => {
     const n = document.createElement(tag); n.className = cls; n.innerHTML = html;
@@ -266,28 +273,30 @@
     el('div', 'guide', { '--a': a });
     if (y < 2027) el('div', 'yr', { '--a': a }, String(y));
   }
-  lanes.forEach(([, full, short], i) => el('div', 'lane', { '--lane': i + 2 }, `<span class="full">${full}</span><span class="short">${short}</span>`));
+  lanes.forEach(([key, full, short], i) => el('div', `lane lane-${key}`, { '--lane': i + 2 }, `<span class="full">${full}</span><span class="short">${short}</span>`));
   el('div', 'now', { '--a': NOW + 1 }, 'now');
   el('div', 'trunk-slot');
   const branches = lanes.map(([key], i) => {
     const mine = items.filter(it => it.lane === key), end = Math.max(...mine.map(it => idx(it.e) + 2)) + (mine.some(it => it.cls === 'ongoing') ? 4 : 0);
-    return el('div', 'branch', { '--b': Math.min(end, N + 2), '--lane': i + 2 });
+    return el('div', `branch lane-${key}`, { '--b': Math.min(end, N + 2), '--lane': i + 2 });
   });
   const parts = [];
 
-  let lastLabelRow = 0;
+  let lastLabelRow = 0, lastLong = false;
   for (const it of items) {
-    const a = idx(it.s) + 1, b = idx(it.e) + 2, lane = lanes.findIndex(l => l[0] === it.lane) + 2;
+    const a = it.a, b = it.b, lane = lanes.findIndex(l => l[0] === it.lane) + 2;
     const bar = el(it.href ? 'a' : 'button', `bar ${it.tier} ${it.cls}`, { '--a': a, '--b': b, '--lane': lane }), part = { lane: lane - 2, els: [bar], fx: 0 };
     parts.push(part);
     if (it.href) bar.href = it.href; else bar.type = 'button';
-    bar.setAttribute('aria-label', `${it.title}${it.role ? ', ' + it.role : ''}, ${it.when}`);
-    const show = () => { readout.innerHTML = `<b>${it.title}</b>${it.role ? ' — ' + it.role : ''} · ${it.when}${it.href ? ` · <a href="${it.href}">${it.visual ? 'Visual explanation' : 'Write-up'} →</a>` : ''}`; };
+    bar.setAttribute('aria-label', `${it.long || it.title}${it.role ? ', ' + it.role : ''}, ${it.when}`);
+    const show = () => { readout.innerHTML = `<b>${it.long || it.title}</b>${it.role ? ' — ' + it.role : ''} · ${it.when}${it.href ? ` · <a href="${it.href}">${it.visual ? 'Visual explanation' : 'Write-up'} →</a>` : ''}`; };
     bar.addEventListener('pointerenter', show); bar.addEventListener('focus', show); bar.addEventListener('click', show);
-    if (it.tier !== 'brief') {
-      const la = Math.max(a, lastLabelRow + 4); lastLabelRow = la;       // keep stacked labels apart on narrow screens
-      part.els.push(el('div', `lbl${a > N - 16 ? ' end' : ''}`, { '--a': a, '--b': b, '--lane': lane, '--la': la },
-        `<b>${it.href ? `<a href="${it.href}">${it.title}</a>` : it.title}</b>${it.visual ? '<i class="vis" title="Has a visual explanation"></i>' : ''}${it.role ? `<span>${it.role}</span>` : ''}<p class="when">${it.when}</p>`));
+    {
+      const la = Math.max(a, lastLabelRow + (lastLong ? 3 : 2)); lastLabelRow = la; lastLong = it.title.length > 24;   // narrow screens: keep stacked labels apart
+      const award = it.cls.includes('award'), name = `<b>${it.href ? `<a href="${it.href}">${it.title}</a>` : it.title}${it.visual ? '<i class="vis" title="Has a visual explanation"></i>' : ''}</b>`;
+      const when = `<span class="when"><span class="kick">${lanes[lane - 2][2]} · </span>${it.when}</span>`;
+      part.els.push(el('div', `lbl ${it.tier}${award ? ' ' + it.cls : ''}${award || a > N - 16 ? ' end' : ''}`, { '--a': a, '--b': b, '--lane': lane, '--la': la },
+        award ? when + name : name + (it.role ? `<span class="role">${it.role}</span>` : '') + when));
     }
   }
 

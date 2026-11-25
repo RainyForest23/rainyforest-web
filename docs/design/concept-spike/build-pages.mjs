@@ -3,7 +3,7 @@
 //   work/<slug>/index.html          the write-up: the same eight steps for every experience (spec §7.2)
 // The visual explanation of an experience lives at work/<slug>/story/index.html and is built by its own script.
 // Run: node build-pages.mjs
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,7 +17,7 @@ export const EXPERIENCES = [
     summary: "Korean lecture transcription. A token-handling fix cut insertion errors from 3,622 to 175 on one 107-minute lecture." },
   { slug: "energy-cost-model", lane: "Research", title: "Energy cost model for AI workloads", org: "Ewha Womans University", role: "Co-first author", when: "Sep 2025 – Jun 2026", tier: "standard", story: true,
     summary: "Splits a shared server's measured energy between the workloads on it, to within about 5 %." },
-  { slug: "tesla-jr", lane: "Coursework", title: "Tesla Jr.", org: "Ewha Womans University, Intelligent Robotics", role: "One-person project", when: "May – Jun 2026", tier: "standard", story: true,
+  { slug: "tesla-jr", lane: "Project", title: "Tesla Jr.", org: "Ewha Womans University, Intelligent Robotics", role: "One-person project", when: "May – Jun 2026", tier: "standard", story: true,
     summary: "A car-like robot that drives to a goal using only cameras and no map, in simulation." },
   { slug: null, lane: "Club", title: "GDGoC Ewha", org: "", role: "General Member, AI", when: "2025", tier: "brief", summary: "" },
   { slug: null, lane: "Awards", title: "Boeing Capstone Innovation Award, Grand Prize and Poster Excellence Award", org: "Ewha Womans University", role: "1st of 41", when: "Jun 2026", tier: "brief", summary: "" },
@@ -201,7 +201,7 @@ h1{margin:0;font-size:clamp(1.8rem,1.2rem + 3vw,3.1rem);line-height:1.08;letter-
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.9rem 1.5rem;margin:1.8rem 0 0;padding:1rem 0;border-block:1px dotted var(--line)}
 .meta dt{font:var(--step--1) var(--mono);color:var(--ink-3)}.meta dd{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink)}
 .see{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin:1.2rem 0 0;font-size:var(--step--1)}
-.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.5em;border-radius:50%;background:var(--snake);margin-right:.55em;vertical-align:.08em}
+.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.6em;background:var(--now);clip-path:polygon(0 0,100% 50%,0 100%);margin-right:.5em}
 .soon{color:var(--ink-3)}
 .draft{font:500 .72em/1 var(--mono);letter-spacing:.02em;color:var(--snake);white-space:nowrap;vertical-align:.12em;cursor:help}
 .draft-note{margin:1rem 0 0;max-width:44rem;font-size:var(--step--1);color:var(--ink-3)}
@@ -257,11 +257,11 @@ footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step
 const SOON = [
   ["study", "Study", "Notes from what I am studying, with code you can run in the page."],
   ["principles", "Principles", "The rules I work by, each traced to where it came from and where it was used."],
-  ["keynotes", "Keynotes", "Talks, playable in the page."],
   ["blog", "Blog", "Older posts, moving over from the previous site."],
 ];
+const MENU = [...SOON.slice(0, 2), ["keynotes", "Keynotes"], ...SOON.slice(2)];   // menu order: Study, Principles, Keynotes, Blog
 const nav = (root, current) => `<nav class="nav" aria-label="Site"><a class="me" href="${root}index.html">Rainyforest</a><ul>
-<li><a href="${root}work/index.html"${current === "work" ? ' aria-current="page"' : ""}>Work</a></li>${SOON.map(([slug, name]) => `<li><a href="${root}${slug}/index.html"${current === slug ? ' aria-current="page"' : ""}>${name}</a></li>`).join("")}<li><a href="#">CV</a></li>
+<li><a href="${root}work/index.html"${current === "work" ? ' aria-current="page"' : ""}>Experience</a></li>${MENU.map(([slug, name]) => `<li><a href="${root}${slug}/index.html"${current === slug ? ' aria-current="page"' : ""}>${name}</a></li>`).join("")}<li><a href="#">CV</a></li>
 </ul><a class="lang" href="#" lang="ko">한국어</a></nav>`;
 const soonPage = ([slug, name, what]) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${name} — Rainyforest</title><style>${CSS}
 :root{--floor-lo:#18211d;--floor-hi:#2c3b34;--snake-2:#8a6a22;--snake-hi:#f3dd92;--tongue:#d2654e}
@@ -276,7 +276,7 @@ main.soon-main{padding:clamp(2.5rem,9vh,6rem) var(--gutter) 0}
 <canvas class="soon" aria-hidden="true"></canvas>
 ${nav("../", slug)}<main class="soon-main"><div class="soon-text"><p class="kicker">${name}</p><h1>Under construction</h1>
 <p>${what}</p><p>Not built yet. The snake is on it.</p>
-<p class="links"><a href="../work/index.html">See the work →</a><a href="../index.html">Home</a></p></div></main>
+<p class="links"><a href="../work/index.html">See the experience →</a><a href="../index.html">Home</a></p></div></main>
 <script src="../soon.js"></script></body></html>`;
 const shell = ({ root, title, body, script = "", rain = "none" }) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title} — Rainyforest</title><style>${CSS}</style></head><body>
 <canvas class="forest" aria-hidden="true" data-rain="${rain}"></canvas>
@@ -288,10 +288,93 @@ export const hrefOf = (e, root) => (e.slug ? `${root}work/${e.slug}/${e.story ? 
 
 for (const section of SOON) out(`${section[0]}/index.html`, soonPage(section));
 
+/* ---- Keynotes: an outdoor cinema in the forest. The deck plays on a screen that stands on two posts;
+        the caption for each step sits between the posts, under the screen, never on it ---- */
+const DECK = { slug: "tesla-jr", title: "Tesla Jr.", where: "Intelligent Robotics, Jun 2026", slides: 15 };
+const CAPTIONS = JSON.parse(readFileSync(join(HERE, "keynotes", DECK.slug, "captions.json"), "utf8"));   // one caption per step, keyed by step number; written by the author
+out("keynotes/index.html", `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Keynotes — Rainyforest</title><style>${CSS}
+:root{--floor-lo:#18211d;--floor-hi:#2c3b34}
+.cinema-main{padding:0 var(--gutter)}
+.cinema{width:100%;max-width:max(18rem,calc((100svh - 20rem) * 16 / 9));margin:0 auto}
+.bill{margin:.3rem 0 .8rem;font:var(--step--1) var(--mono);color:var(--ink-3);text-align:center}.bill b{color:var(--ink);font-weight:600}
+.screen{position:relative;aspect-ratio:16/9;background:#000;outline:1px solid var(--ink-3);outline-offset:3px;cursor:pointer}
+.screen img{display:block;width:100%;height:100%;object-fit:contain}
+.screen:focus-visible{outline:1px dotted var(--ink)}
+.under{margin:4px 7% 0;padding:.9rem 1rem 0;border-inline:2px solid var(--bark-hi);min-height:8.2rem;display:grid;grid-template-rows:1fr auto;gap:.5rem}
+.caption{margin:0;min-height:4.4rem;display:grid;place-items:center;text-align:center;font-size:var(--step-1);line-height:1.4;text-wrap:balance}
+.caption.empty{font:var(--step--1) var(--mono);color:var(--ink-3)}
+.reel{display:flex;justify-content:center;align-items:center;gap:1.1rem;padding-bottom:.5rem;font:var(--step--1) var(--mono);color:var(--ink-2)}
+.reel button{background:none;border:0;color:var(--ink);font:inherit;cursor:pointer;padding:.3rem .6rem}.reel button:disabled{color:var(--ink-3);cursor:default}
+.seats{display:block;width:100%;height:4.5rem;position:relative;z-index:1}
+</style></head><body>
+<canvas class="forest" aria-hidden="true" data-rain="none" data-column=".cinema"></canvas>
+${nav("../", "keynotes")}<main class="cinema-main"><div class="cinema">
+<h1 class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Keynotes</h1>
+<p class="bill">Now showing · <b>${DECK.title}</b> · ${DECK.where}</p>
+<div class="screen" tabindex="0" role="group" aria-label="${DECK.title}, slide deck. Click the right half or press the right arrow for the next step."><img alt="" src="${DECK.slug}/01.jpg"></div>
+<div class="under"><p class="caption" aria-live="polite"></p>
+<div class="reel"><button type="button" data-go="-1" aria-label="Previous step">←</button><span class="count"></span><button type="button" data-go="1" aria-label="Next step">→</button></div></div>
+</div></main>
+<canvas class="seats" aria-hidden="true"></canvas>
+<script src="../forest.js"></script>
+<script>
+(() => {   // the deck
+  const N = ${DECK.slides}, CAP = ${JSON.stringify(CAPTIONS)}, src = (i) => "${DECK.slug}/" + String(i).padStart(2, "0") + ".jpg";
+  const screen = document.querySelector(".screen"), img = screen.querySelector("img"), cap = document.querySelector(".caption"), count = document.querySelector(".count"), [prev, next] = document.querySelectorAll(".reel button");
+  let at = Math.min(N, Math.max(1, parseInt(new URLSearchParams(location.search).get("step")) || 1));
+  function show() {
+    img.src = src(at); img.alt = "Slide " + at + " of " + N;
+    const text = (CAP[at] || "").trim();
+    cap.textContent = text || "caption for step " + at;                 // captions are still to be written
+    cap.classList.toggle("empty", !text);
+    count.textContent = at + " / " + N; prev.disabled = at === 1; next.disabled = at === N;
+    if (at < N) new Image().src = src(at + 1);
+  }
+  const go = (d) => { const to = Math.min(N, Math.max(1, at + d)); if (to !== at) { at = to; show(); } };
+  prev.onclick = () => go(-1); next.onclick = () => go(1);
+  screen.addEventListener("click", (e) => { const b = screen.getBoundingClientRect(); go(e.clientX - b.left < b.width / 2 ? -1 : 1); });
+  addEventListener("keydown", (e) => { if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); go(1); } if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); } });
+  show();
+})();
+(() => {   // the seats: a row of log benches seen from behind, on the forest floor, in the same dot grid
+  const cv = document.querySelector("canvas.seats"), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement);
+  const hex = (n) => { const h = css.getPropertyValue(n).trim().slice(1); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
+  const mix = (a, b, t) => "rgb(" + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",") + ")";
+  const bark = [hex("--bark-lo"), hex("--bark-hi")], floor = [hex("--floor-lo"), hex("--floor-hi")];
+  function draw() {
+    const W = cv.clientWidth, H = cv.clientHeight, dpr = Math.min(2, devicePixelRatio || 1), s = W < 520 ? 6 : W < 1000 ? 7 : 8;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const cols = Math.ceil(W / s), rows = Math.ceil(H / s), ground = rows - 3, pitch = 11, off = (cols % pitch) / 2;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const dx = ((c + 0.5 - off) % pitch + pitch) % pitch - pitch / 2, top = ground - 3.4 * Math.sqrt(Math.max(0, 1 - (dx / 4.2) ** 2));
+      let colour = null, rad = 0;
+      if (r >= ground) { const l = 0.3 + 0.5 * ((r * 7 + c * 13) % 5) / 5; colour = mix(floor[0], floor[1], l); rad = 0.14 + 0.3 * l; }
+      else if (Math.abs(dx) < 4.2 && r + 0.5 >= top) { const l = 0.35 + 0.5 * (1 - (r + 0.5 - top) / 3.4) - 0.07 * dx; colour = mix(bark[0], bark[1], Math.max(0, Math.min(1, l))); rad = 0.2 + 0.26 * Math.max(0, Math.min(1, l)); }
+      if (colour) { ctx.fillStyle = colour; ctx.beginPath(); ctx.arc((c + 0.5) * s, (r + 0.5) * s, rad * s, 0, 6.2832); ctx.fill(); }
+    }
+  }
+  let timer = 0; addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(draw, 120); }); draw();
+})();
+</script></body></html>`);
+
+/* ---- Study: the outline of the section. Private for now: publish.mjs puts it online only as an encrypted page
+        (see there). This plain copy is for looking at locally. Notes themselves must not be written into this
+        public repository; where they live is still to be decided ---- */
+const TRACKS = [
+  ["Foundry deep dive", "How Palantir Foundry works, taken apart piece by piece from the public documentation: the ontology, pipelines, lineage, actions.", "Starts here."],
+  ["Hands-on", "What I did in Palantir Learning courses and in AIP exercises, written up as a log: what the task was, what I built, what I got wrong.", ""],
+  ["Foundry in Python", "Building a small Foundry of my own in Python, one part at a time, to find out what each part is actually for.", ""],
+];
+out("study/notes.html", shell({ root: "../", title: "Study", body: `<main><div class="wrap">
+<p class="crumb">Study</p><h1>Study</h1>
+<p class="lead">Notes from studying Palantir Foundry, in three tracks. Nothing from interviews goes here.</p>
+${TRACKS.map(([name, what, note], i) => `<section class="lane"><h2>Track ${i + 1}</h2><article class="row"><span class="when">${note || "Not started"}</span><div><h3>${name}</h3><p class="sum">${what}</p></div><p class="see soon">No notes yet</p></article></section>`).join("")}
+</div></main>` }).replace('aria-current="page">Experience', '>Experience').replace('study/index.html">Study', 'study/index.html" aria-current="page">Study'));
+
 /* ---- work index ---- */
 const lanes = [...new Set(EXPERIENCES.map((e) => e.lane))];
-out("work/index.html", shell({ root: "../", title: "Work", rain: "sides", body: `<main><div class="wrap">
-<h1>Work</h1><p class="lead">Every experience on the timeline. The ones with a dot have a visual explanation; all of them with a page are written up in the same eight steps.</p>
+out("work/index.html", shell({ root: "../", title: "Experience", rain: "sides", body: `<main><div class="wrap">
+<h1>Experience</h1><p class="lead">Everything on the timeline: work, research, projects, clubs and awards. Some have a visual explanation; everything with a page is written up in the same eight steps.</p>
 ${lanes.map((lane) => `<section class="lane"><h2>${lane}</h2>${EXPERIENCES.filter((e) => e.lane === lane).map((e) => `<article class="row"><span class="when">${e.when}</span><div>
 <h3>${e.slug ? `<a href="${hrefOf(e, "../")}">${e.title}</a>` : e.title}</h3><p class="who">${[e.org, e.role].filter(Boolean).join(" · ")}</p>${e.summary ? `<p class="sum">${e.summary}</p>` : ""}</div>
 ${e.slug ? `<p class="see">${e.story ? `<a class="visual" href="${e.slug}/story/index.html">Visual explanation →</a>` : ""}<a href="${e.slug}/index.html">Write-up →</a></p>` : `<p class="see soon">One line only</p>`}</article>`).join("")}</section>`).join("")}
@@ -306,19 +389,19 @@ paged.forEach((e, i) => {
   const c = CONTENT[e.slug], id = (n) => `step-${n + 1}`, nextE = paged[(i + 1) % paged.length];
   const meta = c ? c.meta : [["Kind", e.lane], ["Where", e.org], ["When", e.when], ["Role", e.role]];
   out(`work/${e.slug}/index.html`, shell({ root: "../../", title: e.title, script: railScript, body: `<main><div class="wrap">
-<p class="crumb"><a href="../index.html">Work</a> / ${e.lane}</p>
+<p class="crumb"><a href="../index.html">Experience</a> / ${e.lane}</p>
 <h1>${c ? c.title : e.title}</h1>
 <p class="lead">${c ? c.outcome : e.summary}${c && c.draft && c.draft.lead ? " " + DRAFT : ""}</p>
 <dl class="meta">${meta.map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join("")}</dl>
 <p class="see">${e.story ? `<a class="visual" href="story/index.html">Visual explanation →</a>` : `<span class="soon">Visual explanation: ${e.tier === "deep" ? "planned" : "none"}</span>`}</p>
 ${c && c.draft ? `<p class="draft-note">${DRAFT} marks text written with AI from ${c.draft.from}. The author has not reviewed it yet; the tag comes off a section once they have.</p>` : ""}
 ${c ? "" : `<div class="writeup"><div><p class="empty">This write-up is in progress. It will answer the same eight questions as the others: ${STEPS.map(([name]) => name).join(", ")}.</p>
-<p class="next"><a href="../index.html">← All work</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p></div></div>`}
+<p class="next"><a href="../index.html">← All experience</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p></div></div>`}
 ${!c ? "" : `<div class="writeup"><nav class="rail" aria-label="Steps"><ol>${STEPS.map(([name], n) => `<li><a href="#${id(n)}">${name}</a></li>`).join("")}</ol></nav>
 <div>${STEPS.map(([name, ask], n) => `<section class="step" id="${id(n)}"><header><span class="no">${String(n + 1).padStart(2, "0")}</span><h2>${name}${c && c.draft && c.draft.steps[n] ? " " + DRAFT : ""}</h2><p class="ask">${ask}</p></header>
 ${c.steps[n]}</section>`).join("")}
 ${c.part ? `<p class="who" style="color:var(--ink-2);font-size:var(--step--1)"><b style="color:var(--ink)">My part.</b> ${c.part}</p>` : ""}
 ${c.now ? `<aside class="now"><strong>Re-decomposed on ${c.now.date}</strong>${c.now.text}</aside>` : ""}
-<p class="next"><a href="../index.html">← All work</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p>
+<p class="next"><a href="../index.html">← All experience</a><a href="../${nextE.slug}/${nextE.story ? "story/" : ""}index.html">Next: ${nextE.title} →</a></p>
 </div></div>`}</div></main>` }));
 });

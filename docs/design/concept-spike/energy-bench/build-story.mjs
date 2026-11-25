@@ -259,9 +259,9 @@ const steps = [
   ["Memory: by what you hold.", ["Memory draws the same whether or not it is read.", "So it is charged by the amount held, not by activity."]],
   ["One rule per part, one number per workload.", ["The three parts add up to each workload's energy.", "Checked against each workload measured alone, the split is within 0.4&nbsp;% for the AI workloads and 4.1&nbsp;% for Node.js.", "What is left over is the machine's own baseline."]],
 ];
-const MORE = `<p class="more fade"><a href="../index.html">More detail →</a><a href="../../index.html">All work</a></p>`;   // the last scene hands over to the write-up
+const MORE = `<p class="more fade"><a href="../index.html">More detail →</a><a href="../../index.html">All experience</a></p>`;   // the last scene hands over to the write-up
 const words = steps.map(([h, lines], i) => `<section class="step"><${i ? "h2" : "h1"} data-split>${h}</${i ? "h2" : "h1"}><p class="body">${lines.map((l) => `<span class="ln fade">${l}</span>`).join("")}</p>${i === steps.length - 1 ? MORE : ""}</section>`).join("");
-const crumb = `<p class="crumb"><span><a href="../../../index.html">Rainyforest</a> / <a href="../../index.html">Work</a> / Energy cost model</span><a href="../index.html">Write-up →</a></p>`;
+const crumb = `<p class="crumb"><span><a href="../../../index.html">Rainyforest</a> / <a href="../../index.html">Experience</a> / Energy cost model</span><a href="../index.html">Write-up →</a></p>`;
 
 const TALL_Q = "(max-width: 44rem), (max-aspect-ratio: 4/5)";
 const PAGE_CSS = `
@@ -394,7 +394,7 @@ ${crumb}
 ${formula}
 <div class="ticks" aria-hidden="true">${steps.map(() => "<span></span>").join("")}</div>
 </div></main>
-<section class="after"><h2>The picture is the short version.</h2><p>The write-up has the rest: whose decision this helps, the objects and their relations, the trade-offs, what broke, and how the result was checked.</p><p class="links"><a href="../index.html">More detail →</a><a href="../../index.html">All work</a><a href="../../../index.html">Home</a></p></section>
+<section class="after"><h2>The picture is the short version.</h2><p>The write-up has the rest: whose decision this helps, the objects and their relations, the trade-offs, what broke, and how the result was checked.</p><p class="links"><a href="../index.html">More detail →</a><a href="../../index.html">All experience</a><a href="../../../index.html">Home</a></p></section>
 <footer>A preview. The 235 W, 143 W and 13 W are read off the paper's charts and are approximate.</footer>
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script></body></html>`;
 const OUT = join(HERE, "..", "work", "energy-cost-model", "story");

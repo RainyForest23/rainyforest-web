@@ -48,6 +48,7 @@ node build-pages.mjs                # the Work list and the write-ups, from one 
 node energy-bench/build-story.mjs   # the visual explanation of the energy cost model
 node tesla-jr/build-story.mjs       # the visual explanation of Tesla Jr.
 node check-links.mjs                # every internal link in the mock pages
+node publish.mjs --push             # put the mock online (gh-pages). Study is published only if a password is set, and then only encrypted
 ```
 
 ## Develop

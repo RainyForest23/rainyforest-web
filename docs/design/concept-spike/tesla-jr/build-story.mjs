@@ -257,10 +257,10 @@ const steps = [
   ["No eyes at the back.", ["The cameras look forward, left and right. Backing out of a dead end, the car could not see the wall behind it and kept reversing into it.", "The fix is a bumper made of logic: told to move, not moving, for a second, so something must be there.", "That place is marked in the costmap like anything a camera saw. The wheels stop and the planner looks for another way."],
     "/virtual_bumper/points → VoxelLayer, never cleared · in ackermann_control (my node)"],
 ];
-const MORE = `<p class="more fade"><a href="../index.html">More detail →</a><a href="../../index.html">All work</a></p>`;
+const MORE = `<p class="more fade"><a href="../index.html">More detail →</a><a href="../../index.html">All experience</a></p>`;
 const words = steps.map(([h, lines], i) => `<section class="step"><${i ? "h2" : "h1"}>${h}</${i ? "h2" : "h1"}><p class="body">${lines.map((l) => `<span class="ln">${l}</span>`).join("")}</p>${i === steps.length - 1 ? MORE : ""}</section>`).join("");
 const tags = steps.map(([, , tag]) => `<span class="tag">${tag}</span>`).join("");
-const crumb = `<p class="crumb"><span><a href="../../../index.html">Rainyforest</a> / <a href="../../index.html">Work</a> / Tesla Jr.</span><a href="../index.html">Write-up →</a></p>`;
+const crumb = `<p class="crumb"><span><a href="../../../index.html">Rainyforest</a> / <a href="../../index.html">Experience</a> / Tesla Jr.</span><a href="../index.html">Write-up →</a></p>`;
 const TALL_Q = "(max-width: 44rem), (max-aspect-ratio: 4/5)";
 
 const CSS = `
@@ -435,7 +435,7 @@ ${crumb}
 ${formula}
 <div class="ticks" aria-hidden="true">${steps.map(() => "<span></span>").join("")}</div>
 </div></main>
-<section class="after"><h2>The picture is the short version.</h2><p>The write-up has the rest: why a car and not a robot base, what the node does, what broke on the way, and what the camera alone could not do.</p><p class="links"><a href="../index.html">More detail →</a><a href="../../index.html">All work</a><a href="../../../index.html">Home</a></p></section>
+<section class="after"><h2>The picture is the short version.</h2><p>The write-up has the rest: why a car and not a robot base, what the node does, what broke on the way, and what the camera alone could not do.</p><p class="links"><a href="../index.html">More detail →</a><a href="../../index.html">All experience</a><a href="../../../index.html">Home</a></p></section>
 <footer>A preview. Everything here ran in a simulator. The search trees and the rollouts are drawn by small re-implementations with the project's settings, to show how the methods work; they are not Nav2's own output. The sharp-cornered path and the wall in the last scene are sketches.</footer>
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script></body></html>`;
 const OUT = join(HERE, "..", "work", "tesla-jr", "story");

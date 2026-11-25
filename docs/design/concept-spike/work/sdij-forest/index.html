@@ -20,7 +20,7 @@ h1{margin:0;font-size:clamp(1.8rem,1.2rem + 3vw,3.1rem);line-height:1.08;letter-
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.9rem 1.5rem;margin:1.8rem 0 0;padding:1rem 0;border-block:1px dotted var(--line)}
 .meta dt{font:var(--step--1) var(--mono);color:var(--ink-3)}.meta dd{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink)}
 .see{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin:1.2rem 0 0;font-size:var(--step--1)}
-.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.5em;border-radius:50%;background:var(--snake);margin-right:.55em;vertical-align:.08em}
+.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.6em;background:var(--now);clip-path:polygon(0 0,100% 50%,0 100%);margin-right:.5em}
 .soon{color:var(--ink-3)}
 .draft{font:500 .72em/1 var(--mono);letter-spacing:.02em;color:var(--snake);white-space:nowrap;vertical-align:.12em;cursor:help}
 .draft-note{margin:1rem 0 0;max-width:44rem;font-size:var(--step--1);color:var(--ink-3)}
@@ -73,16 +73,16 @@ footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step
 </style></head><body>
 <canvas class="forest" aria-hidden="true" data-rain="none"></canvas>
 <nav class="nav" aria-label="Site"><a class="me" href="../../index.html">Rainyforest</a><ul>
-<li><a href="../../work/index.html" aria-current="page">Work</a></li><li><a href="../../study/index.html">Study</a></li><li><a href="../../principles/index.html">Principles</a></li><li><a href="../../keynotes/index.html">Keynotes</a></li><li><a href="../../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
+<li><a href="../../work/index.html" aria-current="page">Experience</a></li><li><a href="../../study/index.html">Study</a></li><li><a href="../../principles/index.html">Principles</a></li><li><a href="../../keynotes/index.html">Keynotes</a></li><li><a href="../../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
 </ul><a class="lang" href="#" lang="ko">한국어</a></nav><main><div class="wrap">
-<p class="crumb"><a href="../index.html">Work</a> / Work</p>
+<p class="crumb"><a href="../index.html">Experience</a> / Work</p>
 <h1>SDIJ Forest Team</h1>
 <p class="lead">Internal tools for a university-entrance academy: student question classification, learning analytics, forum monitoring.</p>
 <dl class="meta"><div><dt>Kind</dt><dd>Work</dd></div><div><dt>Where</dt><dd>Sidae Injae</dd></div><div><dt>When</dt><dd>Feb 2023 – Jun 2025</dd></div><div><dt>Role</dt><dd>Project Lead and sole developer, 4-person team</dd></div></dl>
 <p class="see"><span class="soon">Visual explanation: planned</span></p>
 
 <div class="writeup"><div><p class="empty">This write-up is in progress. It will answer the same eight questions as the others: Decision, Before, Ontology, Smallest version, Trade-offs, What broke, Measured, Next.</p>
-<p class="next"><a href="../index.html">← All work</a><a href="../hiconsy-lecture-asr/index.html">Next: Hiconsy lecture ASR →</a></p></div></div>
+<p class="next"><a href="../index.html">← All experience</a><a href="../hiconsy-lecture-asr/index.html">Next: Hiconsy lecture ASR →</a></p></div></div>
 </div></main><footer>A preview. The site is still being built.</footer><script src="../../forest.js"></script><script>const links=[...document.querySelectorAll('.rail a')];
 const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))},{rootMargin:'-20% 0px -65% 0px'});
 document.querySelectorAll('.step').forEach(s=>io.observe(s));</script></body></html>

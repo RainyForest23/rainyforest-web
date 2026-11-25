@@ -20,7 +20,7 @@ h1{margin:0;font-size:clamp(1.8rem,1.2rem + 3vw,3.1rem);line-height:1.08;letter-
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.9rem 1.5rem;margin:1.8rem 0 0;padding:1rem 0;border-block:1px dotted var(--line)}
 .meta dt{font:var(--step--1) var(--mono);color:var(--ink-3)}.meta dd{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink)}
 .see{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin:1.2rem 0 0;font-size:var(--step--1)}
-.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.5em;border-radius:50%;background:var(--snake);margin-right:.55em;vertical-align:.08em}
+.see a{color:var(--ink)}.see .visual::before{content:"";display:inline-block;width:.5em;height:.6em;background:var(--now);clip-path:polygon(0 0,100% 50%,0 100%);margin-right:.5em}
 .soon{color:var(--ink-3)}
 .draft{font:500 .72em/1 var(--mono);letter-spacing:.02em;color:var(--snake);white-space:nowrap;vertical-align:.12em;cursor:help}
 .draft-note{margin:1rem 0 0;max-width:44rem;font-size:var(--step--1);color:var(--ink-3)}
@@ -71,19 +71,68 @@ th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px dotted var
 .row .see{margin:.5rem 0 0}@media (min-width:48rem){.row .see{margin:0;flex-direction:column;align-items:flex-end;gap:.3rem}}
 footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step--1)}
 
-:root{--floor-lo:#18211d;--floor-hi:#2c3b34;--snake-2:#8a6a22;--snake-hi:#f3dd92;--tongue:#d2654e}
-html,body{height:100%}body{overflow:hidden}.soon{position:fixed;inset:0;width:100%;height:100%;z-index:0}
-main.soon-main{padding:clamp(2.5rem,9vh,6rem) var(--gutter) 0}
-.soon-text{width:fit-content;max-width:min(30rem,62%)}@media (min-width:45rem){.soon-text{max-width:min(30rem,52%)}}   /* the tree stands to the right of the words */
-.soon-text .kicker{margin:0 0 .5rem;font:var(--step--1) var(--mono);color:var(--snake);letter-spacing:.12em;text-transform:uppercase}
-.soon-text h1{font-size:clamp(2rem,1.3rem + 3.6vw,3.6rem)}
-.soon-text p{margin:1rem 0 0;color:var(--ink-2);text-wrap:pretty}
-.soon-text .links{display:flex;flex-wrap:wrap;gap:.4rem 1.5rem;margin-top:1.4rem;font-size:var(--step--1)}.soon-text .links a{color:var(--ink)}
+:root{--floor-lo:#18211d;--floor-hi:#2c3b34}
+.cinema-main{padding:0 var(--gutter)}
+.cinema{width:100%;max-width:max(18rem,calc((100svh - 20rem) * 16 / 9));margin:0 auto}
+.bill{margin:.3rem 0 .8rem;font:var(--step--1) var(--mono);color:var(--ink-3);text-align:center}.bill b{color:var(--ink);font-weight:600}
+.screen{position:relative;aspect-ratio:16/9;background:#000;outline:1px solid var(--ink-3);outline-offset:3px;cursor:pointer}
+.screen img{display:block;width:100%;height:100%;object-fit:contain}
+.screen:focus-visible{outline:1px dotted var(--ink)}
+.under{margin:4px 7% 0;padding:.9rem 1rem 0;border-inline:2px solid var(--bark-hi);min-height:8.2rem;display:grid;grid-template-rows:1fr auto;gap:.5rem}
+.caption{margin:0;min-height:4.4rem;display:grid;place-items:center;text-align:center;font-size:var(--step-1);line-height:1.4;text-wrap:balance}
+.caption.empty{font:var(--step--1) var(--mono);color:var(--ink-3)}
+.reel{display:flex;justify-content:center;align-items:center;gap:1.1rem;padding-bottom:.5rem;font:var(--step--1) var(--mono);color:var(--ink-2)}
+.reel button{background:none;border:0;color:var(--ink);font:inherit;cursor:pointer;padding:.3rem .6rem}.reel button:disabled{color:var(--ink-3);cursor:default}
+.seats{display:block;width:100%;height:4.5rem;position:relative;z-index:1}
 </style></head><body>
-<canvas class="soon" aria-hidden="true"></canvas>
+<canvas class="forest" aria-hidden="true" data-rain="none" data-column=".cinema"></canvas>
 <nav class="nav" aria-label="Site"><a class="me" href="../index.html">Rainyforest</a><ul>
-<li><a href="../work/index.html">Work</a></li><li><a href="../study/index.html">Study</a></li><li><a href="../principles/index.html">Principles</a></li><li><a href="../keynotes/index.html" aria-current="page">Keynotes</a></li><li><a href="../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
-</ul><a class="lang" href="#" lang="ko">한국어</a></nav><main class="soon-main"><div class="soon-text"><p class="kicker">Keynotes</p><h1>Under construction</h1>
-<p>Talks, playable in the page.</p><p>Not built yet. The snake is on it.</p>
-<p class="links"><a href="../work/index.html">See the work →</a><a href="../index.html">Home</a></p></div></main>
-<script src="../soon.js"></script></body></html>
+<li><a href="../work/index.html">Experience</a></li><li><a href="../study/index.html">Study</a></li><li><a href="../principles/index.html">Principles</a></li><li><a href="../keynotes/index.html" aria-current="page">Keynotes</a></li><li><a href="../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
+</ul><a class="lang" href="#" lang="ko">한국어</a></nav><main class="cinema-main"><div class="cinema">
+<h1 class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Keynotes</h1>
+<p class="bill">Now showing · <b>Tesla Jr.</b> · Intelligent Robotics, Jun 2026</p>
+<div class="screen" tabindex="0" role="group" aria-label="Tesla Jr., slide deck. Click the right half or press the right arrow for the next step."><img alt="" src="tesla-jr/01.jpg"></div>
+<div class="under"><p class="caption" aria-live="polite"></p>
+<div class="reel"><button type="button" data-go="-1" aria-label="Previous step">←</button><span class="count"></span><button type="button" data-go="1" aria-label="Next step">→</button></div></div>
+</div></main>
+<canvas class="seats" aria-hidden="true"></canvas>
+<script src="../forest.js"></script>
+<script>
+(() => {   // the deck
+  const N = 15, CAP = {"1":"","2":"","3":"","4":"","5":"","6":"","7":"","8":"","9":"","10":"","11":"","12":"","13":"","14":"","15":""}, src = (i) => "tesla-jr/" + String(i).padStart(2, "0") + ".jpg";
+  const screen = document.querySelector(".screen"), img = screen.querySelector("img"), cap = document.querySelector(".caption"), count = document.querySelector(".count"), [prev, next] = document.querySelectorAll(".reel button");
+  let at = Math.min(N, Math.max(1, parseInt(new URLSearchParams(location.search).get("step")) || 1));
+  function show() {
+    img.src = src(at); img.alt = "Slide " + at + " of " + N;
+    const text = (CAP[at] || "").trim();
+    cap.textContent = text || "caption for step " + at;                 // captions are still to be written
+    cap.classList.toggle("empty", !text);
+    count.textContent = at + " / " + N; prev.disabled = at === 1; next.disabled = at === N;
+    if (at < N) new Image().src = src(at + 1);
+  }
+  const go = (d) => { const to = Math.min(N, Math.max(1, at + d)); if (to !== at) { at = to; show(); } };
+  prev.onclick = () => go(-1); next.onclick = () => go(1);
+  screen.addEventListener("click", (e) => { const b = screen.getBoundingClientRect(); go(e.clientX - b.left < b.width / 2 ? -1 : 1); });
+  addEventListener("keydown", (e) => { if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); go(1); } if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); } });
+  show();
+})();
+(() => {   // the seats: a row of log benches seen from behind, on the forest floor, in the same dot grid
+  const cv = document.querySelector("canvas.seats"), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement);
+  const hex = (n) => { const h = css.getPropertyValue(n).trim().slice(1); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
+  const mix = (a, b, t) => "rgb(" + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",") + ")";
+  const bark = [hex("--bark-lo"), hex("--bark-hi")], floor = [hex("--floor-lo"), hex("--floor-hi")];
+  function draw() {
+    const W = cv.clientWidth, H = cv.clientHeight, dpr = Math.min(2, devicePixelRatio || 1), s = W < 520 ? 6 : W < 1000 ? 7 : 8;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const cols = Math.ceil(W / s), rows = Math.ceil(H / s), ground = rows - 3, pitch = 11, off = (cols % pitch) / 2;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const dx = ((c + 0.5 - off) % pitch + pitch) % pitch - pitch / 2, top = ground - 3.4 * Math.sqrt(Math.max(0, 1 - (dx / 4.2) ** 2));
+      let colour = null, rad = 0;
+      if (r >= ground) { const l = 0.3 + 0.5 * ((r * 7 + c * 13) % 5) / 5; colour = mix(floor[0], floor[1], l); rad = 0.14 + 0.3 * l; }
+      else if (Math.abs(dx) < 4.2 && r + 0.5 >= top) { const l = 0.35 + 0.5 * (1 - (r + 0.5 - top) / 3.4) - 0.07 * dx; colour = mix(bark[0], bark[1], Math.max(0, Math.min(1, l))); rad = 0.2 + 0.26 * Math.max(0, Math.min(1, l)); }
+      if (colour) { ctx.fillStyle = colour; ctx.beginPath(); ctx.arc((c + 0.5) * s, (r + 0.5) * s, rad * s, 0, 6.2832); ctx.fill(); }
+    }
+  }
+  let timer = 0; addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(draw, 120); }); draw();
+})();
+</script></body></html>
