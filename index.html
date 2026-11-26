@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head><meta name="robots" content="noindex">
+<script>
+  // The opening plays once per browser session, and not at all for people who ask for less motion,
+  // or when the page is opened at a section (#experience). ?opening=1 always plays it, ?opening=0 never does.
+  (() => {
+    const ask = new URLSearchParams(location.search).get('opening');
+    let seen = false; try { seen = sessionStorage.getItem('opening') === 'seen'; } catch (e) {}
+    const play = ask === '1' || (ask !== '0' && !seen && !location.hash && !matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (play) document.documentElement.classList.add('opening');
+  })();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rainyforest — Woorim Shin</title>
+<style>
+  :root {
+    /* surface and text */
+    --bg: #0a0f0d;
+    --ink: #e6ebe4;
+    --ink-2: #93a199;
+    --ink-3: #5d6b64;
+    --line: #1f2a25;
+    /* dot field */
+    --dot: #1a231f;
+    --leaf-lo: #1d2f26;
+    --leaf: #37604b;
+    --leaf-hi: #5f9478;
+    --bark-lo: #1f1c19;
+    --bark-hi: #74695b;
+    --floor-lo: #18211d;
+    --floor-hi: #2c3b34;
+    --rain: #a9c4b8;
+    /* the one accent: the snake, and the experiences that matter most */
+    --snake: #e0b84c;
+    --visual: #72b98e;      /* the mark for "has a visual explanation": a green triangle, so it is never confused with the yellow of the main work */
+    --snake-2: #8a6a22;
+    --snake-hi: #f3dd92;
+    --tongue: #d2654e;
+
+    --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --step--1: clamp(0.75rem, 0.72rem + 0.15vw, 0.84rem);
+    --step-0: clamp(0.94rem, 0.9rem + 0.2vw, 1.06rem);
+    --step-1: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+    --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --gutter: clamp(16px, 4vw, 48px);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--step-0)/1.6 var(--font); }
+  a { color: inherit; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* ---------- hero ---------- */
+  /* the forest stays put while the page scrolls: trees behind the content, ground and snake in front of it */
+  .sky, .ground { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .sky { z-index: 0; }
+  .ground { z-index: 2; }
+  .hero, main, footer { position: relative; z-index: 1; }
+  body { padding-bottom: var(--floor, 16svh); }
+  .hero { min-height: 100svh; display: grid; grid-template-rows: auto 1fr; }
+  .nav { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1.25rem; padding: 1rem var(--gutter); font-size: var(--step--1); }
+  .nav .me { font-weight: 600; text-decoration: none; margin-right: auto; }
+  .nav ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; list-style: none; margin: 0; padding: 0; }
+  .nav ul a, .nav .lang { color: var(--ink-2); text-decoration: none; }
+  .nav ul a:hover, .nav ul a:focus-visible, .nav .lang:hover, .nav .lang:focus-visible { color: var(--ink); }
+  @media (max-width: 40rem) { .nav ul { order: 3; flex-basis: 100%; gap: 0.25rem 0.85rem; } }
+  .center { position: relative; display: grid; justify-items: center; align-content: center; padding: 2rem var(--gutter) 24svh; text-align: center; }
+  .center h1 { margin: 0; font-size: clamp(2.75rem, 1.5rem + 6.2vw, 6.5rem); font-weight: 700; line-height: 1; letter-spacing: -0.035em; }
+  .intro { max-width: 34rem; margin-top: clamp(1rem, 2.5vw, 1.75rem); }
+
+  /* opening: black, rain, the forest fades up out of the dark, then the words in order.
+     Each piece of text is one unit and brightens from its bottom edge upward: a mask taller than the text slides down over it. */
+  .opening .center h1, .opening .who, .opening .what, .opening .more, .opening .nav {
+    -webkit-mask-image: linear-gradient(to top, #000 33.4%, transparent 66.6%); mask-image: linear-gradient(to top, #000 33.4%, transparent 66.6%);
+    -webkit-mask-size: 100% 300%; mask-size: 100% 300%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: 0 0%; mask-position: 0 0%;
+  }
+  .opening .center h1 { padding: 0.14em 0.06em; margin: -0.14em -0.06em; }      /* room for the letters that reach below the line */
+  .opening.op-title .center h1, .opening.op-name .who, .opening.op-rest .what, .opening.op-rest .more, .opening.op-rest .nav {
+    -webkit-mask-position: 0 100%; mask-position: 0 100%;
+    transition: -webkit-mask-position 1.2s cubic-bezier(0.3, 0, 0.2, 1), mask-position 1.2s cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  .opening.op-name .who { transition-duration: 0.9s; }
+  .opening.op-rest .what, .opening.op-rest .more, .opening.op-rest .nav { transition-duration: 0.9s; }
+  .opening.op-skip * { transition: none !important; }
+  .intro .who { margin: 0; font-size: var(--step-1); font-weight: 600; }
+  .intro .what { margin: 0.4rem 0 0; color: var(--ink-2); text-wrap: balance; }
+  .intro .more { display: inline-block; margin: 1.25rem 0.7rem 0; font-size: var(--step--1); color: var(--ink-2); text-underline-offset: 0.3em; text-decoration-style: dotted; }
+  .intro .more:hover, .intro .more:focus-visible { color: var(--ink); }
+
+  /* ---------- timeline ---------- */
+  main { min-height: calc(100svh - var(--floor, 16svh)); display: grid; align-content: center; padding: clamp(2.5rem, 6vw, 5rem) var(--gutter) 2rem; }
+  .wrap { width: 100%; max-width: 62rem; margin: 0 auto; }
+  h2 { margin: 0; font-size: var(--step-1); font-weight: 600; }
+  .sub { margin: 0.2rem 0 1.75rem; color: var(--ink-2); font-size: var(--step--1); }
+  .sub .vis { margin: 0 0.25em 0 0.3em; }
+  .sub a { color: var(--ink); text-underline-offset: 0.25em; text-decoration-style: dotted; }
+
+  .timeline { container-type: inline-size; }
+  .grid {
+    --lab: 9rem;            /* lane names, then the trunk the branches grow from */
+    --mode: wide;
+    --squeeze: 0.34;       /* 2023 and 2024 hold one entry, so their months are drawn this much narrower */
+    --tcell: calc((100cqi - var(--lab)) / (24 * var(--squeeze) + 27));
+    display: grid;
+    grid-template-columns: var(--lab) repeat(24, calc(var(--tcell) * var(--squeeze))) repeat(27, var(--tcell));
+    grid-template-rows: 1.5rem repeat(3, 3.7rem) 5.3rem 4.4rem;   /* lanes of bars (Club has room for two at once), then the awards, which are single dates */
+  }
+  .yr { grid-column: var(--a) / span 12; grid-row: 1; font: var(--step--1) var(--mono); color: var(--ink-3); }
+  .guide { grid-column: var(--a); grid-row: 2 / -1; border-left: 1px dotted var(--line); }
+  .lane { grid-column: 1; grid-row: var(--lane); align-self: end; padding: 0 5.1rem 0.3rem 0; text-align: right; font-size: var(--step--1); color: var(--ink-2); }
+  .trunk-slot { grid-column: 1; grid-row: 1 / -1; justify-self: end; width: 4.5rem; }   /* the canvas draws a tree exactly here */
+  .branch {                                   /* a thin dotted line from the trunk to the end of the lane's last entry */
+    grid-column: 1 / var(--b); grid-row: var(--lane); align-self: end; height: 0; border-top: 1px dotted var(--bark-hi);
+    margin: 0 0 0.8rem calc(var(--lab) - 2.25rem);
+    clip-path: inset(-2px calc((1 - var(--g, 1)) * 100%) -2px 0);
+  }
+  .branch.lane-award { align-self: center; margin-bottom: 0; }
+  .lane.lane-award { align-self: center; padding-bottom: 0; }
+  .lane .short { display: none; }
+  .now { grid-column: var(--a); grid-row: 1 / -1; border-left: 1px dotted var(--ink-3); font: 0.68rem var(--mono); color: var(--ink-2); padding-left: 0.3rem; white-space: nowrap; }
+
+  /* an entry is a solid bar from its first month to its last. Thickness and colour say how much there is behind it:
+     thick yellow = main work, white = has a page, thin grey = one line. An award is a single date: a diamond */
+  .bar {
+    grid-column: var(--a) / var(--b); grid-row: var(--lane);
+    position: relative; align-self: end; height: 0.5rem; margin: 0 2px 0.55rem;
+    padding: 0; border: 0; cursor: pointer; color: var(--ink); background: currentColor;
+  }
+  a.bar { display: block; text-decoration: none; }
+  .bar::before { content: ""; position: absolute; left: 0; bottom: 100%; width: 1px; height: 0.4rem; background: currentColor; }   /* ties the bar to its label */
+  .bar.deep { color: var(--snake); height: 0.72rem; margin-bottom: 0.44rem; }
+  .bar.brief { color: var(--ink-3); height: 0.28rem; margin-bottom: 0.66rem; }
+  .bar.lane-club { margin-bottom: 1.6rem; } .bar.lane-club.t1 { margin-bottom: 0.66rem; }   /* Club: a second, lower track for an entry that overlaps another */
+  .bar.award { align-self: center; justify-self: center; width: 0.62rem; height: 0.62rem; margin: 0; background: var(--bg); border: 1.5px solid var(--ink); transform: rotate(45deg); }
+  .bar.award::before { display: none; }
+  .bar:focus-visible { outline: 1px dotted var(--ink); outline-offset: 4px; }
+  .bar.approx { -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); mask-image: linear-gradient(to right, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); }
+  .bar.ongoing::after {                       /* still going: the bar runs on past "now" and fades */
+    content: ""; position: absolute; left: 100%; top: 0; width: calc(var(--tcell) * 4); height: 100%;
+    background: currentColor;
+    -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.6), transparent); mask-image: linear-gradient(to right, rgb(0 0 0 / 0.6), transparent);
+  }
+
+  /* the label sits above its bar: name, then the dates */
+  .lbl { grid-column: var(--a) / -1; grid-row: var(--lane); align-self: start; padding: 0.3rem 0 0 2px; font-size: var(--step--1); line-height: 1.3; white-space: nowrap; pointer-events: none; }
+  .lbl.end { grid-column: 2 / var(--b); justify-self: end; text-align: right; padding: 0.3rem 2px 0 0; }
+  .lbl b { font-weight: 600; }
+  .lbl.brief b { font-weight: 500; color: var(--ink-2); }
+  .lbl a { pointer-events: auto; color: inherit; text-decoration: none; }
+  .lbl a:hover, .lbl a:focus-visible { text-decoration: underline dotted; text-underline-offset: 0.25em; }
+  .lbl .role { color: var(--ink-2); margin-left: 0.5em; }
+  .lbl .when { display: block; margin-top: 0.1rem; font: 0.7rem var(--mono); color: var(--ink-3); }
+  .lbl .kick { display: none; }
+  .lbl.award { padding-top: 0.55rem; }                                   /* awards: date and name on one line, the first above its diamond, the next below */
+  .lbl.award.below { align-self: end; padding: 0 2px 0.55rem 0; }
+  .lbl.t1 { grid-column: var(--b) / -1; justify-self: start; text-align: left; align-self: end; padding: 0 0 0.2rem 0.55rem; }   /* the lower track's label sits after its bar */
+  .lbl.t1 .role { display: none; }
+  .lbl.award .when { display: inline; margin: 0 0.6em 0 0; }
+  .vis { display: inline-block; width: 0.5em; height: 0.6em; margin-left: 0.45em; background: var(--visual); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+  .readout { margin: 1.25rem 0 0; min-height: 1.6em; font-size: var(--step--1); color: var(--ink-2); }
+  .readout b { color: var(--ink); font-weight: 600; }
+  .readout a { color: var(--ink); text-underline-offset: 0.25em; text-decoration-style: dotted; }
+
+  /* narrow: time runs top to bottom, lanes become columns */
+  /* wide: everything hangs off the tree and grows out along its branch as you scroll */
+  @container (min-width: 40.01rem) {
+    .timeline h2, .timeline .sub, .timeline .readout { padding-left: 9rem; }
+    .nofx .bar, .nofx .lbl { transition: none !important; }
+    .grid.grow .bar { clip-path: inset(-0.5rem 100% -0.5rem 0); transition: clip-path 0.25s linear; }
+    .grid.grow .bar.in { clip-path: inset(-0.5rem -6rem -0.5rem 0); transition: clip-path 0.9s var(--ease); }
+    .grid.grow .lbl { opacity: 0; transform: translateY(0.4rem); transition: opacity 0.2s linear, transform 0.2s linear; }
+    .grid.grow .lbl.in { opacity: 1; transform: none; transition: opacity 0.6s var(--ease) 0.15s, transform 0.7s var(--ease) 0.15s; }
+  }
+
+  @container (max-width: 40rem) {
+    .grid {
+      --mode: narrow;
+      --tcell: 1.1rem;
+      grid-template-columns: 2.6rem repeat(5, 1.5rem) 1fr;
+      grid-template-rows: 1.5rem repeat(24, calc(var(--tcell) * var(--squeeze))) repeat(27, var(--tcell));
+    }
+    .yr { grid-column: 1; grid-row: var(--a) / span 12; }
+    .guide { grid-column: 2 / 7; grid-row: var(--a); border-left: 0; border-top: 1px dotted var(--line); }
+    .lane, .lane.lane-award { grid-column: var(--lane); grid-row: 1; align-self: start; padding: 0; text-align: center; font-size: 0.62rem; }
+    .branch, .trunk-slot { display: none; }
+    .lane .full { display: none; }
+    .lane .short { display: inline; }
+    .now { grid-column: 1 / -1; grid-row: var(--a); border-left: 0; border-top: 1px dotted var(--ink-3); padding: 0; text-align: left; line-height: 1.6; }
+    .bar, .bar.deep, .bar.brief { grid-column: var(--lane); grid-row: var(--a) / var(--b); align-self: stretch; justify-self: center; width: 0.5rem; height: auto; margin: 1.5px 0; }
+    .bar.deep { width: 0.72rem; } .bar.brief { width: 0.28rem; }
+    .bar.lane-club { justify-self: start; margin-left: 0.35rem; } .bar.lane-club.t1 { justify-self: end; margin: 1.5px 0.35rem 1.5px 0; }
+    .bar.award { grid-column: var(--lane); grid-row: var(--a) / var(--b); align-self: center; justify-self: center; width: 0.62rem; height: 0.62rem; margin: 0; }
+    .bar::before { display: none; }
+    .bar.approx { -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); }
+    .bar.ongoing::after { left: 0; top: 100%; width: 100%; height: calc(var(--tcell) * 4); -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.6), transparent); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.6), transparent); }
+    /* labels go in a column on the right, in date order; each says which lane it belongs to */
+    .lbl, .lbl.end, .lbl.award, .lbl.award.below, .lbl.t1 { grid-column: 7; grid-row: var(--la) / span 2; align-self: start; justify-self: start; text-align: left; padding: 0 0 0 0.75rem; white-space: normal; display: flex; flex-direction: column; }
+    .lbl b { order: 1; } .lbl .role { display: none; }
+    .lbl .when, .lbl.award .when { order: 2; display: block; margin: 0.1rem 0 0; white-space: nowrap; font-size: 0.66rem; }
+    .lbl .kick { display: inline; text-transform: uppercase; letter-spacing: 0.08em; }
+  }
+
+  footer { padding: 1rem var(--gutter) 1.5rem; color: var(--ink-3); font-size: var(--step--1); }
+  footer .wrap { border-top: 1px dotted var(--line); padding-top: 1rem; }
+</style>
+</head>
+<body>
+
+<canvas class="sky" aria-hidden="true"></canvas>
+<canvas class="ground" aria-hidden="true"></canvas>
+
+<header class="hero">
+  <nav class="nav" aria-label="Site">
+    <a class="me" href="#">Rainyforest</a>
+    <ul>
+      <li><a href="work/index.html">Experience</a></li>
+      <li><a href="study/index.html">Study</a></li>
+      <li><a href="principles/index.html">Principles</a></li>
+      <li><a href="keynotes/index.html">Keynotes</a></li>
+      <li><a href="blog/index.html">Blog</a></li>
+      <li><a href="woorim-shin-cv.pdf">CV</a></li>
+    </ul>
+  </nav>
+  <div class="center">
+    <h1>Rainyforest</h1>
+    <div class="intro">
+      <p class="who">Woorim Shin</p>
+      <p class="what">I take hard, messy problems from the people who have them to systems that hold up in production, and I stay until they do.</p>
+      <a class="more" href="about.html">Why Rainyforest? →</a><a class="more" href="#experience">Experience ↓</a>
+    </div>
+  </div>
+</header>
+
+<main id="experience">
+  <div class="wrap timeline">
+    <h2>Experience</h2>
+    <p class="sub">2023 to now, with 2023–24 drawn shorter. Yellow is the main work. <i class="vis"></i> has a visual explanation. <a href="work/index.html">All experience →</a></p>
+    <div class="grid" id="grid"></div>
+    <p class="readout" id="readout" aria-live="polite">Point at a bar, or tap it.</p>
+  </div>
+</main>
+
+<footer><div class="wrap">A preview. The site is still being built.</div></footer>
+
+<script>
+/* ============ timeline (static mock of the spec's lanes × years) ============ */
+(() => {
+  const N = 51, Y0 = 2023;                       // 2023-01 … 2027-03
+  const idx = ym => { const [y, m] = ym.split('-').map(Number); return (y - Y0) * 12 + m; };  // 1-based
+  const NOW = idx('2026-11');
+  // lanes: paid work, research, projects, clubs, awards. Study has its own section and is not on the timeline
+  const lanes = [['work', 'Work', 'Work'], ['research', 'Research', 'Res.'], ['project', 'Project', 'Proj.'], ['club', 'Club', 'Club'], ['award', 'Award', 'Awd']];
+  const items = [
+    { lane: 'work', title: 'SDIJ Forest Team', role: 'Project Lead', when: 'Feb 2023 – Jun 2025', href: 'work/sdij-forest/index.html', s: '2023-02', e: '2025-06', tier: 'deep', cls: '' },
+    { lane: 'work', title: 'Hiconsy', role: 'AI R&D Intern', when: 'Jun 2025 – Jul 2026', href: 'work/hiconsy-lecture-asr/index.html', s: '2025-06', e: '2026-07', tier: 'deep', cls: '' },
+    { lane: 'research', title: 'Energy cost model', long: 'Energy cost model for AI workloads', role: '', when: 'Sep 2025 – Jun 2026', href: 'work/energy-cost-model/story/index.html', visual: true, s: '2025-09', e: '2026-06', tier: 'standard', cls: '' },
+    { lane: 'project', title: 'Tesla Jr.', role: 'Course project', when: 'May – Jun 2026', href: 'work/tesla-jr/story/index.html', visual: true, s: '2026-05', e: '2026-06', tier: 'standard', cls: '' },
+    { lane: 'club', title: 'Ewha Taekwondo', role: 'Member', long: 'Ewha Taekwondo, a central club of about 50. 2nd place, women\'s team poomsae, SNU President\'s Cup 2023', when: 'Sep 2023 – Feb 2025', s: '2023-09', e: '2025-02', tier: 'brief', cls: '' },
+    { lane: 'club', title: 'UMC', role: 'iOS track', long: 'UMC, a cross-university IT club of 25 schools', when: 'Mar – Aug 2025', s: '2025-03', e: '2025-08', tier: 'brief', cls: '' },
+    { lane: 'club', title: 'GDGoC Ewha', role: 'AI track', long: 'GDGoC Ewha: AI track; PM and AI developer of SoundSight, Google Solution Challenge 2026', when: 'Sep 2025 – Aug 2026', s: '2025-09', e: '2026-08', tier: 'brief', cls: '' },
+    { lane: 'club', title: 'ACC Ewha', role: 'AWS Cloud Club', long: 'ACC Ewha (AWS Cloud Club), about 15 universities', when: 'Mar – Aug 2026', s: '2026-03', e: '2026-08', tier: 'brief', cls: '' },
+    { lane: 'award', title: 'Startup Exploration Competition · Encouragement Award', long: 'Ewha Startup Exploration Competition, Encouragement Award (4th of 20)', role: '', when: 'Nov 2025', s: '2025-11', e: '2025-11', tier: 'brief', cls: 'award' },
+    { lane: 'award', title: 'Boeing Capstone Innovation Award · Grand Prize', long: 'Boeing Capstone Innovation Award, Grand Prize (1st of 41)', role: '', when: 'Jun 2026', s: '2026-06', e: '2026-06', tier: 'brief', cls: 'award below' },
+  ].sort((p, q) => idx(p.s) - idx(q.s));
+  for (const it of items) { it.a = idx(it.s) + 1; it.b = idx(it.e) + 2; }
+  for (const it of items) it.track = 0;
+  for (const it of items) for (const next of items) if (next !== it && next.lane === it.lane && next.a > it.a && next.a < it.b) {
+    if (it.b - next.a <= 1) it.b = next.a;          // they share one month: the earlier one stops where the later one starts
+    else next.track = 1;                            // they really overlap: the later one goes on the lower track
+  }
+  const grid = document.getElementById('grid'), readout = document.getElementById('readout');
+  const el = (tag, cls, vars = {}, html = '') => {
+    const n = document.createElement(tag); n.className = cls; n.innerHTML = html;
+    for (const k in vars) n.style.setProperty(k, vars[k]);
+    grid.appendChild(n); return n;
+  };
+  for (let y = Y0; y <= 2027; y++) {
+    const a = idx(`${y}-01`) + 1;
+    el('div', 'guide', { '--a': a });
+    if (y < 2027) el('div', 'yr', { '--a': a }, String(y));
+  }
+  lanes.forEach(([key, full, short], i) => el('div', `lane lane-${key}`, { '--lane': i + 2 }, `<span class="full">${full}</span><span class="short">${short}</span>`));
+  el('div', 'now', { '--a': NOW + 1 }, 'now');
+  el('div', 'trunk-slot');
+  const branches = lanes.map(([key], i) => {
+    const mine = items.filter(it => it.lane === key), end = Math.max(...mine.map(it => idx(it.e) + 2)) + (mine.some(it => it.cls === 'ongoing') ? 4 : 0);
+    return el('div', `branch lane-${key}`, { '--b': Math.min(end, N + 2), '--lane': i + 2 });
+  });
+  const parts = [];
+
+  let lastLabelRow = 0, lastLong = false;
+  for (const it of items) {
+    const a = it.a, b = it.b, lane = lanes.findIndex(l => l[0] === it.lane) + 2;
+    const bar = el(it.href ? 'a' : 'button', `bar ${it.tier} ${it.cls} lane-${it.lane}${it.track ? ' t1' : ''}`, { '--a': a, '--b': b, '--lane': lane }), part = { lane: lane - 2, els: [bar], fx: 0 };
+    parts.push(part);
+    if (it.href) bar.href = it.href; else bar.type = 'button';
+    bar.setAttribute('aria-label', `${it.long || it.title}${it.role ? ', ' + it.role : ''}, ${it.when}`);
+    const show = () => { readout.innerHTML = `<b>${it.long || it.title}</b>${it.role ? ' — ' + it.role : ''} · ${it.when}${it.href ? ` · <a href="${it.href}">${it.visual ? 'Visual explanation' : 'Write-up'} →</a>` : ''}`; };
+    bar.addEventListener('pointerenter', show); bar.addEventListener('focus', show); bar.addEventListener('click', show);
+    {
+      const la = Math.max(a, lastLabelRow + (lastLong ? 3 : 2)); lastLabelRow = la; lastLong = it.title.length > 24;   // narrow screens: keep stacked labels apart
+      const award = it.cls.includes('award'), name = `<b>${it.href ? `<a href="${it.href}">${it.title}</a>` : it.title}${it.visual ? '<i class="vis" title="Has a visual explanation"></i>' : ''}</b>`;
+      const when = `<span class="when"><span class="kick">${lanes[lane - 2][2]} · </span>${it.when}</span>`;
+      part.els.push(el('div', `lbl ${it.tier}${award ? ' ' + it.cls : ''}${it.track ? ' t1' : award || a > N - 16 ? ' end' : ''}`, { '--a': a, '--b': b, '--lane': lane, '--la': la },
+        award ? when + name : name + (it.role ? `<span class="role">${it.role}</span>` : '') + when));
+    }
+  }
+
+  /* growth: each branch reaches out from the trunk as the timeline rises into view; bars open when the branch gets to them */
+  const still = matchMedia('(prefers-reduced-motion: reduce)'), pinned = new URLSearchParams(location.search).get('t');
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  let g = 0, raf = 0, last = 0;
+  const measure = () => { for (const pt of parts) { const br = branches[pt.lane].getBoundingClientRect(), r = pt.els[0].getBoundingClientRect(); pt.fx = br.width ? clamp01((r.left - br.left) / br.width) : 0; } };
+  function step(ms) {
+    raf = 0;
+    const dt = Math.min(0.05, (ms - last) / 1000 || 0); last = ms;
+    const wide = getComputedStyle(grid).getPropertyValue('--mode').trim() === 'wide', H = window.innerHeight;
+    const goal = !wide || still.matches ? 1 : pinned !== null ? clamp01(parseFloat(pinned)) : clamp01((H * 0.84 - grid.getBoundingClientRect().top) / (H * 0.5));
+    g = still.matches || pinned !== null ? goal : g + (goal - g) * (1 - Math.exp(-dt * 5));
+    branches.forEach((b, i) => b.style.setProperty('--g', clamp01((g - i * 0.1) / 0.6).toFixed(3)));
+    for (const pt of parts) { const local = clamp01((g - pt.lane * 0.1) / 0.6), on = local > 0 && local >= pt.fx - 0.001; for (const e of pt.els) e.classList.toggle('in', on); }
+    if (Math.abs(goal - g) > 0.001) raf = requestAnimationFrame(step);
+  }
+  const wake = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); } };
+  if (!still.matches) grid.classList.add('grow');
+  if (pinned !== null) document.documentElement.classList.add('nofx');
+  new ResizeObserver(() => { measure(); wake(); }).observe(grid);
+  addEventListener('scroll', wake, { passive: true });
+  measure(); wake();
+})();
+
+/* ============ hero: one dot grid, modulated into forest, rain and snake ============ */
+(() => {
+  const hero = document.querySelector('.hero'), cv = document.querySelector('.sky'), ctx = cv.getContext('2d'), gcv = document.querySelector('.ground'), gx = gcv.getContext('2d');
+  const css = getComputedStyle(document.documentElement);
+  const hex = name => { const h = css.getPropertyValue(name).trim().slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+  const K = Object.fromEntries(['bg', 'dot', 'leaf-lo', 'leaf', 'leaf-hi', 'bark-lo', 'bark-hi', 'floor-lo', 'floor-hi', 'rain', 'snake', 'snake-2', 'snake-hi', 'tongue'].map(n => [n, hex('--' + n)]));
+  const lerp = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  const rgb = a => `rgb(${a.map(Math.round).join(',')})`;
+  const clamp = (v, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+  const hash = (x, y) => { let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const sm = t => t * t * (3 - 2 * t);
+  const vnoise = (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), u = sm(x - xi), v = sm(y - yi);
+    const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  };
+  const fbm = (x, y) => vnoise(x, y) * 0.65 + vnoise(x * 2.1 + 7, y * 2.1 + 3) * 0.35;
+  const ramp = (mat, l) => {
+    l = clamp(l);
+    if (mat === 'bark') return lerp(K['bark-lo'], K['bark-hi'], l);
+    if (mat === 'floor') return lerp(K['floor-lo'], K['floor-hi'], l);
+    return l < .5 ? lerp(K['leaf-lo'], K.leaf, l * 2) : lerp(K.leaf, K['leaf-hi'], (l - .5) * 2);
+  };
+
+  let W = 0, H = 0, s = 8, ox = 0, cols = 0, rows = 0, G = 0, dpr = 1;
+  const mk = () => document.createElement('canvas'), base = mk(), baseB = mk(), floorImg = mk(), front = mk();   // forest for the first screen, forest for the timeline, ground, corner leaves
+  let calm = null, column = null, zones = [], minQ = 0, expX = null, drops = [], splashes = [];
+  const snake = { hx: null, dir: 1, wait: 0 };
+  const groundAt = c => G + Math.round((vnoise(c * 0.05, 5) - 0.5) * 4);
+  const dot = (g, c, r, rad) => { g.beginPath(); g.arc(ox + (c + 0.5) * s, (r + 0.5) * s, rad, 0, 6.2832); g.fill(); };
+  const quiet = (c, r) => { let q = 1; for (const z of zones) q = Math.min(q, Math.hypot(Math.max(z.c0 - c, 0, c - z.c1), Math.max(z.r0 - r, 0, r - z.r1)) / z.f); return Math.max(minQ, q); };
+
+  function layout() {
+    W = document.documentElement.clientWidth; H = window.innerHeight;
+    s = W < 520 ? 6 : W < 1000 ? 7 : 8;
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    for (const c of [cv, gcv, base, baseB, floorImg, front]) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    cols = Math.ceil(W / s); rows = Math.ceil(H / s); ox = (W - cols * s) / 2;
+    G = rows - Math.max(12, Math.round(rows * 0.16));
+    document.documentElement.style.setProperty('--floor', (rows - G + 2) * s + 'px');   // the page leaves this much room for the ground
+
+    const hr = hero.getBoundingClientRect();
+    const box = (el, pad, f) => { const b = el.getBoundingClientRect(); return { c0: Math.floor((b.left - hr.left - ox) / s) - pad, c1: Math.ceil((b.right - hr.left - ox) / s) + pad - 1, r0: Math.floor((b.top - hr.top) / s) - pad, r1: Math.ceil((b.bottom - hr.top) / s) + pad - 1, f }; };
+    const a = box(hero.querySelector('.center h1'), 2, 0), b = box(hero.querySelector('.intro'), 2, 0);
+    calm = { c0: Math.min(a.c0, b.c0), c1: Math.max(a.c1, b.c1), r0: a.r0, r1: b.r1, f: Math.max(6, Math.round(cols * 0.08)) };
+    const slot = document.querySelector('.trunk-slot'), sb = slot && slot.offsetParent !== null ? slot.getBoundingClientRect() : null;
+    expX = sb ? (sb.left + sb.width / 2 - ox) / s : null;
+    const zonesA = [calm, ...[...hero.querySelectorAll('.nav .me, .nav ul, .nav .lang')].map(el => box(el, 1, 4))];
+    const wr = document.querySelector('main .wrap').getBoundingClientRect();
+    column = { c0: Math.floor((wr.left - ox) / s) - 2, c1: Math.ceil((wr.right - ox) / s) + 1, r0: -999, r1: 999, f: Math.max(5, Math.round(cols * 0.05)) };
+
+    zones = zonesA; minQ = 0; paintScene(base, true);            // first screen: clear around the title
+    zones = [column]; minQ = 0.16; paintScene(baseB, false);     // timeline: trees stay at the sides, faint behind the content
+    drops = Array.from({ length: Math.round(cols * 0.3) }, () => newDrop(true));
+    splashes = [];
+    snake.hx = snake.hx === null ? (document.documentElement.classList.contains('opening') ? -4 : cols * 0.46) : clamp(snake.hx, -10, cols + 70);
+  }
+
+  /* ---- the forest: every shape below only decides how big and what colour a grid dot is ---- */
+  function paintScene(target, withFront) {
+    const big = cols >= 140, mid = cols >= 90, k = big ? 1 : mid ? 0.82 : 0.62;
+    const ch = rows * (big ? 0.27 : mid ? 0.25 : 0.2);                      // canopy depth
+    const trees = (big ? [
+      [.335, 2.2, 0, .28], [.665, 2.2, 0, .28], [.105, 3.2, 0, .4], [.255, 3, .02, .4], [.74, 3.2, -.02, .4], [.985, 3.6, 0, .4],
+      [.165, 6, -.03, .7], [.82, 6.5, .035, .7], [.045, 11, .05, 1], [.93, 12.5, -.06, 1],
+    ] : mid ? [
+      [.12, 2.6, 0, .4], [.88, 2.6, 0, .4], [.19, 4.6, -.03, .7], [.81, 4.8, .03, .7], [.04, 9, .05, 1], [.95, 10, -.06, 1],
+    ] : [
+      [.11, 2, 0, .35], [.2, 3.2, -.02, .6], [.8, 3.4, .025, .6], [.02, 7.5, .04, 1], [.985, 8, -.05, 1],
+    ]).map(([x, w, lean, z], i) => ({ x, w, lean, z, sd: i + 1 }));
+    if (expX !== null) {                                       // the experience tree replaces the nearest mid-distance tree on the left
+      const i = trees.findIndex(t => t.z === .7 && t.x < .5);
+      if (i >= 0) trees[i] = { x: expX / cols, w: big ? 9 : 8, lean: 0, z: 1, sd: 3, exp: true };
+    }
+    const trunkX = (t, r) => t.x * cols + t.lean * (G - r) + Math.sin((G - r) * 0.035 + t.sd * 1.7) * (t.exp ? 0.4 : 1.3) * t.z;
+
+    // things drawn by stamping small discs along a curve: branches, lianas, vines, ferns
+    const stamp = (map, x, y, rad, lum, mat, fade = 1) => {
+      for (let c = Math.floor(x - rad); c <= Math.ceil(x + rad); c++) for (let r = Math.floor(y - rad); r <= Math.ceil(y + rad); r++) {
+        const d = Math.hypot(c + .5 - x, r + .5 - y); if (d > rad + .35) continue;
+        const l = lum * (1 - 0.45 * (d / (rad + .35)) ** 2), key = c * 4096 + r, cur = map.get(key);
+        if (!cur || l > cur.l) map.set(key, { l, mat, fade });
+      }
+    };
+    const blobs = [], limbs = { mid: new Map(), near: new Map() }, hang = new Map(), ferns = new Map();
+
+    for (const t of trees) {
+      if (t.z < .6) continue;
+      const n = t.z >= 1 ? 3 : 2, inward = t.x < .5 ? 1 : -1;
+      for (let i = 0; i < n; i++) {
+        const h1 = hash(t.sd, i * 7 + 1), h2 = hash(t.sd, i * 7 + 2), side = i % 2 ? -inward : inward;
+        const r0 = ch * (0.72 + 0.34 * i) + h1 * 3, x0 = trunkX(t, r0), len = t.w * (2.4 + 1.6 * h2);
+        const dx = side * (0.85 + 0.5 * h1), dy = -(0.55 + 0.5 * h2), nrm = Math.hypot(dx, dy);
+        for (let p = 0; p <= 1; p += 0.5 / len) {
+          const bend = Math.sin(p * 3.1416) * len * 0.08;
+          stamp(t.z >= 1 ? limbs.near : limbs.mid, x0 + dx / nrm * len * p, r0 + dy / nrm * len * p + bend, (t.w * 0.2) * (1 - p) + 0.5, 0.62 - 0.2 * p, 'bark', 0.45 + 0.55 * t.z);
+        }
+        blobs.push({ x: x0 + dx / nrm * len, y: r0 + dy / nrm * len, R: (6 + 5 * h1) * k, z: t.z, i: blobs.length });
+      }
+      for (const off of [-1, 1]) {                                          // a fern at each side of the roots
+        const bx = trunkX(t, G) + off * t.w * (0.9 + 0.4 * hash(t.sd, off + 5)), by = groundAt(Math.round(bx)) + 1;
+        for (let f = 0; f < 5; f++) {
+          const ang = (-160 + f * 35 + (hash(t.sd * 3 + off, f) - .5) * 12) * Math.PI / 180, L = (10 + 7 * hash(f, t.sd)) * k * (0.6 + 0.4 * t.z);
+          for (let p = 0; p <= 1; p += 0.4 / L) {
+            const x = bx + Math.cos(ang) * L * p, y = by + Math.sin(ang) * L * p + 0.55 * L * p * p;
+            stamp(ferns, x, y, 0.3 + 0.55 * Math.sin(Math.min(1, p * 1.08) * 3.1416) ** 0.6 * (0.4 + 0.6 * Math.abs(Math.sin(p * L * 1.1))), 0.4 + 0.5 * p, 'leaf', 0.55 + 0.45 * t.z);
+          }
+        }
+      }
+    }
+    // canopy: overlapping leaf clumps, thinner over the middle of the screen
+    const nb = Math.round(cols / 2.6);
+    for (let i = 0; i < nb; i++) {
+      let x = hash(i, 11) * cols, y = hash(i, 12) ** 1.7 * ch * 1.05 - 2, R = ((big ? 5 : 4) + hash(i, 13) * (big ? 9 : 7)) * (mid ? 1 : 0.85);
+      const centre = Math.exp(-(((x / cols - .5) / .2) ** 2));
+      if (centre > 0.3 && y + R > ch * 0.45) { y *= 0.3; R *= 0.7; }
+      blobs.push({ x, y, R, z: 0.4 + 0.6 * hash(i, 14), i: blobs.length });
+    }
+    for (const side of [0, 1]) for (let i = 0; i < 4; i++)
+      blobs.push({ x: side ? cols - hash(i, 21) * cols * 0.13 : hash(i, 22) * cols * 0.13, y: ch * (0.45 + 0.7 * hash(i + side * 9, 23)), R: (9 + 5 * hash(i, 24 + side)) * k, z: 0.95, i: blobs.length });
+    blobs.sort((a, b) => a.z - b.z);
+
+    // lianas draped between trunks, and vines hanging from the canopy
+    const strong = trees.filter(t => t.z >= .6);
+    for (let i = 0; i + 1 < strong.length; i++) {
+      const a = strong[i], b = strong[i + 1]; if (Math.abs(a.x - b.x) > 0.3) continue;
+      const ra = ch * (0.95 + 0.3 * hash(i, 31)), rb = ch * (0.8 + 0.3 * hash(i, 32)), xa = trunkX(a, ra), xb = trunkX(b, rb), sag = (7 + 6 * hash(i, 33)) * k;
+      for (let p = 0; p <= 1; p += 0.4 / Math.abs(xb - xa)) {
+        const x = xa + (xb - xa) * p, y = ra + (rb - ra) * p + sag * 4 * p * (1 - p);
+        stamp(hang, x, y, 0.45, 0.42, 'bark', 0.8);
+        if (Math.round(p * Math.abs(xb - xa)) % 5 === 2) stamp(hang, x, y + 1.2, 0.7, 0.5, 'leaf', 0.8);
+      }
+    }
+    for (let i = 0; i < (big ? 14 : mid ? 9 : 6); i++) {
+      const rr = hash(i, 41), x0 = (rr < .5 ? rr * 2 * .34 : .66 + (rr - .5) * 2 * .34) * cols, r0 = ch * (0.2 + 0.5 * hash(i, 42)), len = 8 + hash(i, 43) * rows * 0.3;
+      for (let d = 0; d <= len; d += 0.5) {
+        const x = x0 + Math.sin(d * 0.11 + i) * 1.1, y = r0 + d;
+        stamp(hang, x, y, 0.35, 0.34, 'leaf', 0.75);
+        if (Math.round(d * 2) % 7 === 3) stamp(hang, x + (Math.round(d) % 2 ? 1.1 : -1.1), y, 0.75, 0.55, 'leaf', 0.75);
+      }
+    }
+    // big leaves in the bottom corners, drawn on their own layer so the snake can pass behind them
+    const leaves = [];
+    for (const side of [0, 1]) [[-84, 30], [-60, 37], [-35, 33], [-13, 25]].forEach(([deg, L], i) => {
+      const a = (side ? 180 - deg : deg) * Math.PI / 180, len = L * k * (0.9 + 0.2 * hash(i, 51 + side));
+      leaves.push({ x: side ? cols + 2 - i * 2 : -2 + i * 2, y: rows + 3, cos: Math.cos(a), sin: Math.sin(a), len, wid: len * 0.4, light: 0.8 + 0.2 * hash(i, 53 + side), flip: side ? -1 : 1 });
+    });
+
+    const g = target.getContext('2d'), fg = front.getContext('2d'), fl = floorImg.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = rgb(K.bg); g.fillRect(0, 0, W, H);
+    if (withFront) for (const x of [fg, fl]) { x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H); }
+    const rad0 = Math.max(0.6, s * 0.07);
+
+    const trunk = (t, c, r, gr) => {
+      if (r > gr) return null;
+      const h = G - r, hw = t.w / 2 * (0.82 + 0.18 * Math.exp(-h / 40)) + (t.z >= .6 ? t.w * 0.95 * Math.exp(-Math.max(0, h) / (t.w * 0.75)) : 0);
+      const px = c + .5 - trunkX(t, r), u = px / hw; if (Math.abs(u) > 1) return null;
+      let l = 0.06 + Math.sqrt(1 - u * u) ** 0.7 * clamp(0.78 - 0.62 * u, 0.12, 1);           // round column lit from the left
+      if (t.w > 4 && Math.sin(px * 2.6 + vnoise(r * 0.05, t.sd) * 5 + Math.sin(r * 0.09 + t.sd) * 0.8) > 0.5) l *= 0.4;   // bark furrows
+      l *= 0.82 + 0.36 * fbm(c * 0.35 + t.sd * 7, r * 0.09);                                  // blotches
+      const moss = t.z >= .6 && fbm(c * 0.2 + t.sd * 3, r * 0.1) > 0.72;
+      return { l: moss ? l * 0.9 : l, mat: moss ? 'leaf' : 'bark', fade: 0.4 + 0.6 * t.z, solid: !!t.exp };
+    };
+    const blob = (b, c, r) => {
+      const dx = c + .5 - b.x, dy = r + .5 - b.y; if (Math.abs(dx) > b.R * 1.2 || Math.abs(dy) > b.R * 1.2) return null;
+      const R = b.R * (0.8 + 0.4 * vnoise(Math.atan2(dy, dx) * 2.2 + b.i * 13, b.i)), d = Math.hypot(dx, dy) / R; if (d > 1) return null;
+      let l = clamp(0.66 - 0.6 * dy / R - 0.16 * dx / R) * (0.5 + 0.5 * Math.sqrt(1 - d * d));  // clump lit from above
+      l *= (0.5 + 0.9 * hash(c * 7 + b.i, r)) * (0.75 + 0.5 * vnoise(c * 0.9, r * 0.9));        // leaves
+      return l < 0.07 ? null : { l, mat: 'leaf', fade: 0.4 + 0.6 * b.z };
+    };
+
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const q = quiet(c, r), gr = groundAt(c), key = c * 4096 + r;
+      let hit = null;
+      if (q > 0) {
+        for (const t of trees) if (t.z < .6) hit = trunk(t, c, r, gr) || hit;
+        for (const b of blobs) if (b.z < .7) hit = blob(b, c, r) || hit;
+        hit = hang.get(key) || hit;
+        for (const t of trees) if (t.z >= .6 && t.z < 1) hit = trunk(t, c, r, gr) || hit;
+        hit = limbs.mid.get(key) || hit;
+        for (const t of trees) if (t.z >= 1) hit = trunk(t, c, r, gr) || hit;
+        const solid = hit && hit.solid && q < 0.99 ? hit : null;
+        hit = limbs.near.get(key) || hit;
+        for (const b of blobs) if (b.z >= .7) hit = blob(b, c, r) || hit;
+        hit = ferns.get(key) || hit;
+        if (solid) hit = solid;
+      }
+      g.fillStyle = rgb(K.dot); dot(g, c, r, rad0);
+      if (hit) {
+        const qq = hit.solid ? 1 : Math.min(1, q);              // the experience tree never fades
+        g.globalAlpha = qq; g.fillStyle = rgb(lerp(K.bg, ramp(hit.mat, hit.l), hit.fade));
+        dot(g, c, r, s * (0.06 + 0.45 * clamp(hit.l)) * (0.55 + 0.45 * qq)); g.globalAlpha = 1;
+      }
+      if (withFront && r >= gr) {                                           // the ground is solid: the page scrolls up from behind it
+        const l = 0.2 + 0.3 * (r - gr) / Math.max(1, rows - gr) + 0.4 * fbm(c * 0.15, r * 0.45) + 0.18 * hash(c, r);
+        fl.fillStyle = rgb(K.bg); fl.fillRect(ox + c * s - 0.5, r * s - 0.5, s + 1, s + 1);
+        fl.fillStyle = rgb(ramp('floor', l)); dot(fl, c, r, s * (0.06 + 0.45 * clamp(l)));
+      }
+      if (withFront) for (const lf of leaves) {
+        const px = (c + .5 - lf.x) * lf.cos + (r + .5 - lf.y) * lf.sin, py = -(c + .5 - lf.x) * lf.sin + (r + .5 - lf.y) * lf.cos, u = px / lf.len;
+        if (u <= 0 || u >= 1) continue;
+        const hw = lf.wid / 2 * Math.sin(3.1416 * u ** 0.8), v = py / hw; if (Math.abs(v) > 1) continue;
+        fg.fillStyle = rgb(K.bg); fg.fillRect(ox + c * s, r * s, s, s);
+        if (Math.abs(v) > 0.8 || u < 0.04) continue;                                            // dark rim
+        let l = (v * lf.flip > 0 ? 0.36 : 0.66) * lf.light * (0.8 + 0.2 * (1 - Math.abs(v)));   // one half catches the light
+        if (Math.abs(py) < 0.6) l *= 0.25;                                                      // midrib
+        else { const ph = px * 0.2 - Math.abs(py) * 0.42; if (ph - Math.floor(ph) < 0.14) l *= 0.55; }   // side veins
+        fg.fillStyle = rgb(ramp('leaf', 0.12 + 0.85 * l)); dot(fg, c, r, s * (0.14 + 0.4 * l));
+      }
+    }
+  }
+
+  function newDrop(anywhere) {
+    return { c: Math.floor(Math.random() * cols), y: anywhere ? Math.random() * rows : -Math.random() * rows * 0.6, v: 55 + Math.random() * 35 };
+  }
+  function drawRain(dt, moving, over, amount = 1) {
+    ctx.fillStyle = rgb(K.rain);
+    for (let i = 0, n = Math.round(drops.length * amount); i < n; i++) {
+      const d = drops[i];
+      if (moving) d.y += d.v * dt;
+      const gy = groundAt(d.c) + 2;
+      if (d.y >= gy) { if (moving) { splashes.push({ c: d.c, r: gy - 1, t: 0 }); drops[i] = newDrop(false); } continue; }
+      const head = Math.floor(d.y);
+      for (let n = 0; n < 4; n++) {
+        const r = head - n; if (r < 0) continue;
+        const inside = d.c >= calm.c0 && d.c <= calm.c1 && r >= calm.r0 && r <= calm.r1;
+        ctx.globalAlpha = [0.75, 0.42, 0.22, 0.1][n] * (inside ? 0.25 + 0.75 * over : 1) * (d.c >= column.c0 && d.c <= column.c1 ? 1 - 0.8 * over : 1);
+        dot(ctx, d.c, r, s * 0.17);
+      }
+    }
+    for (let i = splashes.length - 1; i >= 0; i--) {
+      const p = splashes[i]; p.t += dt;
+      if (p.t > 0.18) { splashes.splice(i, 1); continue; }
+      ctx.globalAlpha = 0.55 * (1 - p.t / 0.18);
+      const spread = 1 + Math.floor(p.t / 0.09);
+      dot(ctx, p.c - spread, p.r - spread + 1, s * 0.14); dot(ctx, p.c + spread, p.r - spread + 1, s * 0.14);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---- the snake: a thick curve; each grid dot it covers knows where along and across the body it sits ---- */
+  const bodyR = (u, L) => {
+    if (u < 0.8) return 1.0 + u / 0.8 * 1.0;                 // snout
+    if (u < 2.6) return 2.0 + (u - 0.8) / 1.8 * 0.6;         // head, widest at the jaw
+    if (u < 3.8) return 2.6 - (u - 2.6) / 1.2 * 1.3;         // back of the head into the neck
+    if (u < 8) return 1.3 + (u - 3.8) / 4.2 * 0.5;
+    const t = u / L; return t < 0.55 ? 1.8 : Math.max(0.3, 1.8 * (1 - (t - 0.55) / 0.45) ** 0.85);
+  };
+  function drawSnake(dt, moving, time) {
+    const floor = rows - G, by = G + floor * 0.55, A = Math.min(3.2, floor * 0.2), L = clamp(cols * 0.3, 28, 56);
+    const path = x => by + A * Math.sin(x * 0.24) + A * 0.4 * Math.sin(x * 0.09 + 1.3);
+    const slope = x => A * 0.24 * Math.cos(x * 0.24) + A * 0.4 * 0.09 * Math.cos(x * 0.09 + 1.3);
+    if (moving) {
+      if (snake.wait > 0) { snake.wait -= dt; if (snake.wait <= 0) { snake.dir *= -1; snake.hx = snake.dir > 0 ? -3 : cols + 3; } return; }
+      snake.hx += snake.dir * (6.2 + 1.6 * Math.sin(time * 1.3)) * dt;         // a little surge and ease, like a real crawl
+      if (snake.dir > 0 ? snake.hx > cols + L + 3 : snake.hx < -L - 3) { snake.wait = 4; return; }
+    }
+    const dir = snake.dir, pts = [];
+    for (let u = 0, x = snake.hx; u <= L; u += 0.25) {                           // equal steps along the curve, not along x
+      const m = slope(x), n = Math.hypot(1, m);
+      pts.push({ u, x, y: path(x), tx: dir / n, ty: dir * m / n }); x -= dir * 0.25 / n;
+    }
+    const at = u => pts[Math.min(pts.length - 1, Math.round(u * 4))];
+    const cells = new Map();
+    for (const p of pts) {
+      const u = p.u, R = bodyR(u, L), reach = R + 0.5;
+      for (let c = Math.floor(p.x - reach); c <= Math.ceil(p.x + reach); c++) for (let r = Math.floor(p.y - reach); r <= Math.ceil(p.y + reach); r++) {
+        const dx = c + .5 - p.x, dy = r + .5 - p.y, d = Math.hypot(dx, dy); if (d > reach) continue;
+        const key = c * 4096 + r, cur = cells.get(key), rel = d / R;
+        if (!cur || rel < cur.rel) cells.set(key, { c, r, rel, d, R, u, v: (dx * -p.ty + dy * p.tx) / R });
+      }
+    }
+    const head = at(1.75), hr = bodyR(1.75, L) * 0.58;                          // eyes sit on the widest part of the head
+    const eyes = [-1, 1].map(sgn => Math.floor(head.x - head.ty * hr * sgn) * 4096 + Math.floor(head.y + head.tx * hr * sgn));
+    gx.fillStyle = rgb(K.bg);
+    for (const p of cells.values()) gx.fillRect(ox + p.c * s, p.r * s, s, s);  // the body hides the floor under it
+    for (const p of cells.values()) {
+      const cover = clamp(1 - (p.d - p.R) / 0.5), key = p.c * 4096 + p.r;
+      if (eyes.includes(key)) continue;                                           // an empty cell reads as an eye
+      const band = p.u > 4.6 && (p.u - 4.6) % 5.2 < 1.7;                          // dark bands across the back
+      const back = !band && Math.abs(p.v) < 0.5;                                  // lighter along the top of the body
+      gx.fillStyle = rgb(band ? K['snake-2'] : back ? K['snake-hi'] : K.snake);
+      dot(gx, p.c, p.r, s * (0.15 + 0.33 * Math.min(1, cover) * (1 - 0.38 * Math.min(1, p.rel) ** 2)));
+    }
+    if (moving && time % 3.4 < 0.5) {                                             // forked tongue
+      const tip = at(0), f = Math.sin(clamp((time % 3.4) / 0.5) * 3.1416);
+      gx.fillStyle = rgb(K.tongue);
+      const put = (a, b) => dot(gx, Math.floor(tip.x + tip.tx * a - tip.ty * b), Math.floor(tip.y + tip.ty * a + tip.tx * b), s * 0.15);
+      put(1.2, 0); if (f > 0.4) put(2.2, 0); if (f > 0.75) { put(3.2, 0.9); put(3.2, -0.9); }
+    }
+  }
+
+  let last = 0, raf = 0, over = 0;
+  const root = document.documentElement;
+  let opening = root.classList.contains('opening'), openedAt = performance.now();
+  const pinnedAt = new URLSearchParams(location.search).get('at');   // ?opening=1&at=3.5 holds the opening at 3.5 s, for checking
+  function endOpening(skipped) {                                // also runs when the visitor scrolls, clicks or presses a key
+    if (!opening) return;
+    opening = false;
+    if (skipped) root.classList.add('op-skip');
+    root.classList.add('op-title', 'op-name', 'op-rest');
+    setTimeout(() => root.classList.remove('opening', 'op-title', 'op-name', 'op-rest', 'op-skip'), skipped ? 0 : 1500);
+    try { sessionStorage.setItem('opening', 'seen'); } catch (e) {}
+  }
+  if (opening) for (const type of ['wheel', 'touchstart', 'keydown', 'pointerdown']) addEventListener(type, () => endOpening(true), { once: true, passive: true });
+  const forced = new URLSearchParams(location.search).get('t');   // ?t=1 pins the forest in its timeline state, for checking layouts
+  function frame(ms) {
+    raf = 0;
+    const dt = Math.min(0.05, (ms - last) / 1000 || 0); last = ms;
+    const moving = !reduce.matches;
+    const goal = forced !== null ? clamp(parseFloat(forced)) : clamp(window.scrollY / (H * 0.75));   // 0 on the first screen, 1 once the timeline has arrived
+    over = moving && forced === null ? over + (goal - over) * (1 - Math.exp(-dt * 6)) : goal;
+    // opening: 0 black · 0.3 s rain · 0.9–2.7 s the whole forest fades up out of the dark as one picture · 2.6 s title · 3.6 s name · 4.3 s the rest and the snake
+    const it = opening ? (pinnedAt !== null ? parseFloat(pinnedAt) : (ms - openedAt) / 1000) : Infinity;
+    if (opening) {
+      if (it > 2.6) root.classList.add('op-title');
+      if (it > 3.6) root.classList.add('op-name');
+      if (it > 4.3) root.classList.add('op-rest');
+      if (it > 5.8) endOpening(false);
+    }
+    const seen = it === Infinity ? 1 : sm(clamp((it - 0.9) / 1.8));        // how far the forest has come out of the dark
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (seen < 1) { ctx.fillStyle = rgb(K.bg); ctx.fillRect(0, 0, cv.width, cv.height); }
+    if (seen > 0) {
+      ctx.globalAlpha = seen; ctx.drawImage(base, 0, 0);
+      if (over > 0.002) { ctx.globalAlpha = seen * over; ctx.drawImage(baseB, 0, 0); }
+      ctx.globalAlpha = 1;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (it > 0.3) drawRain(dt, moving, over, it === Infinity ? 1 : clamp((it - 0.3) / 0.6));
+    gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gcv.width, gcv.height);
+    gx.globalAlpha = seen; gx.drawImage(floorImg, 0, 0); gx.globalAlpha = 1;       // ground and corner leaves belong to the same picture
+    if (it > 4.3) { gx.setTransform(dpr, 0, 0, dpr, 0, 0); drawSnake(dt, moving, ms / 1000); }
+    gx.setTransform(1, 0, 0, 1, 0, 0); gx.globalAlpha = seen; gx.drawImage(front, 0, 0); gx.globalAlpha = 1;
+    if ((moving && !document.hidden) || Math.abs(goal - over) > 0.002) raf = requestAnimationFrame(frame);
+  }
+  const kick = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+
+  let timer = 0;
+  addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(() => { layout(); kick(); }, 120); });
+  addEventListener('scroll', kick, { passive: true });
+  document.addEventListener('visibilitychange', kick);
+  reduce.addEventListener('change', kick);
+  layout(); kick();
+})();
+</script>
+</body>
+</html>

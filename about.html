@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head><meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Rainyforest — Woorim Shin</title>
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --ink: #e6ebe4;
+    --ink-2: #93a199;
+    --ink-3: #5d6b64;
+    --line: #1f2a25;
+    --dot: #1a231f;
+    --leaf-lo: #1d2f26;
+    --leaf: #37604b;
+    --leaf-hi: #5f9478;
+    --bark-lo: #1f1c19;
+    --bark-hi: #74695b;
+    --floor-lo: #18211d;
+    --floor-hi: #2c3b34;
+    --rain: #a9c4b8;
+    --snake: #e0b84c;
+    --snake-2: #8a6a22;
+    --snake-hi: #f3dd92;
+    --tongue: #d2654e;
+
+    --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+    --step--1: clamp(0.75rem, 0.72rem + 0.15vw, 0.84rem);
+    --step-0: clamp(0.94rem, 0.9rem + 0.2vw, 1.06rem);
+    --step-1: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+    --gutter: clamp(16px, 4vw, 48px);
+    --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--step-0)/1.6 var(--font); }
+  a { color: inherit; }
+
+  /* the story is a tall track; the stage stays pinned while you scroll through it */
+  .story { position: relative; height: calc(var(--n) * 100svh); }
+  .stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .nav { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1.25rem; padding: 1rem var(--gutter); font-size: var(--step--1); }
+  .nav .me { font-weight: 600; text-decoration: none; margin-right: auto; }
+  .nav ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; list-style: none; margin: 0; padding: 0; }
+  .nav ul a, .nav .lang { color: var(--ink-2); text-decoration: none; }
+  .nav ul a:hover, .nav ul a:focus-visible, .nav .lang:hover, .nav .lang:focus-visible { color: var(--ink); }
+  @media (max-width: 40rem) { .nav ul { order: 3; flex-basis: 100%; gap: 0.25rem 0.85rem; } }
+
+  /* narrow: words on top, characters standing on the ground below */
+  .step { position: absolute; left: var(--gutter); right: var(--gutter); top: 5.75rem; max-width: 30rem; pointer-events: none; transform: translateY(calc(var(--d, 0) * 2.5rem)); }
+  .step.on { pointer-events: auto; }
+  .step h1, .step h2 { margin: 0; font-size: clamp(2.5rem, 1.5rem + 5vw, 5rem); font-weight: 700; line-height: 1.02; letter-spacing: -0.035em; }
+  .step .meta { margin: 0.7rem 0 0; color: var(--ink-2); font-size: var(--step-1); }
+  .step .meta b { color: var(--ink); font-weight: 600; }
+  .step p.body { margin: 0.9rem 0 0; color: var(--ink-2); max-width: 27rem; line-height: 1.5; }
+  .body .ln { display: block; text-wrap: balance; }
+  .body .ln + .ln { margin-top: 0.55em; }
+  .body em { font-style: normal; font-weight: 600; }
+  .k-forest { color: var(--leaf-hi); }
+  .k-snake { color: var(--snake); }
+  .but { color: var(--ink); }
+  .nofx .ch, .nofx .fade { transition: none !important; }
+  .step .links { margin: 1.1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; font-size: var(--step--1); }
+  .step .links a { color: var(--ink-2); text-underline-offset: 0.3em; text-decoration-style: dotted; }
+  .step .links a:hover, .step .links a:focus-visible { color: var(--ink); }
+  .zodiac { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; list-style: none; margin: 1rem 0 0; padding: 0; font-size: var(--step-1); color: var(--ink-3); }
+  .zodiac .me { color: var(--snake); font-weight: 700; }
+
+  /* wide or landscape: words on the left, characters on the right */
+  @media (min-width: 45rem), (min-aspect-ratio: 6/5) {
+    .step { top: 46%; right: auto; width: min(40vw, 30rem); transform: translateY(calc(-50% + var(--d, 0) * 3.5rem)); }
+  }
+
+  /* text arrives letter by letter, then line by line; it leaves faster than it arrives */
+  .ch { display: inline-block; opacity: 0; transform: translateY(0.45em); transition: opacity 0.25s linear, transform 0.25s linear; }
+  .w { display: inline-block; white-space: nowrap; }
+  .fade { opacity: 0; transform: translateY(0.7rem); transition: opacity 0.25s linear, transform 0.25s linear; }
+  .step.on .ch { opacity: 1; transform: none; transition: opacity 0.55s var(--ease) calc(var(--i) * 38ms), transform 0.7s var(--ease) calc(var(--i) * 38ms); }
+  .step.on .fade { opacity: 1; transform: none; transition: opacity 0.7s var(--ease) calc(0.25s + var(--i) * 0.12s), transform 0.8s var(--ease) calc(0.25s + var(--i) * 0.12s); }
+
+  .ticks { position: absolute; right: calc(var(--gutter) / 2); top: 50%; transform: translate(50%, -50%); display: grid; gap: 0.6rem; }
+  .ticks span { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-3); transition: background 0.3s, transform 0.3s; }
+  .ticks span.on { background: var(--snake); transform: scale(1.6); }
+
+  footer { padding: 2rem var(--gutter) 3rem; color: var(--ink-3); font-size: var(--step--1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ch, .fade, .step.on .ch, .step.on .fade { transition: opacity 0.2s linear; transform: none; }
+    .step { transform: none; }
+    @media (min-width: 45rem), (min-aspect-ratio: 6/5) { .step { transform: translateY(-50%); } }
+  }
+</style>
+</head>
+<body>
+
+<main class="story" style="--n: 7">
+  <div class="stage">
+    <canvas aria-hidden="true"></canvas>
+    <nav class="nav" aria-label="Site">
+      <a class="me" href="index.html">Rainyforest</a>
+      <ul>
+        <li><a href="work/index.html">Experience</a></li>
+        <li><a href="study/index.html">Study</a></li>
+        <li><a href="principles/index.html">Principles</a></li>
+        <li><a href="keynotes/index.html">Keynotes</a></li>
+        <li><a href="blog/index.html">Blog</a></li>
+        <li><a href="woorim-shin-cv.pdf">CV</a></li>
+      </ul>
+    </nav>
+
+    <section class="step">
+      <h1 data-split>Woorim</h1>
+      <p class="meta fade"><b lang="ko">우림</b> · two characters</p>
+      <p class="body"><span class="ln fade">They are the reason this site is called Rainyforest,</span><span class="ln fade">and the reason a snake lives in it.</span></p>
+      <p class="links fade"><span>Scroll ↓</span></p>
+    </section>
+
+    <section class="step">
+      <h2 data-split>Rain</h2>
+      <p class="meta fade"><b lang="ko-Hani">雨</b> · <span lang="ko">우</span> · Woo</p>
+      <p class="body"><span class="ln fade">The first character of my name.</span></p>
+    </section>
+
+    <section class="step">
+      <h2 data-split>Forest</h2>
+      <p class="meta fade"><b lang="ko-Hani">林</b> · <span lang="ko">림</span> · rim</p>
+      <p class="body"><span class="ln fade">The second.</span><span class="ln fade">The character is two trees standing side by side.</span></p>
+    </section>
+
+    <section class="step">
+      <h2 data-split>Rainforest</h2>
+      <p class="meta fade"><b lang="ko-Hani">雨林</b> · <span lang="ko">우림</span> · Woorim</p>
+      <p class="body"><span class="ln fade">Read together, the two characters are the ordinary Korean word for rainforest.</span><span class="ln fade">Rainyforest is my name, translated.</span></p>
+    </section>
+
+    <section class="step">
+      <h2 data-split>Snake</h2>
+      <p class="meta fade"><b lang="ko-Hani">巳</b> · 2001 · <span lang="ko-Hani">辛巳年</span></p>
+      <p class="body"><span class="ln fade">I was born in 2001, a year of the Snake.</span><span class="ln fade">It is the sixth of the twelve animals.</span></p>
+      <ol class="zodiac fade" lang="ko-Hani" aria-label="The twelve zodiac characters, with the sixth, the Snake, marked">
+        <li>子</li><li>丑</li><li>寅</li><li>卯</li><li>辰</li><li class="me">巳</li><li>午</li><li>未</li><li>申</li><li>酉</li><li>戌</li><li>亥</li>
+      </ol>
+    </section>
+
+    <section class="step">
+      <h2 data-split>Put them together.</h2>
+      <p class="meta fade"><b lang="ko-Hani">雨</b> · <b lang="ko-Hani">林</b> · <b lang="ko-Hani">巳</b></p>
+      <p class="body"><span class="ln fade">A <em class="k-forest">rainforest</em> is dense, dark and always wet.</span><span class="ln fade">Most things find it hard going.</span><span class="ln fade"><em class="but">But</em> it is where a <em class="k-snake">snake</em> does best.</span></p>
+    </section>
+
+    <section class="step">
+      <h2 data-split data-hl="rainforest.:k-forest">Hard problems are my rainforest.</h2>
+      <p class="body"><span class="ln fade">Tangled ground, poor visibility, no clear path.</span><span class="ln fade">That is where I do my best work,</span><span class="ln fade">and where I grow.</span></p>
+      <p class="links fade"><a href="index.html#experience">Experience →</a><a href="index.html">Home</a></p>
+    </section>
+
+    <div class="ticks" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  </div>
+</main>
+
+<footer>A preview. The site is still being built.</footer>
+
+<script>
+(() => {
+  const story = document.querySelector('.story'), stage = story.querySelector('.stage'), cv = stage.querySelector('canvas'), ctx = cv.getContext('2d');
+  const steps = [...story.querySelectorAll('.step')], ticks = [...story.querySelectorAll('.ticks span')], N = steps.length;
+  const css = getComputedStyle(document.documentElement);
+  const hex = name => { const h = css.getPropertyValue(name).trim().slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+  const K = Object.fromEntries(['bg', 'dot', 'ink', 'leaf-lo', 'leaf', 'leaf-hi', 'bark-lo', 'bark-hi', 'floor-lo', 'floor-hi', 'rain', 'snake', 'snake-2', 'snake-hi', 'tongue'].map(n => [n, hex('--' + n)]));
+  const lerp = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  const rgb = a => `rgb(${a.map(Math.round).join(',')})`;
+  const clamp = (v, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)'), wideQ = matchMedia('(min-width: 45rem), (min-aspect-ratio: 6/5)');
+  const forced = new URLSearchParams(location.search).get('p'); if (forced !== null) document.documentElement.classList.add('nofx');
+  const _ = 0;          // ?p=2.3 pins the story at a position, for checking layouts
+  const hash = (x, y) => { let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const sm = t => t * t * (3 - 2 * t);
+  const vnoise = (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), u = sm(x - xi), v = sm(y - yi);
+    const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  };
+
+  const fbm = (x, y) => vnoise(x, y) * 0.65 + vnoise(x * 2.1 + 7, y * 2.1 + 3) * 0.35;
+  const ramp = (mat, l) => {
+    l = clamp(l);
+    if (mat === 'bark') return lerp(K['bark-lo'], K['bark-hi'], l);
+    return l < .5 ? lerp(K['leaf-lo'], K.leaf, l * 2) : lerp(K.leaf, K['leaf-hi'], (l - .5) * 2);
+  };
+
+  /* ---- text: split headings into letters so they can arrive one by one ---- */
+  for (const h of story.querySelectorAll('[data-split]')) {
+    const words = h.textContent.trim().split(/\s+/); let i = 0;
+    h.setAttribute('aria-label', words.join(' ')); h.textContent = '';
+    words.forEach((word, wi) => {
+      const w = document.createElement('span'); w.className = 'w'; w.setAttribute('aria-hidden', 'true');
+      for (const ch of word) { const c = document.createElement('span'); c.className = 'ch'; c.style.setProperty('--i', i++); c.textContent = ch; w.appendChild(c); }
+      const [hlWord, hlClass] = (h.dataset.hl || ':').split(':'); if (word === hlWord) w.classList.add(hlClass);
+      h.appendChild(w); if (wi < words.length - 1) h.appendChild(document.createTextNode(' '));
+    });
+  }
+  for (const st of steps) [...st.querySelectorAll('.fade')].forEach((el, i) => el.style.setProperty('--i', i));
+
+  /* ---- stage ---- */
+  let W = 0, H = 0, s = 8, ox = 0, cols = 0, rows = 0, G = 0, dpr = 1, glyph = {}, drops = [];
+  const base = document.createElement('canvas'), forest = { back: [], front: [], backImg: document.createElement('canvas'), frontImg: document.createElement('canvas') };
+  const groundAt = c => G + Math.round((vnoise(c * 0.05, 5) - 0.5) * 3);
+  const dot = (g, c, r, rad) => { g.beginPath(); g.arc(ox + (c + 0.5) * s, (r + 0.5) * s, rad, 0, 6.2832); g.fill(); };
+
+  // turn one character into grid cells by drawing it large and measuring how much ink falls in each cell
+  function rasterize(ch, n) {
+    const k = 6, c = document.createElement('canvas'); c.width = c.height = n * k;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.font = `800 ${n * k * 0.94}px "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR", "Malgun Gothic", "PingFang SC", "Hiragino Sans", sans-serif`;
+    g.textAlign = 'center'; g.fillStyle = '#fff';
+    const m = g.measureText(ch);
+    g.fillText(ch, n * k / 2, (n * k + m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
+    const px = g.getImageData(0, 0, n * k, n * k).data, cells = [];
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      let a = 0; for (let j = 0; j < k; j++) for (let i = 0; i < k; i++) a += px[((y * k + j) * n * k + x * k + i) * 4 + 3];
+      a /= k * k * 255; if (a > 0.2) cells.push({ x, y, a });
+    }
+    return cells;
+  }
+  function place(ch, c0, n, salt) {
+    const cells = rasterize(ch, n), low = Math.max(...cells.map(c => c.y));
+    return cells.map((c, i) => ({ c: c0 + c.x, r: G - 1 - (low - c.y), a: c.a, fx: c.x / n, fy: c.y / low, rnd: hash(c.x + salt, c.y), rnd2: hash(c.y, c.x + salt * 3) }));
+  }
+
+  function layout() {
+    W = stage.clientWidth; H = stage.clientHeight;
+    s = W < 520 ? 6 : W < 1000 ? 7 : 8;
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    for (const c of [cv, base, forest.backImg, forest.frontImg]) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    cols = Math.ceil(W / s); rows = Math.ceil(H / s); ox = (W - cols * s) / 2;
+    G = rows - Math.max(10, Math.round(rows * 0.14));
+
+    const wide = wideQ.matches, gut = clamp(W * 0.04, 16, 48), gap = 3;   // 'wide' is also used below for the text offset
+    const x0 = wide ? W * 0.47 : gut, x1 = W - gut - (wide ? 16 : 0);
+    const n = Math.max(12, Math.floor(Math.min((x1 - x0) / 2 - gap * s / 2, H * (wide ? 0.5 : 0.3)) / s));
+    const left = Math.round(((x0 + x1) / 2 - ox) / s - (2 * n + gap) / 2);
+    glyph = { rain: place('雨', left, n, 1), wood: place('林', left + n + gap, n, 2), snake: place('巳', left + Math.round((n + gap) / 2), n, 3), n };
+
+    const g = base.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = rgb(K.bg); g.fillRect(0, 0, W, H);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const gr = groundAt(c);
+      if (r >= gr) {
+        const l = 0.2 + 0.3 * (r - gr) / Math.max(1, rows - gr) + 0.4 * (vnoise(c * 0.15, r * 0.45) * 0.65 + vnoise(c * 0.32 + 7, r * 0.95 + 3) * 0.35) + 0.18 * hash(c, r);
+        g.fillStyle = rgb(lerp(K['floor-lo'], K['floor-hi'], clamp(l))); dot(g, c, r, s * (0.06 + 0.45 * clamp(l)));
+      } else { g.fillStyle = rgb(K.dot); dot(g, c, r, Math.max(0.6, s * 0.07)); }
+    }
+    drops = Array.from({ length: Math.round(cols * 0.34) }, () => newDrop(true));
+
+    // the forest keeps clear of the closing words and the nav
+    const sr = stage.getBoundingClientRect(), rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const box = (el, pad, f, dy = 0) => { const b = el.getBoundingClientRect(); return { c0: Math.floor((b.left - sr.left - ox) / s) - pad, c1: Math.ceil((b.right - sr.left - ox) / s) + pad - 1, r0: Math.floor((b.top - dy - sr.top) / s) - pad, r1: Math.ceil((b.bottom - dy - sr.top) / s) + pad - 1, f }; };
+    const shift = st => parseFloat(st.style.getPropertyValue('--d') || 0) * rem * (wide ? 3.5 : 2.5);
+    buildForest([
+      ...steps.slice(-2).map(st => box(st, 2, Math.max(6, Math.round(cols * 0.08)), shift(st))),
+      ...[...stage.querySelectorAll('.nav .me, .nav ul, .nav .lang')].map(el => box(el, 1, 4)),
+    ]);
+  }
+
+  /* ---- the forest from the first page, kept as a list of dots so it can grow in ---- */
+  function buildForest(zones) {
+    const quiet = (c, r) => { let q = 1; for (const z of zones) q = Math.min(q, Math.hypot(Math.max(z.c0 - c, 0, c - z.c1), Math.max(z.r0 - r, 0, r - z.r1)) / z.f); return q; };
+    const big = cols >= 140, mid = cols >= 90, k = big ? 1 : mid ? 0.82 : 0.62, ch = rows * (big ? 0.27 : mid ? 0.25 : 0.2);
+    const trees = (big ? [
+      [.335, 2.2, 0, .28], [.665, 2.2, 0, .28], [.105, 3.2, 0, .4], [.255, 3, .02, .4], [.74, 3.2, -.02, .4], [.985, 3.6, 0, .4],
+      [.165, 6, -.03, .7], [.82, 6.5, .035, .7], [.045, 11, .05, 1], [.93, 12.5, -.06, 1],
+    ] : mid ? [
+      [.12, 2.6, 0, .4], [.88, 2.6, 0, .4], [.19, 4.6, -.03, .7], [.81, 4.8, .03, .7], [.04, 9, .05, 1], [.95, 10, -.06, 1],
+    ] : [
+      [.11, 2, 0, .35], [.2, 3.2, -.02, .6], [.8, 3.4, .025, .6], [.02, 7.5, .04, 1], [.985, 8, -.05, 1],
+    ]).map(([x, w, lean, z], i) => ({ x, w, lean, z, sd: i + 1 }));
+    const trunkX = (t, r) => t.x * cols + t.lean * (G - r) + Math.sin((G - r) * 0.035 + t.sd * 1.7) * 1.3 * t.z;
+    const stamp = (map, x, y, rad, lum, mat, fade = 1) => {
+      for (let c = Math.floor(x - rad); c <= Math.ceil(x + rad); c++) for (let r = Math.floor(y - rad); r <= Math.ceil(y + rad); r++) {
+        const d = Math.hypot(c + .5 - x, r + .5 - y); if (d > rad + .35) continue;
+        const l = lum * (1 - 0.45 * (d / (rad + .35)) ** 2), key = c * 4096 + r, cur = map.get(key);
+        if (!cur || l > cur.l) map.set(key, { l, mat, fade });
+      }
+    };
+    const blobs = [], limbs = { mid: new Map(), near: new Map() }, hang = new Map(), ferns = new Map();
+    for (const t of trees) {
+      if (t.z < .6) continue;
+      const n = t.z >= 1 ? 3 : 2, inward = t.x < .5 ? 1 : -1;
+      for (let i = 0; i < n; i++) {
+        const h1 = hash(t.sd, i * 7 + 1), h2 = hash(t.sd, i * 7 + 2), side = i % 2 ? -inward : inward;
+        const r0 = ch * (0.72 + 0.34 * i) + h1 * 3, x0 = trunkX(t, r0), len = t.w * (2.4 + 1.6 * h2);
+        const dx = side * (0.85 + 0.5 * h1), dy = -(0.55 + 0.5 * h2), nrm = Math.hypot(dx, dy);
+        for (let q = 0; q <= 1; q += 0.5 / len)
+          stamp(t.z >= 1 ? limbs.near : limbs.mid, x0 + dx / nrm * len * q, r0 + dy / nrm * len * q + Math.sin(q * 3.1416) * len * 0.08, (t.w * 0.2) * (1 - q) + 0.5, 0.62 - 0.2 * q, 'bark', 0.45 + 0.55 * t.z);
+        blobs.push({ x: x0 + dx / nrm * len, y: r0 + dy / nrm * len, R: (6 + 5 * h1) * k, z: t.z, i: blobs.length });
+      }
+      for (const off of [-1, 1]) {
+        const bx = trunkX(t, G) + off * t.w * (0.9 + 0.4 * hash(t.sd, off + 5)), by = groundAt(Math.round(bx)) + 1;
+        for (let f = 0; f < 5; f++) {
+          const ang = (-160 + f * 35 + (hash(t.sd * 3 + off, f) - .5) * 12) * Math.PI / 180, L = (10 + 7 * hash(f, t.sd)) * k * (0.6 + 0.4 * t.z);
+          for (let q = 0; q <= 1; q += 0.4 / L)
+            stamp(ferns, bx + Math.cos(ang) * L * q, by + Math.sin(ang) * L * q + 0.55 * L * q * q, 0.3 + 0.55 * Math.sin(Math.min(1, q * 1.08) * 3.1416) ** 0.6 * (0.4 + 0.6 * Math.abs(Math.sin(q * L * 1.1))), 0.4 + 0.5 * q, 'leaf', 0.55 + 0.45 * t.z);
+        }
+      }
+    }
+    for (let i = 0, nb = Math.round(cols / 2.6); i < nb; i++) {
+      let x = hash(i, 11) * cols, y = hash(i, 12) ** 1.7 * ch * 1.05 - 2, R = ((big ? 5 : 4) + hash(i, 13) * (big ? 9 : 7)) * (mid ? 1 : 0.85);
+      if (Math.exp(-(((x / cols - .5) / .2) ** 2)) > 0.3 && y + R > ch * 0.45) { y *= 0.3; R *= 0.7; }
+      blobs.push({ x, y, R, z: 0.4 + 0.6 * hash(i, 14), i: blobs.length });
+    }
+    for (const side of [0, 1]) for (let i = 0; i < 4; i++)
+      blobs.push({ x: side ? cols - hash(i, 21) * cols * 0.13 : hash(i, 22) * cols * 0.13, y: ch * (0.45 + 0.7 * hash(i + side * 9, 23)), R: (9 + 5 * hash(i, 24 + side)) * k, z: 0.95, i: blobs.length });
+    blobs.sort((a, b) => a.z - b.z);
+    const strong = trees.filter(t => t.z >= .6);
+    for (let i = 0; i + 1 < strong.length; i++) {
+      const a = strong[i], b = strong[i + 1]; if (Math.abs(a.x - b.x) > 0.3) continue;
+      const ra = ch * (0.95 + 0.3 * hash(i, 31)), rb = ch * (0.8 + 0.3 * hash(i, 32)), xa = trunkX(a, ra), xb = trunkX(b, rb), sag = (7 + 6 * hash(i, 33)) * k;
+      for (let q = 0; q <= 1; q += 0.4 / Math.abs(xb - xa)) {
+        const x = xa + (xb - xa) * q, y = ra + (rb - ra) * q + sag * 4 * q * (1 - q);
+        stamp(hang, x, y, 0.45, 0.42, 'bark', 0.8);
+        if (Math.round(q * Math.abs(xb - xa)) % 5 === 2) stamp(hang, x, y + 1.2, 0.7, 0.5, 'leaf', 0.8);
+      }
+    }
+    for (let i = 0; i < (big ? 14 : mid ? 9 : 6); i++) {
+      const rr = hash(i, 41), x0 = (rr < .5 ? rr * 2 * .34 : .66 + (rr - .5) * 2 * .34) * cols, r0 = ch * (0.2 + 0.5 * hash(i, 42)), len = 8 + hash(i, 43) * rows * 0.3;
+      for (let d = 0; d <= len; d += 0.5) {
+        const x = x0 + Math.sin(d * 0.11 + i) * 1.1;
+        stamp(hang, x, r0 + d, 0.35, 0.34, 'leaf', 0.75);
+        if (Math.round(d * 2) % 7 === 3) stamp(hang, x + (Math.round(d) % 2 ? 1.1 : -1.1), r0 + d, 0.75, 0.55, 'leaf', 0.75);
+      }
+    }
+    const leaves = [];
+    for (const side of [0, 1]) [[-84, 30], [-60, 37], [-35, 33], [-13, 25]].forEach(([deg, L], i) => {
+      const a = (side ? 180 - deg : deg) * Math.PI / 180, len = L * k * (0.9 + 0.2 * hash(i, 51 + side));
+      leaves.push({ x: side ? cols + 2 - i * 2 : -2 + i * 2, y: rows + 3, cos: Math.cos(a), sin: Math.sin(a), len, wid: len * 0.4, light: 0.8 + 0.2 * hash(i, 53 + side), flip: side ? -1 : 1 });
+    });
+    const trunk = (t, c, r, gr) => {
+      if (r > gr) return null;
+      const h = G - r, hw = t.w / 2 * (0.82 + 0.18 * Math.exp(-h / 40)) + (t.z >= .6 ? t.w * 0.95 * Math.exp(-Math.max(0, h) / (t.w * 0.75)) : 0);
+      const px = c + .5 - trunkX(t, r), u = px / hw; if (Math.abs(u) > 1) return null;
+      let l = 0.06 + Math.sqrt(1 - u * u) ** 0.7 * clamp(0.78 - 0.62 * u, 0.12, 1);
+      if (t.w > 4 && Math.sin(px * 2.6 + vnoise(r * 0.05, t.sd) * 5 + Math.sin(r * 0.09 + t.sd) * 0.8) > 0.5) l *= 0.4;
+      l *= 0.82 + 0.36 * fbm(c * 0.35 + t.sd * 7, r * 0.09);
+      const moss = t.z >= .6 && fbm(c * 0.2 + t.sd * 3, r * 0.1) > 0.72;
+      return { l: moss ? l * 0.9 : l, mat: moss ? 'leaf' : 'bark', fade: 0.4 + 0.6 * t.z };
+    };
+    const blob = (b, c, r) => {
+      const dx = c + .5 - b.x, dy = r + .5 - b.y; if (Math.abs(dx) > b.R * 1.2 || Math.abs(dy) > b.R * 1.2) return null;
+      const R = b.R * (0.8 + 0.4 * vnoise(Math.atan2(dy, dx) * 2.2 + b.i * 13, b.i)), d = Math.hypot(dx, dy) / R; if (d > 1) return null;
+      let l = clamp(0.66 - 0.6 * dy / R - 0.16 * dx / R) * (0.5 + 0.5 * Math.sqrt(1 - d * d));
+      l *= (0.5 + 0.9 * hash(c * 7 + b.i, r)) * (0.75 + 0.5 * vnoise(c * 0.9, r * 0.9));
+      return l < 0.07 ? null : { l, mat: 'leaf', fade: 0.4 + 0.6 * b.z };
+    };
+
+    forest.back = []; forest.front = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const q = Math.min(1, quiet(c, r)); if (q <= 0) continue;
+      const gr = groundAt(c), key = c * 4096 + r, thr = (1 - r / rows) * 0.8 + hash(c, r + 77) * 0.1;   // lower dots appear first
+      let hit = null;
+      for (const t of trees) if (t.z < .6) hit = trunk(t, c, r, gr) || hit;
+      for (const b of blobs) if (b.z < .7) hit = blob(b, c, r) || hit;
+      hit = hang.get(key) || hit;
+      for (const t of trees) if (t.z >= .6 && t.z < 1) hit = trunk(t, c, r, gr) || hit;
+      hit = limbs.mid.get(key) || hit;
+      for (const t of trees) if (t.z >= 1) hit = trunk(t, c, r, gr) || hit;
+      hit = limbs.near.get(key) || hit;
+      for (const b of blobs) if (b.z >= .7) hit = blob(b, c, r) || hit;
+      hit = ferns.get(key) || hit;
+      if (hit) forest.back.push({ c, r, thr, a: q, col: rgb(lerp(K.bg, ramp(hit.mat, hit.l), hit.fade)), rad: s * (0.06 + 0.45 * clamp(hit.l)) * (0.55 + 0.45 * q) });
+      for (const lf of leaves) {
+        const px = (c + .5 - lf.x) * lf.cos + (r + .5 - lf.y) * lf.sin, py = -(c + .5 - lf.x) * lf.sin + (r + .5 - lf.y) * lf.cos, u = px / lf.len;
+        if (u <= 0 || u >= 1) continue;
+        const hw = lf.wid / 2 * Math.sin(3.1416 * u ** 0.8), v = py / hw; if (Math.abs(v) > 1) continue;
+        const rim = Math.abs(v) > 0.8 || u < 0.04;
+        let l = (v * lf.flip > 0 ? 0.36 : 0.66) * lf.light * (0.8 + 0.2 * (1 - Math.abs(v)));
+        if (Math.abs(py) < 0.6) l *= 0.25; else { const ph = px * 0.2 - Math.abs(py) * 0.42; if (ph - Math.floor(ph) < 0.14) l *= 0.55; }
+        forest.front.push({ c, r, thr, a: q, rim, col: rgb(ramp('leaf', 0.12 + 0.85 * l)), rad: s * (0.14 + 0.4 * l) });
+      }
+    }
+    for (const [img, list] of [[forest.backImg, forest.back], [forest.frontImg, forest.front]]) {
+      const g = img.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); paintForest(g, list, 2);
+    }
+  }
+  function paintForest(g, list, grow) {                      // grow < 1: only the dots whose turn has come, popping in
+    for (const d of list) {
+      const t = grow >= 1.2 ? 1 : (grow - d.thr) / 0.1; if (t <= 0) continue;
+      if (d.rim !== undefined) { g.globalAlpha = 1; g.fillStyle = rgb(K.bg); g.fillRect(ox + d.c * s, d.r * s, s, s); if (d.rim) continue; }
+      g.globalAlpha = d.a; g.fillStyle = d.col; dot(g, d.c, d.r, Math.max(0, d.rad * (grow >= 1.2 ? 1 : pop(t))));
+    }
+    g.globalAlpha = 1;
+  }
+  const newDrop = anywhere => ({ c: Math.floor(Math.random() * cols), y: anywhere ? Math.random() * rows : -Math.random() * rows * 0.6, v: 55 + Math.random() * 35 });
+
+  /* ---- motion curves ---- */
+  const land = t => t < 0.82 ? (t / 0.82) ** 2 : 1 - 0.045 * Math.sin(3.1416 * (t - 0.82) / 0.18);    // speeds up as it falls, one small bounce
+  const pop = t => { t = clamp(t); const c = 1.9; return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2; }; // overshoots, then settles
+  const out = t => 1 - (1 - clamp(t)) ** 3;
+
+  function drawAmbientRain(dt, moving, amount) {
+    ctx.fillStyle = rgb(K.rain);
+    for (let i = 0, n = Math.round(drops.length * amount); i < n; i++) {
+      const d = drops[i];
+      if (moving) d.y += d.v * dt;
+      if (d.y >= groundAt(d.c) + 2) { if (moving) drops[i] = newDrop(false); continue; }
+      for (let n = 0; n < 4; n++) { const r = Math.floor(d.y) - n; if (r < 0) continue; ctx.globalAlpha = [0.45, 0.25, 0.13, 0.06][n]; dot(ctx, d.c, r, s * 0.16); }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // 雨: every dot is a raindrop that falls into its place
+  function drawRainGlyph(f, keep) {
+    if (f <= 0 || keep <= 0) return;
+    ctx.fillStyle = rgb(lerp(K.rain, K.ink, 0.35));
+    for (const p of glyph.rain) {
+      const t = clamp((f - p.rnd * 0.5) / 0.5); if (t <= 0) continue;
+      const from = -3 - p.rnd2 * rows * 0.35, y = from + (p.r - from) * land(t), rad = s * (0.14 + 0.34 * p.a) * (0.35 + 0.65 * keep);
+      ctx.globalAlpha = keep;
+      if (t < 0.82) { ctx.globalAlpha = 0.3 * keep; dot(ctx, p.c, y - 1.1, rad * 0.8); ctx.globalAlpha = 0.12 * keep; dot(ctx, p.c, y - 2.2, rad * 0.7); ctx.globalAlpha = keep; }
+      dot(ctx, p.c, y, rad);
+    }
+    ctx.globalAlpha = 1;
+  }
+  // 林: grows from the ground up; trunk-coloured low down, leaf-coloured above
+  function drawWoodGlyph(f, keep) {
+    if (f <= 0 || keep <= 0) return;
+    for (const p of glyph.wood) {
+      const t = (f - ((1 - p.fy) * 0.72 + p.rnd * 0.16)) / 0.12; if (t <= 0) continue;
+      const leafy = clamp((0.62 - p.fy) / 0.25 + (p.rnd2 - 0.5) * 0.5);
+      const colour = lerp(lerp(K['bark-lo'], K['bark-hi'], 0.55 + 0.4 * p.rnd), p.rnd2 < 0.5 ? lerp(K.leaf, K['leaf-hi'], p.rnd) : lerp(K.leaf, K['leaf-hi'], 0.3 + 0.7 * p.rnd), leafy);
+      ctx.globalAlpha = keep; ctx.fillStyle = rgb(colour);
+      dot(ctx, p.c, p.r, Math.max(0, s * (0.14 + 0.34 * p.a) * pop(t) * (0.35 + 0.65 * keep)));
+    }
+    ctx.globalAlpha = 1;
+  }
+  // 巳: the dots come in low from the left as one winding line and climb into the character
+  function drawSnakeGlyph(f) {
+    if (f <= 0) return;
+    const startY = G + (rows - G) * 0.5;
+    for (const p of glyph.snake) {
+      const t = clamp((f - (p.fx * 0.45 + (1 - p.fy) * 0.12 + p.rnd * 0.05)) / 0.38); if (t <= 0) continue;
+      const e = out(t), x0 = -4 - p.rnd2 * 10, x = x0 + (p.c - x0) * e, y = startY + (p.r - startY) * e * e + (1 - e) * 2.6 * Math.sin(x * 0.26 + p.rnd);
+      ctx.fillStyle = rgb(p.rnd < 0.22 ? K['snake-hi'] : p.rnd > 0.9 ? K['snake-2'] : K.snake);
+      dot(ctx, x, y, s * (0.14 + 0.34 * p.a) * (0.6 + 0.4 * e));
+    }
+  }
+
+  /* ---- the same snake as the first page ---- */
+  const snake = { hx: -3, dir: 1, wait: 0, live: false };
+  const bodyR = (u, L) => {
+    if (u < 0.8) return 1.0 + u / 0.8 * 1.0;
+    if (u < 2.6) return 2.0 + (u - 0.8) / 1.8 * 0.6;
+    if (u < 3.8) return 2.6 - (u - 2.6) / 1.2 * 1.3;
+    if (u < 8) return 1.3 + (u - 3.8) / 4.2 * 0.5;
+    const t = u / L; return t < 0.55 ? 1.8 : Math.max(0.3, 1.8 * (1 - (t - 0.55) / 0.45) ** 0.85);
+  };
+  function drawSnake(dt, moving, time, glow) {
+    const floor = rows - G, by = G + floor * 0.55, A = Math.min(3.2, floor * 0.2), L = clamp(cols * 0.3, 28, 56);
+    const path = x => by + A * Math.sin(x * 0.24) + A * 0.4 * Math.sin(x * 0.09 + 1.3);
+    const slope = x => A * 0.24 * Math.cos(x * 0.24) + A * 0.4 * 0.09 * Math.cos(x * 0.09 + 1.3);
+    if (moving) {
+      if (snake.wait > 0) { snake.wait -= dt; if (snake.wait <= 0) { snake.dir *= -1; snake.hx = snake.dir > 0 ? -3 : cols + 3; } return; }
+      snake.hx += snake.dir * (6.2 + 1.6 * Math.sin(time * 1.3)) * dt;
+      if (snake.dir > 0 ? snake.hx > cols + L + 3 : snake.hx < -L - 3) { snake.wait = 3; return; }
+    } else snake.hx = cols * 0.5;
+    const dir = snake.dir, pts = [];
+    for (let u = 0, x = snake.hx; u <= L; u += 0.25) { const m = slope(x), n = Math.hypot(1, m); pts.push({ u, x, y: path(x), tx: dir / n, ty: dir * m / n }); x -= dir * 0.25 / n; }
+    const at = u => pts[Math.min(pts.length - 1, Math.round(u * 4))], cells = new Map();
+    if (glow > 0) {                                           // nearby dots catch its colour: still dots, no blur
+      const lit = new Map(), R = 9;
+      for (let i = 0; i < pts.length; i += 10) { const p = pts[i];
+        for (let c = Math.floor(p.x - R); c <= Math.ceil(p.x + R); c++) for (let r = Math.floor(p.y - R); r <= Math.ceil(p.y + R); r++) {
+          const d = Math.hypot(c + .5 - p.x, r + .5 - p.y); if (d >= R) continue;
+          const v = (1 - d / R) ** 2, key = c * 4096 + r; if (!(lit.get(key)?.v >= v)) lit.set(key, { c, r, v });
+        } }
+      ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = rgb(K.snake);
+      for (const q of lit.values()) { ctx.globalAlpha = 0.2 * glow * q.v; dot(ctx, q.c, q.r, s * 0.34); }
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    }
+    for (const p of pts) {
+      const R = bodyR(p.u, L), reach = R + 0.5;
+      for (let c = Math.floor(p.x - reach); c <= Math.ceil(p.x + reach); c++) for (let r = Math.floor(p.y - reach); r <= Math.ceil(p.y + reach); r++) {
+        const dx = c + .5 - p.x, dy = r + .5 - p.y, d = Math.hypot(dx, dy); if (d > reach) continue;
+        const key = c * 4096 + r, cur = cells.get(key), rel = d / R;
+        if (!cur || rel < cur.rel) cells.set(key, { c, r, rel, d, R, u: p.u, v: (dx * -p.ty + dy * p.tx) / R });
+      }
+    }
+    const head = at(1.75), hr = bodyR(1.75, L) * 0.58;
+    const eyes = [-1, 1].map(sgn => Math.floor(head.x - head.ty * hr * sgn) * 4096 + Math.floor(head.y + head.tx * hr * sgn));
+    ctx.fillStyle = rgb(K.bg);
+    for (const p of cells.values()) ctx.fillRect(ox + p.c * s, p.r * s, s, s);
+    for (const p of cells.values()) {
+      if (eyes.includes(p.c * 4096 + p.r)) continue;
+      const band = p.u > 4.6 && (p.u - 4.6) % 5.2 < 1.7, back = !band && Math.abs(p.v) < 0.5;
+      ctx.fillStyle = rgb(band ? K['snake-2'] : back ? K['snake-hi'] : K.snake);
+      dot(ctx, p.c, p.r, s * (0.15 + 0.33 * Math.min(1, clamp(1 - (p.d - p.R) / 0.5)) * (1 - 0.38 * Math.min(1, p.rel) ** 2)));
+    }
+    if (moving && time % 3.4 < 0.5) {
+      const tip = at(0), f = Math.sin(clamp((time % 3.4) / 0.5) * 3.1416);
+      ctx.fillStyle = rgb(K.tongue);
+      const put = (a, b) => dot(ctx, Math.floor(tip.x + tip.tx * a - tip.ty * b), Math.floor(tip.y + tip.ty * a + tip.tx * b), s * 0.15);
+      put(1.2, 0); if (f > 0.4) put(2.2, 0); if (f > 0.75) { put(3.2, 0.9); put(3.2, -0.9); }
+    }
+  }
+
+  /* ---- scroll: the page scrolls natively; the picture follows with a little weight ---- */
+  let P = 0, last = 0, raf = 0, visible = true;
+  const target = () => {
+    if (forced !== null) return clamp(parseFloat(forced), 0, N - 1);
+    const b = story.getBoundingClientRect(); return clamp(-b.top / Math.max(1, b.height - window.innerHeight)) * (N - 1);
+  };
+  function frame(ms) {
+    raf = 0;
+    const dt = Math.min(0.05, (ms - last) / 1000 || 0); last = ms;
+    const moving = !reduce.matches, goal = target();
+    P = moving && forced === null ? P + (goal - P) * (1 - Math.exp(-dt * 5.5)) : goal;
+
+    steps.forEach((st, i) => { st.classList.toggle('on', Math.abs(P - i) < 0.42); st.style.setProperty('--d', clamp(i - P, -1, 1).toFixed(3)); });
+    ticks.forEach((tk, i) => tk.classList.toggle('on', Math.round(P) === i));
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(base, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const grow = clamp((P - 4.6) / 1.0);                           // the characters turn into the things they name
+    if (grow >= 1) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(forest.backImg, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    else if (grow > 0) paintForest(ctx, forest.back, grow);
+    drawAmbientRain(dt, moving, 0.4 + 0.6 * grow);
+    const keep = 1 - clamp((P - 3.45) / 0.4);                      // 雨林 steps back when the snake's turn comes
+    drawRainGlyph(clamp((P - 0.45) / 0.75), keep);
+    drawWoodGlyph(clamp((P - 1.5) / 0.7), keep);
+    drawSnakeGlyph(clamp((P - 3.6) / 0.75) * (1 - clamp((P - 4.5) / 0.45)));   // 巳 unwinds the way it came
+    const live = goal > 4.9;
+    if (live && !snake.live) { snake.hx = forced !== null ? cols * 0.62 : -3; snake.dir = 1; snake.wait = 0; }   // a pinned view starts with the snake in sight
+    snake.live = live;
+    if (live) drawSnake(dt, moving, ms / 1000, clamp((P - 5.3) / 0.6));
+    if (grow >= 1) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(forest.frontImg, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    else if (grow > 0) paintForest(ctx, forest.front, grow);
+
+    const settling = Math.abs(goal - P) > 0.0005;
+    if ((moving && visible && !document.hidden) || settling) raf = requestAnimationFrame(frame);
+  }
+  const kick = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+
+  new ResizeObserver(() => { layout(); kick(); }).observe(stage);
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) kick(); }).observe(story);
+  addEventListener('scroll', kick, { passive: true });
+  document.addEventListener('visibilitychange', kick);
+  reduce.addEventListener('change', kick);
+  layout(); kick();
+})();
+</script>
+</body>
+</html>
