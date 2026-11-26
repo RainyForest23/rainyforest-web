@@ -107,7 +107,7 @@
     --tcell: calc((100cqi - var(--lab)) / (24 * var(--squeeze) + 27));
     display: grid;
     grid-template-columns: var(--lab) repeat(24, calc(var(--tcell) * var(--squeeze))) repeat(27, var(--tcell));
-    grid-template-rows: 1.5rem repeat(4, 3.7rem) 4.4rem;   /* four lanes of bars, then the awards, which are single dates */
+    grid-template-rows: 1.5rem repeat(3, 3.7rem) 5.3rem 4.4rem;   /* lanes of bars (Club has room for two at once), then the awards, which are single dates */
   }
   .yr { grid-column: var(--a) / span 12; grid-row: 1; font: var(--step--1) var(--mono); color: var(--ink-3); }
   .guide { grid-column: var(--a); grid-row: 2 / -1; border-left: 1px dotted var(--line); }
@@ -134,6 +134,7 @@
   .bar::before { content: ""; position: absolute; left: 0; bottom: 100%; width: 1px; height: 0.4rem; background: currentColor; }   /* ties the bar to its label */
   .bar.deep { color: var(--snake); height: 0.72rem; margin-bottom: 0.44rem; }
   .bar.brief { color: var(--ink-3); height: 0.28rem; margin-bottom: 0.66rem; }
+  .bar.lane-club { margin-bottom: 1.6rem; } .bar.lane-club.t1 { margin-bottom: 0.66rem; }   /* Club: a second, lower track for an entry that overlaps another */
   .bar.award { align-self: center; justify-self: center; width: 0.62rem; height: 0.62rem; margin: 0; background: var(--bg); border: 1.5px solid var(--ink); transform: rotate(45deg); }
   .bar.award::before { display: none; }
   .bar:focus-visible { outline: 1px dotted var(--ink); outline-offset: 4px; }
@@ -156,6 +157,8 @@
   .lbl .kick { display: none; }
   .lbl.award { padding-top: 0.55rem; }                                   /* awards: date and name on one line, the first above its diamond, the next below */
   .lbl.award.below { align-self: end; padding: 0 2px 0.55rem 0; }
+  .lbl.t1 { grid-column: var(--b) / -1; justify-self: start; text-align: left; align-self: end; padding: 0 0 0.2rem 0.55rem; }   /* the lower track's label sits after its bar */
+  .lbl.t1 .role { display: none; }
   .lbl.award .when { display: inline; margin: 0 0.6em 0 0; }
   .vis { display: inline-block; width: 0.5em; height: 0.6em; margin-left: 0.45em; background: var(--visual); clip-path: polygon(0 0, 100% 50%, 0 100%); }
 
@@ -190,12 +193,13 @@
     .now { grid-column: 1 / -1; grid-row: var(--a); border-left: 0; border-top: 1px dotted var(--ink-3); padding: 0; text-align: left; line-height: 1.6; }
     .bar, .bar.deep, .bar.brief { grid-column: var(--lane); grid-row: var(--a) / var(--b); align-self: stretch; justify-self: center; width: 0.5rem; height: auto; margin: 1.5px 0; }
     .bar.deep { width: 0.72rem; } .bar.brief { width: 0.28rem; }
+    .bar.lane-club { justify-self: start; margin-left: 0.35rem; } .bar.lane-club.t1 { justify-self: end; margin: 1.5px 0.35rem 1.5px 0; }
     .bar.award { grid-column: var(--lane); grid-row: var(--a) / var(--b); align-self: center; justify-self: center; width: 0.62rem; height: 0.62rem; margin: 0; }
     .bar::before { display: none; }
     .bar.approx { -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.28), #000 calc(var(--tcell) * 3), #000 calc(100% - var(--tcell) * 3), rgb(0 0 0 / 0.28)); }
     .bar.ongoing::after { left: 0; top: 100%; width: 100%; height: calc(var(--tcell) * 4); -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.6), transparent); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.6), transparent); }
     /* labels go in a column on the right, in date order; each says which lane it belongs to */
-    .lbl, .lbl.end, .lbl.award, .lbl.award.below { grid-column: 7; grid-row: var(--la) / span 2; align-self: start; justify-self: start; text-align: left; padding: 0 0 0 0.75rem; white-space: normal; display: flex; flex-direction: column; }
+    .lbl, .lbl.end, .lbl.award, .lbl.award.below, .lbl.t1 { grid-column: 7; grid-row: var(--la) / span 2; align-self: start; justify-self: start; text-align: left; padding: 0 0 0 0.75rem; white-space: normal; display: flex; flex-direction: column; }
     .lbl b { order: 1; } .lbl .role { display: none; }
     .lbl .when, .lbl.award .when { order: 2; display: block; margin: 0.1rem 0 0; white-space: nowrap; font-size: 0.66rem; }
     .lbl .kick { display: inline; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -257,12 +261,19 @@
     { lane: 'work', title: 'Hiconsy', role: 'AI R&D Intern', when: 'Jun 2025 – Jul 2026', href: 'work/hiconsy-lecture-asr/index.html', s: '2025-06', e: '2026-07', tier: 'deep', cls: '' },
     { lane: 'research', title: 'Energy cost model', long: 'Energy cost model for AI workloads', role: '', when: 'Sep 2025 – Jun 2026', href: 'work/energy-cost-model/story/index.html', visual: true, s: '2025-09', e: '2026-06', tier: 'standard', cls: '' },
     { lane: 'project', title: 'Tesla Jr.', role: 'Course project', when: 'May – Jun 2026', href: 'work/tesla-jr/story/index.html', visual: true, s: '2026-05', e: '2026-06', tier: 'standard', cls: '' },
-    { lane: 'club', title: 'GDGoC Ewha', role: 'General Member, AI', when: 'Sep 2025 – now', s: '2025-09', e: '2026-11', tier: 'brief', cls: 'ongoing' },
+    { lane: 'club', title: 'Ewha Taekwondo', role: 'Member', long: 'Ewha Taekwondo, a central club of about 50. 2nd place, women\'s team poomsae, SNU President\'s Cup 2023', when: 'Sep 2023 – Feb 2025', s: '2023-09', e: '2025-02', tier: 'brief', cls: '' },
+    { lane: 'club', title: 'UMC', role: 'iOS track', long: 'UMC, a cross-university IT club of 25 schools', when: 'Mar – Aug 2025', s: '2025-03', e: '2025-08', tier: 'brief', cls: '' },
+    { lane: 'club', title: 'GDGoC Ewha', role: 'AI track', long: 'GDGoC Ewha: AI track; PM and AI developer of SoundSight, Google Solution Challenge 2026', when: 'Sep 2025 – Aug 2026', s: '2025-09', e: '2026-08', tier: 'brief', cls: '' },
+    { lane: 'club', title: 'ACC Ewha', role: 'AWS Cloud Club', long: 'ACC Ewha (AWS Cloud Club), about 15 universities', when: 'Mar – Aug 2026', s: '2026-03', e: '2026-08', tier: 'brief', cls: '' },
     { lane: 'award', title: 'Startup Exploration Competition · Encouragement Award', long: 'Ewha Startup Exploration Competition, Encouragement Award (4th of 20)', role: '', when: 'Nov 2025', s: '2025-11', e: '2025-11', tier: 'brief', cls: 'award' },
     { lane: 'award', title: 'Boeing Capstone Innovation Award · Grand Prize', long: 'Boeing Capstone Innovation Award, Grand Prize (1st of 41)', role: '', when: 'Jun 2026', s: '2026-06', e: '2026-06', tier: 'brief', cls: 'award below' },
   ].sort((p, q) => idx(p.s) - idx(q.s));
   for (const it of items) { it.a = idx(it.s) + 1; it.b = idx(it.e) + 2; }
-  for (const it of items) for (const next of items) if (next !== it && next.lane === it.lane && next.a > it.a && next.a < it.b) it.b = next.a;
+  for (const it of items) it.track = 0;
+  for (const it of items) for (const next of items) if (next !== it && next.lane === it.lane && next.a > it.a && next.a < it.b) {
+    if (it.b - next.a <= 1) it.b = next.a;          // they share one month: the earlier one stops where the later one starts
+    else next.track = 1;                            // they really overlap: the later one goes on the lower track
+  }
   const grid = document.getElementById('grid'), readout = document.getElementById('readout');
   const el = (tag, cls, vars = {}, html = '') => {
     const n = document.createElement(tag); n.className = cls; n.innerHTML = html;
@@ -286,7 +297,7 @@
   let lastLabelRow = 0, lastLong = false;
   for (const it of items) {
     const a = it.a, b = it.b, lane = lanes.findIndex(l => l[0] === it.lane) + 2;
-    const bar = el(it.href ? 'a' : 'button', `bar ${it.tier} ${it.cls}`, { '--a': a, '--b': b, '--lane': lane }), part = { lane: lane - 2, els: [bar], fx: 0 };
+    const bar = el(it.href ? 'a' : 'button', `bar ${it.tier} ${it.cls} lane-${it.lane}${it.track ? ' t1' : ''}`, { '--a': a, '--b': b, '--lane': lane }), part = { lane: lane - 2, els: [bar], fx: 0 };
     parts.push(part);
     if (it.href) bar.href = it.href; else bar.type = 'button';
     bar.setAttribute('aria-label', `${it.long || it.title}${it.role ? ', ' + it.role : ''}, ${it.when}`);
@@ -296,7 +307,7 @@
       const la = Math.max(a, lastLabelRow + (lastLong ? 3 : 2)); lastLabelRow = la; lastLong = it.title.length > 24;   // narrow screens: keep stacked labels apart
       const award = it.cls.includes('award'), name = `<b>${it.href ? `<a href="${it.href}">${it.title}</a>` : it.title}${it.visual ? '<i class="vis" title="Has a visual explanation"></i>' : ''}</b>`;
       const when = `<span class="when"><span class="kick">${lanes[lane - 2][2]} · </span>${it.when}</span>`;
-      part.els.push(el('div', `lbl ${it.tier}${award ? ' ' + it.cls : ''}${award || a > N - 16 ? ' end' : ''}`, { '--a': a, '--b': b, '--lane': lane, '--la': la },
+      part.els.push(el('div', `lbl ${it.tier}${award ? ' ' + it.cls : ''}${it.track ? ' t1' : award || a > N - 16 ? ' end' : ''}`, { '--a': a, '--b': b, '--lane': lane, '--la': la },
         award ? when + name : name + (it.role ? `<span class="role">${it.role}</span>` : '') + when));
     }
   }
