@@ -424,7 +424,8 @@ const programme = (decks, { root, poster, href, note = "" }) => {
 ${years.map((y) => `<section class="year"><h2>${y}</h2><div class="line">${decks.filter((d) => yearOf(d) === y).sort((p, q) => dateOf(q) - dateOf(p)).map((d) => `<a class="poster" href="${href(d)}"><div class="pic"><img alt="" src="${poster(d)}" loading="lazy"></div><h3>${d.title}</h3><p>${d.when} · ${d.where}</p>${d.flag ? `<p class="flag">${d.flag}</p>` : ""}</a>`).join("")}</div></section>`).join("")}
 </div></main>` }).replace('aria-current="page">Experience', '>Experience').replace('keynotes/index.html">Keynotes', 'keynotes/index.html" aria-current="page">Keynotes');
 };
-out("keynotes/index.html", programme(DECKS, { root: "../", poster: (d) => `${d.slug}/poster.jpg`, href: (d) => `${d.slug}/index.html` }));
+// with no approved deck the section shows its "under construction" page
+out("keynotes/index.html", DECKS.length ? programme(DECKS, { root: "../", poster: (d) => `${d.slug}/poster.jpg`, href: (d) => `${d.slug}/index.html` }) : soonPage(["keynotes", "Keynotes", "Talks, playable in the page."]));
 
 // Local review only: KEYNOTE_REVIEW=<folder with review-decks.json, posters/ and the exports> lays out every candidate
 // deck the same way, so the author can choose before anything goes online. Nothing here is published.

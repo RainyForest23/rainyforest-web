@@ -70,27 +70,20 @@ th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px dotted var
 .row .who{margin:.1rem 0 0;font-size:var(--step--1);color:var(--ink-2)}.row .sum{margin:.4rem 0 0;color:var(--ink-2);max-width:40rem}
 .row .see{margin:.5rem 0 0}@media (min-width:48rem){.row .see{margin:0;flex-direction:column;align-items:flex-end;gap:.3rem}}
 footer{padding:1.5rem var(--gutter) 3rem;color:var(--ink-3);font-size:var(--step--1)}
+
+:root{--floor-lo:#18211d;--floor-hi:#2c3b34;--snake-2:#8a6a22;--snake-hi:#f3dd92;--tongue:#d2654e}
+html,body{height:100%}body{overflow:hidden}.soon{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main.soon-main{padding:clamp(2.5rem,9vh,6rem) var(--gutter) 0}
+.soon-text{width:fit-content;max-width:min(30rem,62%)}@media (min-width:45rem){.soon-text{max-width:min(30rem,52%)}}   /* the tree stands to the right of the words */
+.soon-text .kicker{margin:0 0 .5rem;font:var(--step--1) var(--mono);color:var(--snake);letter-spacing:.12em;text-transform:uppercase}
+.soon-text h1{font-size:clamp(2rem,1.3rem + 3.6vw,3.6rem)}
+.soon-text p{margin:1rem 0 0;color:var(--ink-2);text-wrap:pretty}
+.soon-text .links{display:flex;flex-wrap:wrap;gap:.4rem 1.5rem;margin-top:1.4rem;font-size:var(--step--1)}.soon-text .links a{color:var(--ink)}
 </style></head><body>
-<canvas class="forest" aria-hidden="true" data-rain="none"></canvas>
+<canvas class="soon" aria-hidden="true"></canvas>
 <nav class="nav" aria-label="Site"><a class="me" href="../index.html">Rainyforest</a><ul>
-<li><a href="../work/index.html" >Experience</a></li><li><a href="../study/index.html">Study</a></li><li><a href="../principles/index.html">Principles</a></li><li><a href="../keynotes/index.html" aria-current="page">Keynotes</a></li><li><a href="../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
-</ul><a class="lang" href="#" lang="ko">한국어</a></nav><style>
-.year{position:relative;margin-top:clamp(2.6rem,6vw,3.8rem)}
-.year::before{content:"";position:absolute;left:-1.5rem;right:-1.5rem;top:1.7rem;border-top:2px dotted var(--bark-hi)}      /* the line */
-.year h2{position:relative;display:inline-block;margin:0;padding:.15rem .55rem;font:600 var(--step--1) var(--mono);color:var(--bg);background:var(--bark-hi);transform:rotate(-2deg)}   /* the year, on a small board */
-.line{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13.5rem),1fr));gap:3.6rem 1.6rem;padding-top:1.9rem}
-.poster{display:block;text-decoration:none;transform-origin:50% -1.9rem;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
-.poster:nth-child(3n+1){transform:rotate(-.8deg)}.poster:nth-child(3n+2){transform:rotate(.5deg)}.poster:nth-child(3n){transform:rotate(-.3deg)}
-.poster:hover,.poster:focus-visible{transform:none}
-.poster .pic{position:relative;aspect-ratio:16/9;background:#000;outline:1px solid var(--ink-3)}
-.poster .pic::before,.poster .pic::after{content:"";position:absolute;bottom:100%;height:1.9rem;border-left:1px solid var(--ink-3)}   /* the two strings */
-.poster .pic::before{left:14%}.poster .pic::after{right:14%}
-.poster img{display:block;width:100%;height:100%;object-fit:cover}
-.poster h3{margin:.75rem 0 0;font-size:var(--step-0);font-weight:600;color:var(--ink)}
-.poster p{margin:.15rem 0 0;font:var(--step--1) var(--mono);color:var(--ink-3)}
-.poster .flag{color:#d2654e}
-@media (prefers-reduced-motion:reduce){.poster,.poster:nth-child(n){transform:none;transition:none}}
-</style><main><div class="wrap">
-<h1>Keynotes</h1><p class="lead">Talks and project presentations. Each one plays on the forest screen with its own animations, one step at a time.</p>
-<section class="year"><h2>2026</h2><div class="line"><a class="poster" href="tesla-jr/index.html"><div class="pic"><img alt="" src="tesla-jr/poster.jpg" loading="lazy"></div><h3>Tesla Jr.</h3><p>Jun 2026 · Intelligent Robotics, final presentation</p></a></div></section>
-</div></main><footer>A preview. The site is still being built.</footer><script src="../forest.js"></script></body></html>
+<li><a href="../work/index.html">Experience</a></li><li><a href="../study/index.html">Study</a></li><li><a href="../principles/index.html">Principles</a></li><li><a href="../keynotes/index.html" aria-current="page">Keynotes</a></li><li><a href="../blog/index.html">Blog</a></li><li><a href="#">CV</a></li>
+</ul><a class="lang" href="#" lang="ko">한국어</a></nav><main class="soon-main"><div class="soon-text"><p class="kicker">Keynotes</p><h1>Under construction</h1>
+<p>Talks, playable in the page.</p><p>Not built yet. The snake is on it.</p>
+<p class="links"><a href="../work/index.html">See the experience →</a><a href="../index.html">Home</a></p></div></main>
+<script src="../soon.js"></script></body></html>
